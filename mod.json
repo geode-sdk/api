@@ -1,0 +1,13 @@
+{
+    "geode":        1,
+	"version":      "v1.0.0",
+	"id":           "com.geode.api",
+    "name":         "Geode API",
+    "developer":    "Geode Team",
+    "description":  "Shared API utilities",
+    "details":      "Geode API, containing utilities & shared functionality such as custom keybinds support.",
+    "credits":      null,
+	"dependencies": null,
+    "binary":       "GeodeAPI",
+    "settings":     null
+}
