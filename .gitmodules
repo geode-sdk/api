@@ -1,3 +1,6 @@
 [submodule "sdk"]
 	path = sdk
 	url = https://github.com/geode-sdk/sdk
+[submodule "bin"]
+	path = bin
+	url = https://github.com/geode-sdk/bin

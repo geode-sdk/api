@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        ".gdmake": "json",
+        "*.bro": "objective-cpp",
+        "geode": "cpp"
+    }
+}

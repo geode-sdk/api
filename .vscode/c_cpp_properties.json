@@ -1,0 +1,44 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/gui",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/include",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/kazmath/include",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/platform/third_party/win32",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/platform/third_party/win32/OGLES",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/platform/third_party/win32/pthread",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/platform/third_party/win32/libwebp",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/platform/third_party/win32/libtiff",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/platform/third_party/win32/libjpeg",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/platform/third_party/win32/libpng",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/platform/third_party/win32/zlib",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/platform/third_party/win32/iconv",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/cocos2dx/platform/win32",
+                "${workspaceFolder}/sdk/SDK/Include/fmod",
+                "${workspaceFolder}/sdk/SDK/Include/cocos/extensions",
+                "${workspaceFolder}/sdk/SDK/Include/loader",
+                "${workspaceFolder}/sdk/SDK/Include/utils",
+                "${workspaceFolder}/sdk/SDK/Include",
+                "${workspaceFolder}/sdk/SDK/Include/base",
+                "${workspaceFolder}/sdk/SDK/Include/c++stl"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.18362.0",
+            "compilerPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Tools\\MSVC\\14.29.30133\\bin\\Hostx64\\x64\\cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
+        }
+    ],
+    "version": 4
+}
