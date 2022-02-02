@@ -13,7 +13,7 @@ namespace geode {
     };
     using KeybindResetFlags = int;
 
-    class GEODE_DLL KeybindManager {
+    class GEODE_API_DLL KeybindManager {
         protected:
             struct repeat_info {
                 float time;
@@ -32,9 +32,8 @@ namespace geode {
             std::unordered_map<keybind_action_id, KeybindList>  m_mLoadedBinds;
             std::unordered_map<keybind_action_id, repeat_info>  m_mRepeat;
             std::unordered_map<keybind_category_id, category_info>m_mCategoryInfo;
-            Keybind::ModifierFlags                              m_nPreviousModifiers = Keybind::Modifiers::None;
-            std::unordered_set<MouseButton>                     m_vPressedMice;
-            std::unordered_set<cocos2d::enumKeyCodes>           m_vPressedKeys;
+            Keybind::Modifiers                                  m_nPreviousModifiers = Keybind::Modifiers::None;
+            std::unordered_set<Input>                           m_vPressedKeys;
             static constexpr int s_nVersion = 3;
 
             bool init();

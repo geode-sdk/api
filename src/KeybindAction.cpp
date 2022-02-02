@@ -1,4 +1,5 @@
 #include <Geode>
+#include <Keybind.hpp>
 
 USE_GEODE_NAMESPACE();
 

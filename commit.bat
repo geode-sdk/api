@@ -22,6 +22,16 @@ if "%1"=="pull" (
     git commit -a
     git push origin main
 
+    echo ""
+    echo "==== geode/bin ===="
+    echo ""
+
+    cd ../bin
+
+    git add --all
+    git commit -a
+    git push origin main
+
     echo "==== geode/api ===="
     echo ""
 

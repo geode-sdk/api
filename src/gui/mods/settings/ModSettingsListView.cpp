@@ -1,4 +1,5 @@
 #include "ModSettingsListView.hpp"
+#include "SettingNodeManager.hpp"
 
 bool ModSettingsListView::init(Mod* mod, float width, float height) {
 	this->m_mod = mod;
@@ -8,7 +9,7 @@ bool ModSettingsListView::init(Mod* mod, float width, float height) {
 
 	float offset = 0.f;
 	for (auto const& sett : mod->getSettings()) {
-		auto node = sett->generate(width);
+		auto node = SettingNodeManager::get()->generateNode(mod, sett, width);
 		if (node) {
 			// otherwise causes crashes idk
 			node->m_tableView = nullptr;

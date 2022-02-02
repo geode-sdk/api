@@ -1,4 +1,5 @@
 #include <Geode>
+#include <KeybindManager.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -145,7 +146,7 @@ void KeybindManager::clearKeybinds(
 void KeybindManager::clearActions(
     Keybind const& bind
 ) {
-    if (bind.key != KEY_None && m_mKeybinds.count(bind))
+    if (bind.input.isntNone() && m_mKeybinds.count(bind))
         m_mKeybinds.erase(bind);
 }
 
@@ -320,12 +321,8 @@ bool KeybindManager::isModifierPressed(keybind_action_id const& id) {
     auto binds = this->getKeybindsForAction(id);
     bool res = false;
     for (auto const& bind : binds) {
-        if (bind.key != KEY_None) {
-            if (!this->m_vPressedKeys.count(bind.key)) {
-                res = false;
-            }
-        } else if (bind.mouse != kMouseButtonNone) {
-            if (!this->m_vPressedMice.count(bind.mouse)) {
+        if (bind.input.isntNone()) {
+            if (!this->m_vPressedKeys.count(bind.input)) {
                 res = false;
             }
         }
@@ -333,22 +330,22 @@ bool KeybindManager::isModifierPressed(keybind_action_id const& id) {
         auto kbd = CCDirector::sharedDirector()->getKeyboardDispatcher();
 
         if (
-            static_cast<bool>(bind.modifiers & bind.kmControl) &&
+            bind.modifiers.has(Keybind::Modifiers::Control) &&
             !kbd->getControlKeyPressed()
         ) res = false;
 
         if (
-            static_cast<bool>(bind.modifiers & bind.kmCommand) &&
+            static_cast<bool>(Keybind::Modifiers::Command) &&
             !kbd->getCommandKeyPressed()
         ) res = false;
 
         if (
-            static_cast<bool>(bind.modifiers & bind.kmShift) &&
+            static_cast<bool>(Keybind::Modifiers::Shift) &&
             !kbd->getShiftKeyPressed()
         ) res = false;
 
         if (
-            static_cast<bool>(bind.modifiers & bind.kmAlt) &&
+            static_cast<bool>(Keybind::Modifiers::Alt) &&
             !kbd->getAltKeyPressed()
         ) res = false;
 
@@ -401,9 +398,9 @@ void KeybindManager::registerKeyPress(cocos2d::enumKeyCodes key, bool down) {
 
 void KeybindManager::registerMousePress(MouseButton btn, bool down) {
     if (down) {
-        this->m_vPressedMice.insert(btn);
+        this->m_vPressedKeys.insert(btn);
     } else {
-        this->m_vPressedMice.erase(btn);
+        this->m_vPressedKeys.erase(btn);
     }
 }
 

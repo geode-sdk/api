@@ -1,5 +1,6 @@
 #include <Geode>
 #include "keybinds/KeybindManager.hpp"
+#include "settings/CustomSettingNode.hpp"
 
 namespace geode {
     class GeodeAPI : public APIMod {
@@ -34,5 +35,10 @@ namespace geode {
          * removed, false if not.
          */
         bool removeKeybindAction(keybind_action_id const& id);
+
+        Result<> setCustomSettingNode(
+            std::string const& key,
+            CustomSettingNodeGenerator generator
+        );
     };
 }

@@ -1,5 +1,5 @@
 #include <Geode>
-#include <InternalMod.hpp>
+#include <KeybindManager.hpp>
 
 USE_GEODE_NAMESPACE();
 using namespace std::literals::string_literals;
@@ -11,8 +11,8 @@ using namespace std::literals::string_literals;
 #define EDIT_ACTION(...) CLICKED( UI( NO_PLAY( __VA_ARGS__ ) ) )
 #define BINDS(...) { __VA_ARGS__ }
 #define BIND(...) { { __VA_ARGS__ } }
-#define KB(_mod_, _key_) { KEY_##_key_, Keybind::km##_mod_ }
-#define KBS(_mod_, _key_) { { KEY_##_key_, Keybind::km##_mod_ } }
+#define KB(_mod_, _key_) { KEY_##_key_, Keybind::Modifiers::##_mod_ }
+#define KBS(_mod_, _key_) { { KEY_##_key_, Keybind::Modifiers::##_mod_ } }
 
 #define ADD_EDITOR_KB(_name_, _id_, _sub_, _func_, _desc_, _binds_)    \
     this->addKeybindAction(owner, TriggerableAction {   \
@@ -24,7 +24,7 @@ using namespace std::literals::string_literals;
 
 
 void KeybindManager::loadDefaultKeybinds() {
-    auto owner = InternalMod::get();
+    auto owner = Loader::getInternalMod();
 
     this->setCategoryName(KB_PLAY_CATEGORY,   "Play");
     this->setCategoryName(KB_EDITOR_CATEGORY, "Editor");
@@ -164,7 +164,7 @@ void KeybindManager::loadDefaultKeybinds() {
         KB_SUBCATEGORY_GLOBAL,
         "When the Swipe Modifier is enabled, clicking anywhere "
         "in the editor enables swipe until the mouse is released"
-    }, {{ Keybind::kmShift }});
+    }, {{ Keybind::Modifiers::Shift }});
 
     this->addKeybindAction(owner, KeybindModifier { "Move Modifier",
         "gd.edit.move_modifier",
@@ -180,7 +180,7 @@ void KeybindManager::loadDefaultKeybinds() {
         KB_SUBCATEGORY_GLOBAL,
         "When you press with the mouse, Free Move is enabled "
         "until the mouse button is released"
-    }, {{ Keybind::kmControl }});
+    }, {{ Keybind::Modifiers::Control }});
 
     this->addKeybindAction(owner, KeybindModifier { "Copy Modifier",
         "gd.edit.duplicate_modifier",
@@ -189,7 +189,7 @@ void KeybindManager::loadDefaultKeybinds() {
         "When you press with the mouse, the selected object(s) are"
         "duplicated and Free Move is enabled until the mouse "
         "button is released"
-    }, {{ Keybind::kmControl | Keybind::kmAlt }});
+    }, {{ Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});
 
     { ADD_EDITOR_KB( "Rotate CCW",
         "gd.edit.rotate_ccw",
@@ -248,7 +248,7 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->undoLastAction(nullptr);
         ),
         "Undo Last Action",
-        BIND( KEY_Z, Keybind::kmControl )
+        BIND( KEY_Z, Keybind::Modifiers::Control )
     ); }
 
     { ADD_EDITOR_KB( "Redo",
@@ -258,7 +258,7 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->redoLastAction(nullptr);
         ),
         "Redo Last Action",
-        BIND( KEY_Z, Keybind::kmControl | Keybind::kmShift )
+        BIND( KEY_Z, Keybind::Modifiers::Control | Keybind::Modifiers::Shift )
     ); }
 
     { ADD_EDITOR_KB( "Deselect All",
@@ -268,7 +268,7 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->deselectAll();
         ),
         "Deselect All Selected Objects",
-        BIND( KEY_D, Keybind::kmAlt )
+        BIND( KEY_D, Keybind::Modifiers::Alt )
     ); }
 
     { ADD_EDITOR_KB( "Copy",
@@ -278,7 +278,7 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->onCopy(nullptr);
         ),
         "Copy Selected Objects",
-        BIND( KEY_C, Keybind::kmControl )
+        BIND( KEY_C, Keybind::Modifiers::Control )
     ); }
 
     { ADD_EDITOR_KB( "Paste",
@@ -288,7 +288,7 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->onPaste(nullptr);
         ),
         "Paste Copied Objects",
-        BIND( KEY_V, Keybind::kmControl )
+        BIND( KEY_V, Keybind::Modifiers::Control )
     ); }
 
     { ADD_EDITOR_KB( "Duplicate",
@@ -298,7 +298,7 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->onDuplicate(nullptr);
         ),
         "Copy + Paste Selected Objects",
-        BIND( KEY_D, Keybind::kmControl )
+        BIND( KEY_D, Keybind::Modifiers::Control )
     ); }
 
     { ADD_EDITOR_KB( "Rotate",
@@ -364,7 +364,7 @@ void KeybindManager::loadDefaultKeybinds() {
             }
         )),
         "Begin / Stop Playing the Level's Music",
-        BIND( KEY_Enter, Keybind::kmControl )
+        BIND( KEY_Enter, Keybind::Modifiers::Control )
     ); }
 
     { ADD_EDITOR_KB( "Previous Build Tab",
@@ -440,7 +440,7 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->zoomIn(nullptr);
         ),
         "Zoom In",
-        BIND( KEY_OEMPlus, Keybind::kmShift )
+        BIND( KEY_OEMPlus, Keybind::Modifiers::Shift )
     ); }
 
     { ADD_EDITOR_KB( "Zoom Out",
@@ -450,7 +450,7 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->zoomOut(nullptr);
         ),
         "Zoom Out",
-        BIND( KEY_OEMMinus, Keybind::kmShift )
+        BIND( KEY_OEMMinus, Keybind::Modifiers::Shift )
     ); }
 
     { ADD_EDITOR_KB( "Object Left",
@@ -500,7 +500,7 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->moveObjectCall(EditCommand::SmallLeft);
         ),
         "Move Object Left 2 Units",
-        BIND( KEY_A, Keybind::kmShift )
+        BIND( KEY_A, Keybind::Modifiers::Shift )
     ); }
 
     { ADD_EDITOR_KB( "Object Right Small",
@@ -510,7 +510,7 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->moveObjectCall(EditCommand::SmallRight);
         ),
         "Move Object Right 2 Units",
-        BIND( KEY_D, Keybind::kmShift )
+        BIND( KEY_D, Keybind::Modifiers::Shift )
     ); }
 
     { ADD_EDITOR_KB( "Object Up Small",
@@ -520,7 +520,7 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->moveObjectCall(EditCommand::SmallUp);
         ),
         "Move Object Up 2 Units",
-        BIND( KEY_W, Keybind::kmShift )
+        BIND( KEY_W, Keybind::Modifiers::Shift )
     ); }
 
     { ADD_EDITOR_KB( "Object Down Small",
@@ -530,6 +530,6 @@ void KeybindManager::loadDefaultKeybinds() {
             ui->moveObjectCall(EditCommand::SmallDown);
         ),
         "Move Object Down 2 Units",
-        BIND( KEY_S, Keybind::kmShift )
+        BIND( KEY_S, Keybind::Modifiers::Shift )
     ); }
 }

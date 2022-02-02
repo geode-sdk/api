@@ -1,5 +1,4 @@
 #include "hook.hpp"
-#include <Internal.hpp>
 
 // class $modify(CCKeyboardDispatcher) {
 //     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {

@@ -2,6 +2,7 @@
 
 #pragma warning(disable: 4251)
 
+#include "../APIMacros.hpp"
 #include <Geode>
 #include "MouseButton.hpp"
 #include <set>
@@ -16,30 +17,86 @@ struct EditorUI;
 struct LevelEditorLayer;
 
 namespace geode {
-    GEODE_DLL std::string keyToStringFixed(cocos2d::enumKeyCodes code);
+    GEODE_API_DLL std::string keyToStringFixed(cocos2d::enumKeyCodes code);
 
-    struct GEODE_DLL Input {
+    struct GEODE_API_DLL Input {
+        enum class Type {
+            None,
+            Key,
+            Mouse,
+        };
+
+        Type type = Type::None;
         cocos2d::enumKeyCodes key = cocos2d::KEY_None;
         MouseButton mouse = MouseButton::None;
 
         Input& operator=(cocos2d::enumKeyCodes key);
         Input& operator=(MouseButton mouse);
+
+        bool operator==(Input const& other) const;
+
+        Input() = default;
+        Input(cocos2d::enumKeyCodes key);
+        Input(MouseButton mouse);
         
         std::string toString() const;
-    };
 
-    struct GEODE_DLL Keybind {
-        enum class Modifiers : int {
-            None      = 0,
-            Control   = 1,
-            Shift     = 2,
-            Alt       = 4,
-            Command   = 8,
+        bool isntNone() const;
+    };
+}
+
+namespace std {
+    template<>
+    struct hash<geode::Input> {
+        GEODE_API_DLL std::size_t operator()(geode::Input const&) const;
+    };
+}
+
+namespace geode {
+    struct GEODE_API_DLL Keybind {
+        struct Modifiers {
+            enum : int {
+                None      = 0,
+                Control   = 1,
+                Shift     = 2,
+                Alt       = 4,
+                Command   = 8,
+            };
+
+            using Type = decltype(None);
+
+            int m_value = 0;
+            inline int value() const { return m_value; }
+            inline operator int() { return m_value; }
+            inline bool has(Type m) const { return m_value & m; }
+            inline Modifiers& operator=(Type m) {
+                m_value = m;
+                return *this;
+            }
+            inline Modifiers& operator|=(Type m) {
+                m_value |= m;
+                return *this;
+            }
+            inline Modifiers& operator=(int m) {
+                m_value = m;
+                return *this;
+            }
+            inline bool operator<(Modifiers const& other) const {
+                return m_value < other.m_value;
+            }
+            inline bool operator==(Modifiers const& other) const {
+                return m_value == other.m_value;
+            }
+            Modifiers(Type m) {
+                m_value = m;
+            }
+            Modifiers() {
+                m_value = 0;
+            }
         };
-        using ModifierFlags = Modifiers;
 
         Input input;
-        ModifierFlags modifiers;
+        Modifiers modifiers;
 
         bool operator==(Keybind const&) const;
         bool operator<(Keybind const&) const;
@@ -60,7 +117,7 @@ namespace geode {
 namespace std {
     template<>
     struct hash<geode::Keybind> {
-        GEODE_DLL std::size_t operator()(geode::Keybind const&) const;
+        GEODE_API_DLL std::size_t operator()(geode::Keybind const&) const;
     };
 }
 
@@ -69,7 +126,7 @@ namespace geode {
 
     using KeybindList = std::unordered_set<Keybind>;
 
-    struct GEODE_DLL keybind_action_id {
+    struct GEODE_API_DLL keybind_action_id {
         std::string m_value;
         keybind_action_id();
         keybind_action_id(std::string const&);
@@ -84,7 +141,7 @@ namespace geode {
         keybind_action_id operator=(std::nullptr_t const&);
     };
 
-    struct GEODE_DLL keybind_category_id {
+    struct GEODE_API_DLL keybind_category_id {
         std::string m_value;
         keybind_category_id();
         keybind_category_id(std::string const&);
@@ -105,7 +162,7 @@ namespace geode {
      * keybind.
      * @struct KeybindAction
      */
-    struct GEODE_DLL KeybindAction {
+    struct GEODE_API_DLL KeybindAction {
         /**
          * Mod that created this action. Cannot 
          * be nullptr; if ít is, the action will 
@@ -174,7 +231,7 @@ namespace geode {
      * `modifiers + key`, or `key`.
      * @struct KeybindModifier
      */
-    struct GEODE_DLL KeybindModifier : public KeybindAction {
+    struct GEODE_API_DLL KeybindModifier : public KeybindAction {
         KeybindModifier() = delete;
         KeybindModifier(
             std::string         const& name,
@@ -201,7 +258,7 @@ namespace geode {
      * `key`.
      * @struct TriggerableAction
      */
-    struct GEODE_DLL TriggerableAction : public KeybindAction {
+    struct GEODE_API_DLL TriggerableAction : public KeybindAction {
         std::function<bool(cocos2d::CCNode*, bool)> action = nullptr;
         std::function<bool(cocos2d::CCNode*, keybind_category_id const&, bool)> actionWithID = nullptr;
 
@@ -269,7 +326,7 @@ namespace geode {
      * released.
      * @struct RepeatableAction
      */
-    struct GEODE_DLL RepeatableAction : public TriggerableAction {
+    struct GEODE_API_DLL RepeatableAction : public TriggerableAction {
         bool repeatChanged  = false;
         bool repeat         = true;
         int  repeatInterval = 100;
@@ -302,18 +359,18 @@ namespace geode {
     constexpr const char* KB_SUBCATEGORY_UI     = "ui";
     constexpr const char* KB_SUBCATEGORY_MODIFY = "modify";
 
-    GEODE_DLL std::ostream& operator<<(std::ostream& stream, Keybind const& bind);
-    GEODE_DLL std::ostream& operator<<(std::ostream& stream, keybind_action_id const& id);
-    GEODE_DLL std::ostream& operator<<(std::ostream& stream, keybind_category_id const& id);
+    GEODE_API_DLL std::ostream& operator<<(std::ostream& stream, Keybind const& bind);
+    GEODE_API_DLL std::ostream& operator<<(std::ostream& stream, keybind_action_id const& id);
+    GEODE_API_DLL std::ostream& operator<<(std::ostream& stream, keybind_category_id const& id);
 }
 
 namespace std {
     template<>
     struct hash<geode::keybind_category_id> {
-        GEODE_DLL std::size_t operator()(geode::keybind_category_id const&) const;
+        GEODE_API_DLL std::size_t operator()(geode::keybind_category_id const&) const;
     };
     template<>
     struct hash<geode::keybind_action_id> {
-        GEODE_DLL std::size_t operator()(geode::keybind_action_id const&) const;
+        GEODE_API_DLL std::size_t operator()(geode::keybind_action_id const&) const;
     };
 }

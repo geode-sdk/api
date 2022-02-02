@@ -1,4 +1,5 @@
 #include <Geode>
+#include <Keybind.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -23,25 +24,25 @@ std::string geode::keyToStringFixed(enumKeyCodes code) {
 
 bool Keybind::operator==(Keybind const& other) const {
     return
-        other.key == this->key &&
+        other.input.key == this->input.key &&
         other.modifiers == this->modifiers &&
-        other.mouse == this->mouse;
+        other.input.mouse == this->input.mouse;
 }
 
 bool Keybind::operator<(Keybind const& other) const {
     return
-        this->key < other.key ||
+        this->input.key < other.input.key ||
         this->modifiers < other.modifiers ||
-        this->mouse << other.mouse;
+        this->input.mouse < other.input.mouse;
 }
 
 std::string Keybind::toString() const {
     std::string res = "";
 
-    if (this->modifiers & static_cast<int>(Modifiers::Control))    res += "Ctrl + ";
-    if (this->modifiers & Modifiers::Command)    res += "Command + ";
-    if (this->modifiers & Modifiers::Alt)        res += "Alt + ";
-    if (this->modifiers & Modifiers::Shift)      res += "Shift + ";
+    if (this->modifiers.has(Modifiers::Control))    res += "Ctrl + ";
+    if (this->modifiers.has(Modifiers::Command))    res += "Command + ";
+    if (this->modifiers.has(Modifiers::Alt))        res += "Alt + ";
+    if (this->modifiers.has(Modifiers::Shift))      res += "Shift + ";
 
     std::string r = "";
 
@@ -67,12 +68,38 @@ std::string Input::toString() const {
     }
 }
 
+Input::Input(cocos2d::enumKeyCodes key) {
+    *this = key;
+}
+
+Input::Input(MouseButton mouse) {
+    *this = mouse;
+}
+
 Input& Input::operator=(cocos2d::enumKeyCodes key) {
     this->key = key;
+    this->type = Type::Key;
+    return *this;
 }
 
 Input& Input::operator=(MouseButton mouse) {
     this->mouse = mouse;
+    this->type = Type::Mouse;
+    return *this;
+}
+
+bool Input::operator==(Input const& other) const {
+    if (this->type != other.type) return false;
+    switch (this->type) {
+        case Type::Key:   return this->key == other.key;
+        case Type::Mouse: return this->mouse == other.mouse;
+        case Type::None:  return true;
+    }
+    return false;
+}
+
+bool Input::isntNone() const {
+    return this->key != KEY_None || this->mouse != MouseButton::None;
 }
 
 Keybind::Keybind() {
@@ -109,7 +136,7 @@ Keybind::Keybind(Input const& pressed, Modifiers mods) {
 
 Keybind::Keybind(Input const& pressed, int mods) {
     this->input = pressed;
-    this->modifiers = static_cast<Modifiers>(mods);
+    this->modifiers = mods;
 }
 
 Keybind::Keybind(Modifiers mods) {
@@ -117,7 +144,7 @@ Keybind::Keybind(Modifiers mods) {
 }
 
 Keybind::Keybind(int mods) {
-    this->modifiers = static_cast<Modifiers>(mods);
+    this->modifiers = mods;
 }
 
 Keybind::Keybind(DS_Dictionary* dict, int version) {
@@ -190,10 +217,18 @@ bool keybind_action_id::operator==(keybind_action_id const& other) const {
 }
 
 std::size_t std::hash<Keybind>::operator()(Keybind const& key) const {
-    return (key.key << 8) + (key.modifiers << 4) + (key.mouse);
+    return (key.modifiers.value()) + (std::hash<Input>{}(key.input) << 4);
 }
 
 std::size_t std::hash<keybind_action_id>::operator()(keybind_action_id const& key) const {
     return std::hash<decltype(key.m_value)>()(key.m_value);
+}
+
+std::size_t std::hash<Input>::operator()(Input const& inp) const {
+    switch (inp.type) {
+        case Input::Type::Mouse: return static_cast<size_t>(inp.type) + (static_cast<size_t>(inp.mouse) << 2);
+        case Input::Type::Key:   return static_cast<size_t>(inp.type) + (inp.key << 2);
+    }
+    return 0;
 }
 

@@ -1,5 +1,4 @@
 #include "DevSettingsLayer.hpp"
-#include <Internal.hpp>
 
 bool DevSettingsLayer::init(Mod* mod) {
     if (!GJDropDownLayer::init("Dev Settings", 220.f))
@@ -13,7 +12,7 @@ bool DevSettingsLayer::init(Mod* mod) {
 	GameToolbox::createToggleButton(
 		"Enable Hot Reload",
 		menu_selector(DevSettingsLayer::onEnableHotReload),
-		Geode::get()->isHotReloadEnabled(mod), menu, 
+		mod->isHotReloadEnabled(), menu, 
 		{ winSize.width / 2 - 40.f, winSize.height / 2 + 40.f },
 		this, menu, .75f, .5f, 100.f, { 10, 0 }, nullptr,
 		false, 0, nullptr
@@ -22,9 +21,9 @@ bool DevSettingsLayer::init(Mod* mod) {
 	this->m_input = CCTextInputNode::create(
 		200.f, 50.f, "Path to .geode file", "chatFont.fnt"
 	);
-	auto path = Geode::get()->getHotReloadPath(mod);
-	if (path.size()) {
-		this->m_input->setString(path.c_str());
+	auto path = mod->getHotReloadPath();
+	if (!path.empty()) {
+		this->m_input->setString(path.string());
 	}
 	this->m_input->setAllowedChars("0123456789.:-_/\\()[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ{|!}");
 	this->m_input->setPosition(winSize.width / 2, winSize.height / 2);
@@ -56,7 +55,7 @@ void DevSettingsLayer::onEnableHotReload(CCObject* pSender) {
 			)->show();
 			as<CCMenuItemToggler*>(pSender)->toggle(true);
 		} else {
-			auto res = Geode::get()->enableHotReload(this->m_mod, path);
+			auto res = this->m_mod->enableHotReload();
 			if (!res) {
 				FLAlertLayer::create(
 					"Error",
@@ -66,7 +65,7 @@ void DevSettingsLayer::onEnableHotReload(CCObject* pSender) {
 			}
 		}
 	} else {
-		Geode::get()->disableHotReload(this->m_mod);
+		this->m_mod->disableHotReload();
 	}
 }
 

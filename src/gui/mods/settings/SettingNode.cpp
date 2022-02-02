@@ -4,11 +4,6 @@
 
 USE_GEODE_NAMESPACE();
 
-#define GEODE_GENERATE_SETTING_NODE(setting)                \
-	TableViewCell* setting::generate(float width) {         \
-		return setting##Node::create(this, width);          \
-	}
-
 #define GEODE_GENERATE_SETTING_CREATE(_sett_, _height_)                \
 	_sett_##Node* _sett_##Node::create(_sett_* setting, float width) { \
 		auto ret = new _sett_##Node(width, _height_);                  \
@@ -17,10 +12,6 @@ USE_GEODE_NAMESPACE();
 			return ret;                                                \
 		} CC_SAFE_DELETE(ret); return nullptr; }
 	
-
-#define GEODE_GENERATE_SETTING_STUFF(_sett_, _height_) \
-	GEODE_GENERATE_SETTING_CREATE(_sett_, _height_);   \
-	GEODE_GENERATE_SETTING_NODE(_sett_);
 
 // bool
 
@@ -32,14 +23,14 @@ bool BoolSettingNode::init(BoolSetting* setting) {
 		this, menu_selector(BoolSettingNode::onToggle), .8f
 	);
 	toggle->setPosition(0, 0);
-	toggle->toggle(setting->m_value);
+	toggle->toggle(setting->getValue());
 	m_buttonMenu->addChild(toggle);
 
 	return true;
 }
 
 void BoolSettingNode::onToggle(CCObject* pSender) {
-	this->m_setting->m_value = !as<CCMenuItemToggler*>(pSender)->isToggled();
+	this->m_setting->setValue(!as<CCMenuItemToggler*>(pSender)->isToggled());
 }
 
 // int
@@ -53,7 +44,7 @@ bool IntSettingNode::init(IntSetting* setting) {
 	m_valueLabel->setScale(.5f);
 	m_buttonMenu->addChild(m_valueLabel);
 
-	if (setting->m_arrows) {
+	if (setting->hasArrows()) {
 		auto decSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
 		decSpr->setScale(.6f);
 		decSpr->setFlipX(true);
@@ -82,18 +73,18 @@ bool IntSettingNode::init(IntSetting* setting) {
 }
 
 void IntSettingNode::onArrow(CCObject* pSender) {
-	m_setting->m_value += pSender->getTag();
-	if (m_setting->m_value < m_setting->m_min) {
-		m_setting->m_value = m_setting->m_min;
+	m_setting->setValue(m_setting->getValue() + pSender->getTag());
+	if (m_setting->getValue() < m_setting->getMin()) {
+		m_setting->setValue(m_setting->getMin());
 	}
-	if (m_setting->m_value > m_setting->m_max) {
-		m_setting->m_value = m_setting->m_max;
+	if (m_setting->getValue() > m_setting->getMax()) {
+		m_setting->setValue(m_setting->getMax());
 	}
 	this->updateValue();
 }
 
 void IntSettingNode::updateValue() {
-	m_valueLabel->setString(std::to_string(m_setting->m_value).c_str());
+	m_valueLabel->setString(std::to_string(m_setting->getValue()).c_str());
 }
 
 // float
@@ -107,7 +98,7 @@ bool FloatSettingNode::init(FloatSetting* setting) {
 	m_valueLabel->setScale(.5f);
 	m_buttonMenu->addChild(m_valueLabel);
 
-	if (setting->m_arrows) {
+	if (setting->hasArrows()) {
 		auto decSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
 		decSpr->setScale(.6f);
 		decSpr->setFlipX(true);
@@ -136,18 +127,18 @@ bool FloatSettingNode::init(FloatSetting* setting) {
 }
 
 void FloatSettingNode::onArrow(CCObject* pSender) {
-	m_setting->m_value += pSender->getTag();
-	if (m_setting->m_value < m_setting->m_min) {
-		m_setting->m_value = m_setting->m_min;
+	m_setting->setValue(m_setting->getValue() + pSender->getTag());
+	if (m_setting->getValue() < m_setting->getMin()) {
+		m_setting->setValue(m_setting->getMin());
 	}
-	if (m_setting->m_value > m_setting->m_max) {
-		m_setting->m_value = m_setting->m_max;
+	if (m_setting->getValue() > m_setting->getMax()) {
+		m_setting->setValue(m_setting->getMax());
 	}
 	this->updateValue();
 }
 
 void FloatSettingNode::updateValue() {
-	m_valueLabel->setString(std::to_string(m_setting->m_value).c_str());
+	m_valueLabel->setString(std::to_string(m_setting->getValue()).c_str());
 }
 
 // string
@@ -224,15 +215,11 @@ CustomSettingPlaceHolderNode* CustomSettingPlaceHolderNode::create(CustomSetting
 	return nullptr;
 }
 
-TableViewCell* CustomSettingPlaceHolder::generate(float width) {
-	return CustomSettingPlaceHolderNode::create(this, width); 
-}
-
-GEODE_GENERATE_SETTING_STUFF(BoolSetting, 30.f);
-GEODE_GENERATE_SETTING_STUFF(IntSetting, 30.f);
-GEODE_GENERATE_SETTING_STUFF(FloatSetting, 30.f);
-GEODE_GENERATE_SETTING_STUFF(StringSetting, 30.f);
-GEODE_GENERATE_SETTING_STUFF(ColorSetting, 30.f);
-GEODE_GENERATE_SETTING_STUFF(ColorAlphaSetting, 30.f);
-GEODE_GENERATE_SETTING_STUFF(PathSetting, 30.f);
-GEODE_GENERATE_SETTING_STUFF(StringSelectSetting, 30.f);
+GEODE_GENERATE_SETTING_CREATE(BoolSetting, 30.f);
+GEODE_GENERATE_SETTING_CREATE(IntSetting, 30.f);
+GEODE_GENERATE_SETTING_CREATE(FloatSetting, 30.f);
+GEODE_GENERATE_SETTING_CREATE(StringSetting, 30.f);
+GEODE_GENERATE_SETTING_CREATE(ColorSetting, 30.f);
+GEODE_GENERATE_SETTING_CREATE(ColorAlphaSetting, 30.f);
+GEODE_GENERATE_SETTING_CREATE(PathSetting, 30.f);
+GEODE_GENERATE_SETTING_CREATE(StringSelectSetting, 30.f);
