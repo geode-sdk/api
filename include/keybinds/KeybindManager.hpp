@@ -3,6 +3,8 @@
 #include "Keybind.hpp"
 
 namespace geode {
+    class GeodeAPI;
+    
     enum KeybindReset {
         kfKeybindResetAll                   = 0b1,
         kfKeybindResetWithDefaults          = 0b10,
@@ -48,7 +50,7 @@ namespace geode {
             );
             bool removeKeybindAction(Mod* remover, keybind_action_id const& id);
 
-            friend class Mod;
+            friend class GeodeAPI;
         
         public:
             static KeybindManager* get();

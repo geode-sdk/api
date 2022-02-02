@@ -1,5 +1,7 @@
 #include <GeodeAPI.hpp>
 
+USE_GEODE_NAMESPACE();
+
 bool GeodeAPI::addKeybindAction(
     KeybindAction     const& action,
     KeybindList       const& defaults,

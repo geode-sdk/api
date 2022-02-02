@@ -7,6 +7,9 @@ if "%1"=="pull" (
     cd sdk
     git pull origin main
 
+    cd ../bin
+    git pull origin main
+
 ) else (
 
     echo ""

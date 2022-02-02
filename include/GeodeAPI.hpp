@@ -1,4 +1,5 @@
 #include <Geode>
+#include "keybinds/KeybindManager.hpp"
 
 namespace geode {
     class GeodeAPI : public APIMod {

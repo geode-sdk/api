@@ -2,11 +2,7 @@
 
 #pragma warning(disable: 4251)
 
-#include "../utils/general.hpp"
-#include "../utils/casts.hpp"
-#include <cocos2d.h>
-#include <string>
-
+#include <Geode>
 #include "MouseButton.hpp"
 #include <set>
 #include <unordered_set>
@@ -33,9 +29,6 @@ namespace geode {
     };
 
     struct GEODE_DLL Keybind {
-        using ModifierFlags = int;
-
-        Input input;
         enum class Modifiers : int {
             None      = 0,
             Control   = 1,
@@ -43,6 +36,9 @@ namespace geode {
             Alt       = 4,
             Command   = 8,
         };
+        using ModifierFlags = Modifiers;
+
+        Input input;
         ModifierFlags modifiers;
 
         bool operator==(Keybind const&) const;
