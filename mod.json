@@ -5,7 +5,7 @@
     "name":         "Geode API",
     "developer":    "Geode Team",
     "description":  "Shared API utilities",
-    "details":      "Geode API, containing utilities & shared functionality such as custom keybinds support.",
+    "details":      "Geode API, containing utilities & shared functionality such as custom keybinds support. What if I make this description very long what happens",
     "credits":      null,
 	"dependencies": null,
     "binary":       "GeodeAPI",

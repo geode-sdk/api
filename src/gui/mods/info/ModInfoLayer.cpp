@@ -52,7 +52,7 @@ bool ModInfoLayer::init(Mod* mod) {
 
     auto descLabel = TextArea::create(
         desc, "chatFont.fnt", 
-        1.0f, 330.f, { .5f, .5f }, 50.f, false
+        1.f, 325.f, { .5f, .5f }, 16.f, false
     );
     descLabel->setPosition({ winSize.width / 2, winSize.height / 2 + 30.f });
     this->m_mainLayer->addChild(descLabel, 2);
