@@ -82,5 +82,8 @@
         "xstring": "cpp",
         "xtr1common": "cpp",
         "xtree": "cpp"
+    },
+    "[Log]": {
+        "editor.wordWrap": "on"
     }
 }

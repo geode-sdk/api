@@ -9,5 +9,13 @@
     "credits":      null,
 	"dependencies": null,
     "binary":       "GeodeAPI",
-    "settings":     null
+    "settings":     null,
+    "resources": {
+        "GeodeAPISheet": [
+            "resources/*.png"
+        ],
+        "GeodeBlankSheet": [
+            "resources/blanks/*.png"
+        ]
+    }
 }
