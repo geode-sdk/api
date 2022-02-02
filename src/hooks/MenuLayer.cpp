@@ -3,6 +3,10 @@
 #include <WackyGeodeMacros>
 
 class $modify(GameManager) {
+	bool init() {
+		return $GameManager::init();
+	}
+
 	void reloadAllStep2() {
 		$GameManager::reloadAllStep2();
 		Loader::get()->addResourceSearchPaths();
