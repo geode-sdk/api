@@ -50,5 +50,6 @@
                 "resources/blanks/*.png"
             ]
         }
-    }
+    },
+    "supports_disabling": false
 }
