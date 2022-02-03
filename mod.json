@@ -30,11 +30,16 @@
     "binary":       "GeodeAPI",
     "settings":     null,
     "resources": {
-        "GeodeAPISheet": [
-            "resources/*.png"
+        "files": [
+            "whatever.png"
         ],
-        "GeodeBlankSheet": [
-            "resources/blanks/*.png"
-        ]
+        "spritesheets": {
+            "GeodeAPISheet": [
+                "resources/*.png"
+            ],
+            "GeodeBlankSheet": [
+                "resources/blanks/*.png"
+            ]
+        }
     }
 }
