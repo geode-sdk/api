@@ -1,6 +1,7 @@
 #include "hook.hpp"
 #include <mods/list/ModListLayer.hpp>
 #include <WackyGeodeMacros>
+#include <nodes/BasedButtonSprite.hpp>
 
 class $modify(CustomMenuLayer, MenuLayer) {
 	bool init() {
@@ -15,7 +16,10 @@ class $modify(CustomMenuLayer, MenuLayer) {
 
 		auto y = getChild<>(bottomMenu, 0)->getPositionY();
 
-		auto spr = CCSprite::createWithSpriteFrameName("geode-button-color.png");
+		CCSprite* spr = CircleButtonSprite::createWithSpriteFrameName(
+			"geode-logo-outline-gold.png", .35f,
+			CircleBaseColor::Green, CircleBaseSize::Medium2
+		);
 		if (!spr) {
 			spr = ButtonSprite::create("!!");
 		}

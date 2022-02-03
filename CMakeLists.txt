@@ -34,5 +34,3 @@ endif()
 
 include(sdk/Geode.cmake)
 set_target_properties(GeodeAPI PROPERTIES PREFIX "" OUTPUT_NAME "GeodeAPI")
-
-geode_link_bin(GeodeAPI "${CMAKE_CURRENT_SOURCE_DIR}/bin")
