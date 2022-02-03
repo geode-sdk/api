@@ -1,2 +1,60 @@
-build/
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Ignore build folder
+build
+
+# Macos be like
+**/.DS_Store
+
+# Cache files for Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+
+# Workspace files are user-specific
+*.sublime-workspace
+
+# Ignore build folders
+**/build
+
+.vscode
+*.sublime-project
+
+# dont ask me
+alks-idkenby-hideout.png
 fods-dogboy-hideout.txt
+
+# ignore visual studio cringe folders
+.vs/
+out/
+bin/

@@ -35,23 +35,27 @@ class $modify(LoadingLayer) {
         
         auto [count, unresolvedCount] = Loader::get()->getLoadedModCount();
 
-        const char* text = unresolvedCount ?
-            CCString::createWithFormat("Geode: Loaded %d mods (%d unresolved)", count, unresolvedCount)->getCString() : 
-            CCString::createWithFormat("Geode: Loaded %d mods", count)->getCString();
+        const char* text = "test";
+        // const char* text = unresolvedCount ?
+        //     CCString::createWithFormat("Geode: Loaded %zu mods (%zu unresolved)", count, unresolvedCount)->getCString() : 
+        //     CCString::createWithFormat("Geode: Loaded %zu mods", count)->getCString();
 
         auto label = CCLabelBMFont::create(text, "goldFont.fnt");
         label->setPosition(winSize.width / 2, 30.f);
         label->setScale(.45f);
         label->setTag(5);
         this->addChild(label);
+        Interface::mod()->log() << "djkfhsdkjfhsdfhkjdshkjfhdskj" << geode::endl;
 
         return true;
     }
 
 	void loadAssets() {
-        auto str = "Loading " + loadStepToString(this->m_loadStep);
-        as<CCLabelBMFont*>(this->getChildByTag(5))->setString(str.c_str());
-
 		$LoadingLayer::loadAssets();
+
+        auto str = "Loading " + loadStepToString(this->m_loadStep);
+        auto idk = this->getChildByTag(5);
+        Interface::mod()->log() << (void*)idk << geode::endl;
+        as<CCLabelBMFont*>(this->getChildByTag(5))->setString(str.c_str());
 	}
 };

@@ -1,6 +1,8 @@
 #include "hook.hpp"
 #include <KeybindManager.hpp>
 
+#ifdef GEODE_IS_WINDOWS
+
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
         KeybindManager::get()->registerKeyPress(key, down);
@@ -32,4 +34,5 @@ class $modify(CCEGLView) {
         return $CCEGLView::onGLFWMouseCallBack(wnd, btn, pressed, z);
     }
 };
+#endif
 #endif

@@ -17,12 +17,21 @@
                     "NewGrounds": "HJfod"
                 }
             },
+            "Alk1m123": {
+                "role": "Lead Developer",
+                "gd": 11535118,
+                "links": {
+                    "Twitter": "Alk1m123",
+                    "github": "altalk23",
+                    "NewGrounds": "alk1m123"
+                }
+            },
             "PoweredByPie": {
                 "role": "Lead Developer"
             }
         },
         "thanks": [
-            "NachoBOT"
+            "NachoBIT"
         ]
     },
     "repository": "https://github.com/geode-sdk/api",

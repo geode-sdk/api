@@ -1,6 +1,8 @@
 #include <Geode>
 #include <Keybind.hpp>
 
+#ifdef GEODE_IS_WINDOWS
+
 USE_GEODE_NAMESPACE();
 
 std::string geode::keyToStringFixed(enumKeyCodes code) {
@@ -120,13 +122,13 @@ Keybind::Keybind(Input const& pressed) {
 
     this->modifiers = 0;
     if (kb->getControlKeyPressed())
-        this->modifiers |= this->Modifiers::Control;
+        this->modifiers |= Keybind::Modifiers::Control;
     if (kb->getCommandKeyPressed())
-        this->modifiers |= this->Modifiers::Command;
+        this->modifiers |= Keybind::Modifiers::Command;
     if (kb->getShiftKeyPressed())
-        this->modifiers |= this->Modifiers::Shift;
+        this->modifiers |= Keybind::Modifiers::Shift;
     if (kb->getAltKeyPressed())
-        this->modifiers |= this->Modifiers::Alt;
+        this->modifiers |= Keybind::Modifiers::Alt;
 }
 
 Keybind::Keybind(Input const& pressed, Modifiers mods) {
@@ -228,7 +230,10 @@ std::size_t std::hash<Input>::operator()(Input const& inp) const {
     switch (inp.type) {
         case Input::Type::Mouse: return static_cast<size_t>(inp.type) + (static_cast<size_t>(inp.mouse) << 2);
         case Input::Type::Key:   return static_cast<size_t>(inp.type) + (inp.key << 2);
+        default: break;
     }
     return 0;
 }
+
+#endif
 

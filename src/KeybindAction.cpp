@@ -1,6 +1,8 @@
 #include <Geode>
 #include <Keybind.hpp>
 
+#ifdef GEODE_IS_WINDOWS
+
 USE_GEODE_NAMESPACE();
 
 bool KeybindAction::operator==(KeybindAction const& other) const {
@@ -209,3 +211,5 @@ std::ostream& geode::operator<<(std::ostream& stream, keybind_category_id const&
 std::size_t std::hash<keybind_category_id>::operator()(keybind_category_id const& category) const {
     return std::hash<decltype(category.m_value)>()(category.m_value);
 }
+
+#endif

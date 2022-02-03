@@ -6,7 +6,7 @@ file(GLOB_RECURSE CORE_SOURCES
 	src/*.cpp
 )
 
-set(GEODE_BUILD_CODEGEN On)
+# set(GEODE_BUILD_CODEGEN On)
 set(GEODE_AUTO_INSTALL_IN_API On)
 
 set(SOURCE_FILES 
@@ -32,7 +32,7 @@ if (APPLE)
 	set (LINK_LIBRARIES ${LINK_LIBRARIES} "-framework Cocoa")
 endif()
 
-include(sdk/SDK/BuildFiles/cmake/Root.cmake)
+include(sdk/kit/cmake/Root.cmake)
 set_target_properties(GeodeAPI PROPERTIES PREFIX "" OUTPUT_NAME "GeodeAPI")
 
-geode_link_bin(GeodeAPI "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+# geode_link_bin(GeodeAPI "${CMAKE_CURRENT_SOURCE_DIR}/bin")

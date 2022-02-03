@@ -1,6 +1,8 @@
 #include <Geode>
 #include <KeybindManager.hpp>
 
+#ifdef GEODE_IS_WINDOWS
+
 USE_GEODE_NAMESPACE();
 using namespace std::literals::string_literals;
 
@@ -11,8 +13,8 @@ using namespace std::literals::string_literals;
 #define EDIT_ACTION(...) CLICKED( UI( NO_PLAY( __VA_ARGS__ ) ) )
 #define BINDS(...) { __VA_ARGS__ }
 #define BIND(...) { { __VA_ARGS__ } }
-#define KB(_mod_, _key_) { KEY_##_key_, Keybind::Modifiers::##_mod_ }
-#define KBS(_mod_, _key_) { { KEY_##_key_, Keybind::Modifiers::##_mod_ } }
+#define KB(_mod_, _key_) { KEY_##_key_, Keybind::Modifiers::_mod_ }
+#define KBS(_mod_, _key_) { { KEY_##_key_, Keybind::Modifiers::_mod_ } }
 
 #define ADD_EDITOR_KB(_name_, _id_, _sub_, _func_, _desc_, _binds_)    \
     this->addKeybindAction(owner, TriggerableAction {   \
@@ -533,3 +535,5 @@ void KeybindManager::loadDefaultKeybinds() {
         BIND( KEY_S, Keybind::Modifiers::Shift )
     ); }
 }
+
+#endif

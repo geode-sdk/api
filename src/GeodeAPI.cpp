@@ -3,6 +3,8 @@
 
 USE_GEODE_NAMESPACE();
 
+#ifdef GEODE_IS_WINDOWS
+
 bool GeodeAPI::addKeybindAction(
     KeybindAction     const& action,
     KeybindList       const& defaults,
@@ -16,6 +18,8 @@ bool GeodeAPI::addKeybindAction(
 bool GeodeAPI::removeKeybindAction(keybind_action_id const& id) {
     return KeybindManager::get()->removeKeybindAction(this, id);
 }
+
+#endif
 
 Result<> GeodeAPI::setCustomSettingNode(
     std::string const& key,
