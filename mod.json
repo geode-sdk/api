@@ -6,7 +6,26 @@
     "developer":    "Geode Team",
     "description":  "Shared API utilities",
     "details":      "Geode API, containing utilities & shared functionality such as custom keybinds support. What if I make this description very long what happens",
-    "credits":      null,
+    "credits": {
+        "people": {
+            "HJfod": {
+                "role": "Lead Developer",
+                "gd": 104257,
+                "links": {
+                    "Twitter": "HJfod",
+                    "github": "HJfod",
+                    "NewGrounds": "HJfod"
+                }
+            },
+            "PoweredByPie": {
+                "role": "Lead Developer"
+            }
+        },
+        "thanks": [
+            "NachoBOT"
+        ]
+    },
+    "repository": "https://github.com/geode-sdk/api",
 	"dependencies": null,
     "binary":       "GeodeAPI",
     "settings":     null
