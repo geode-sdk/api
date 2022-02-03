@@ -6,7 +6,6 @@ file(GLOB_RECURSE CORE_SOURCES
 	src/*.cpp
 )
 
-# set(GEODE_BUILD_CODEGEN On)
 set(GEODE_AUTO_INSTALL_IN_API On)
 
 set(SOURCE_FILES 
@@ -34,5 +33,3 @@ endif()
 
 include(sdk/Geode.cmake)
 set_target_properties(GeodeAPI PROPERTIES PREFIX "" OUTPUT_NAME "GeodeAPI")
-
-# geode_link_bin(GeodeAPI "${CMAKE_CURRENT_SOURCE_DIR}/bin")
