@@ -26,6 +26,15 @@
                     "NewGrounds": "alk1m123"
                 }
             },
+            "fig": {
+                "role": "Lead Developer",
+                "gd": 107269,
+                "links": {
+                    "Twitter": "FigmentBoy_",
+                    "github": "FigmentBoy",
+                    "NewGrounds": "FigmentBoy"
+                }
+            },
             "PoweredByPie": {
                 "role": "Lead Developer"
             }
