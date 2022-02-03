@@ -1,4 +1,5 @@
 #include "hook.hpp"
+#include <array>
 
 static std::string loadStepToString(int step) {
     if (step < 1) {
@@ -7,7 +8,7 @@ static std::string loadStepToString(int step) {
     if (step >= 14) {
         return "Finished";
     }
-    const char* steps[14] = {
+    std::array<const char*, 14> steps = {
         "GJ_GameSheet02",
         "GJ_GameSheet03",
         "GJ_GameSheet04",
@@ -36,6 +37,7 @@ class $modify(LoadingLayer) {
         auto [count, unresolvedCount] = Loader::get()->getLoadedModCount();
 
         const char* text = "test";
+        // commented out until someone figures out why this crashes
         // const char* text = unresolvedCount ?
         //     CCString::createWithFormat("Geode: Loaded %zu mods (%zu unresolved)", count, unresolvedCount)->getCString() : 
         //     CCString::createWithFormat("Geode: Loaded %zu mods", count)->getCString();
@@ -45,7 +47,6 @@ class $modify(LoadingLayer) {
         label->setScale(.45f);
         label->setTag(5);
         this->addChild(label);
-        Interface::mod()->log() << "djkfhsdkjfhsdfhkjdshkjfhdskj" << geode::endl;
 
         return true;
     }
@@ -55,7 +56,6 @@ class $modify(LoadingLayer) {
 
         auto str = "Loading " + loadStepToString(this->m_loadStep);
         auto idk = this->getChildByTag(5);
-        Interface::mod()->log() << (void*)idk << geode::endl;
         as<CCLabelBMFont*>(this->getChildByTag(5))->setString(str.c_str());
 	}
 };
