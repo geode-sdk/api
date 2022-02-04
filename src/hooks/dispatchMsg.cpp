@@ -25,7 +25,6 @@ class $modify(CCScheduler) {
     }
 };
 
-#ifdef GEODE_IS_WINDOWS
 class $modify(CCEGLView) {
     void onGLFWMouseCallBack(GLFWwindow* wnd, int btn, int pressed, int z) {
         KeybindManager::get()->registerMousePress(
@@ -34,5 +33,5 @@ class $modify(CCEGLView) {
         return $CCEGLView::onGLFWMouseCallBack(wnd, btn, pressed, z);
     }
 };
-#endif
+
 #endif

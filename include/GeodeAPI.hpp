@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Geode>
 #include "keybinds/KeybindManager.hpp"
 #include "settings/CustomSettingNode.hpp"
