@@ -48,9 +48,6 @@
     "binary":       "GeodeAPI",
     "settings":     null,
     "resources": {
-        "files": [
-            "whatever.png"
-        ],
         "spritesheets": {
             "GeodeAPISheet": [
                 "resources/*.png"
@@ -60,5 +57,5 @@
             ]
         }
     },
-    "togglable": false
+    "toggleable": false
 }
