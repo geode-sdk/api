@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode>
+#include <Geode.hpp>
 
 #ifdef GEODE_IS_WINDOWS
     #ifdef EXPORTING_GEODE_API

@@ -1,4 +1,4 @@
-#include <Geode>
+#include <Geode.hpp>
 #include <Keybind.hpp>
 
 #ifdef GEODE_IS_WINDOWS

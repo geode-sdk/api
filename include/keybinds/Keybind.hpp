@@ -3,7 +3,7 @@
 #pragma warning(disable: 4251)
 
 #include "../APIMacros.hpp"
-#include <Geode>
+#include <Geode.hpp>
 #include "MouseButton.hpp"
 #include <set>
 #include <unordered_set>

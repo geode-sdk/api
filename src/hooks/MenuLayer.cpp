@@ -1,6 +1,6 @@
 #include "hook.hpp"
 #include <mods/list/ModListLayer.hpp>
-#include <WackyGeodeMacros>
+#include <WackyGeodeMacros.hpp>
 #include <nodes/BasedButtonSprite.hpp>
 
 class $modify(CustomMenuLayer, MenuLayer) {

@@ -2,7 +2,7 @@
 
 #pragma warning(disable: 4067)
 
-#include <Geode>
+#include <Geode.hpp>
 
 USE_GEODE_NAMESPACE();
 namespace geode {
