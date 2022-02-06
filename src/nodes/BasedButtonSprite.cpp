@@ -26,8 +26,10 @@ CCPoint BasedButtonSprite::getTopOffset() const {
         case BaseType::Circle:
             switch (static_cast<CircleBaseSize>(this->m_size)) {
                 case CircleBaseSize::Medium2: return { -1, 2.5f };
+                default: break;
             }
             return { -3, -3 };
+        default: break;
     }
     return { 0, 0 };
 }

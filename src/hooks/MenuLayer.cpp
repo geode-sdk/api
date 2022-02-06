@@ -4,6 +4,7 @@
 #include <nodes/BasedButtonSprite.hpp>
 
 class $modify(CustomMenuLayer, MenuLayer) {
+
 	bool init() {
 		if (!$MenuLayer::init())
 			return false;
@@ -17,7 +18,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		auto y = getChild<>(bottomMenu, 0)->getPositionY();
 
 		CCSprite* spr = CircleButtonSprite::createWithSpriteFrameName(
-			"geode-logo-outline-gold.png", .35f,
+			"geode-logo-outline-gold_test.png", 1.0f,
 			CircleBaseColor::Green, CircleBaseSize::Medium2
 		);
 		if (!spr) {

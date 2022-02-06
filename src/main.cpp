@@ -4,6 +4,7 @@
 USE_GEODE_NAMESPACE();
 
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
+	Interface::get()->init(mod);
 #if GEODE_IS_WINDOWS
     mod->with<GeodeAPI>()->addKeybindAction(TriggerableAction {
         "Keybind Test",
