@@ -26,6 +26,15 @@
                     "NewGrounds": "alk1m123"
                 }
             },
+            "fig": {
+                "role": "Lead Developer",
+                "gd": 107269,
+                "links": {
+                    "Twitter": "FigmentBoy_",
+                    "github": "FigmentBoy",
+                    "NewGrounds": "FigmentBoy"
+                }
+            },
             "PoweredByPie": {
                 "role": "Lead Developer"
             }
@@ -39,9 +48,6 @@
     "binary":       "GeodeAPI",
     "settings":     null,
     "resources": {
-        "files": [
-            "whatever.png"
-        ],
         "spritesheets": {
             "GeodeAPISheet": [
                 "resources/*.png"
@@ -50,5 +56,6 @@
                 "resources/blanks/*.png"
             ]
         }
-    }
+    },
+    "toggleable": false
 }

@@ -13,20 +13,20 @@ if "%1"=="pull" (
 ) else (
 
     echo ""
-    echo "==== geode/sdk ===="
+    echo "==== geode/bin ===="
     echo ""
 
-    cd sdk
+    cd sdk/bin
 
     git add --all
     git commit -a
     git push origin main
 
     echo ""
-    echo "==== geode/bin ===="
+    echo "==== geode/sdk ===="
     echo ""
 
-    cd bin
+    cd ..
 
     git add --all
     git commit -a
@@ -35,7 +35,7 @@ if "%1"=="pull" (
     echo "==== geode/api ===="
     echo ""
 
-    cd ../..
+    cd ..
 
     git add --all
     git commit -a

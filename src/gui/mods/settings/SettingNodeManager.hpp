@@ -2,7 +2,7 @@
 
 #pragma warning(disable: 4067)
 
-#include <Geode>
+#include <Geode.hpp>
 #include <settings/CustomSettingNode.hpp>
 
 USE_GEODE_NAMESPACE();

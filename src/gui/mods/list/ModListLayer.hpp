@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode>
+#include <Geode.hpp>
 #include "ModListView.hpp"
 
 USE_GEODE_NAMESPACE();

@@ -1,4 +1,6 @@
-#include <Geode>
+#pragma once
+
+#include <Geode.hpp>
 #include "keybinds/KeybindManager.hpp"
 #include "settings/CustomSettingNode.hpp"
 #include "nodes/BasedButtonSprite.hpp"
