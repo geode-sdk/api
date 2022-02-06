@@ -3,8 +3,9 @@
 
 #ifdef GEODE_IS_WINDOWS
 
-class $modify(UILayer) {
+class $modify(MyUILayer, UILayer) {
     void keyDown(enumKeyCodes key) {
+    	Interface::mod() << addresser::getVirtual(&MyUILayer::keyDown) << geode::endl;
         KeybindManager::get()->handleKeyEvent(
             KB_PLAY_CATEGORY, Keybind(key), PlayLayer::get(), true
         );
