@@ -166,7 +166,7 @@ void KeybindManager::loadDefaultKeybinds() {
         KB_SUBCATEGORY_GLOBAL,
         "When the Swipe Modifier is enabled, clicking anywhere "
         "in the editor enables swipe until the mouse is released"
-    }, {{ Keybind::Modifiers::Shift }});
+    }, {{ KEY_None, Keybind::Modifiers::Shift }});
 
     this->addKeybindAction(owner, KeybindModifier { "Move Modifier",
         "gd.edit.move_modifier",
@@ -182,7 +182,7 @@ void KeybindManager::loadDefaultKeybinds() {
         KB_SUBCATEGORY_GLOBAL,
         "When you press with the mouse, Free Move is enabled "
         "until the mouse button is released"
-    }, {{ Keybind::Modifiers::Control }});
+    }, {{ KEY_None, Keybind::Modifiers::Control }});
 
     this->addKeybindAction(owner, KeybindModifier { "Copy Modifier",
         "gd.edit.duplicate_modifier",
@@ -191,7 +191,7 @@ void KeybindManager::loadDefaultKeybinds() {
         "When you press with the mouse, the selected object(s) are"
         "duplicated and Free Move is enabled until the mouse "
         "button is released"
-    }, {{ Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});
+    }, {{ KEY_None, Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});
 
     { ADD_EDITOR_KB( "Rotate CCW",
         "gd.edit.rotate_ccw",

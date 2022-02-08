@@ -108,8 +108,6 @@ namespace geode {
         Keybind(Input const&);
         Keybind(Input const&, Modifiers);
         Keybind(Input const&, int);
-        Keybind(Modifiers);
-        Keybind(int);
         Keybind(DS_Dictionary*, int version);
     };
 }

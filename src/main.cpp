@@ -17,7 +17,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
             }
             return false;
         }
-    }, {{ Keybind::Modifiers::Control | Keybind::Modifiers::Alt, KEY_T }});
+    }, {{ KEY_T, Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});
     #endif
 
     return true;

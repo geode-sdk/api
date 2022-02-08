@@ -41,6 +41,8 @@ bool Keybind::operator<(Keybind const& other) const {
 std::string Keybind::toString() const {
     std::string res = "";
 
+    res = std::to_string(this->modifiers.m_value) + "; ";
+
     if (this->modifiers.has(Modifiers::Control))    res += "Ctrl + ";
     if (this->modifiers.has(Modifiers::Command))    res += "Command + ";
     if (this->modifiers.has(Modifiers::Alt))        res += "Alt + ";
@@ -71,11 +73,13 @@ std::string Input::toString() const {
 }
 
 Input::Input(cocos2d::enumKeyCodes key) {
-    *this = key;
+    this->key = key;
+    this->type = Type::Key;
 }
 
 Input::Input(MouseButton mouse) {
-    *this = mouse;
+    this->mouse = mouse;
+    this->type = Type::Mouse;
 }
 
 Input& Input::operator=(cocos2d::enumKeyCodes key) {
@@ -138,14 +142,6 @@ Keybind::Keybind(Input const& pressed, Modifiers mods) {
 
 Keybind::Keybind(Input const& pressed, int mods) {
     this->input = pressed;
-    this->modifiers = mods;
-}
-
-Keybind::Keybind(Modifiers mods) {
-    this->modifiers = mods;
-}
-
-Keybind::Keybind(int mods) {
     this->modifiers = mods;
 }
 
