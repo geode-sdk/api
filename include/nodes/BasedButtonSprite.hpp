@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode.hpp>
+#include "../APIMacros.hpp"
 
 namespace geode {
     enum class CircleBaseSize {
@@ -72,7 +73,7 @@ namespace geode {
      * You know, it has a base. It's based.
      * lmao trademark lizbith
      */
-    class BasedButtonSprite : public cocos2d::CCSprite {
+    class GEODE_API_DLL BasedButtonSprite : public cocos2d::CCSprite {
     protected:
         int m_type;
         int m_size;
@@ -91,7 +92,7 @@ namespace geode {
         static BasedButtonSprite* create(cocos2d::CCNode* ontop, int type, int size, int color);
     };
 
-    class CircleButtonSprite : public BasedButtonSprite {
+    class GEODE_API_DLL CircleButtonSprite : public BasedButtonSprite {
     public:
         static CircleButtonSprite* create(
             cocos2d::CCNode* top,
@@ -112,7 +113,7 @@ namespace geode {
         );
     };
 
-    class EditorButtonSprite : public BasedButtonSprite {
+    class GEODE_API_DLL EditorButtonSprite : public BasedButtonSprite {
     public:
         static EditorButtonSprite* create(cocos2d::CCNode* top, EditorBaseColor color);
         static EditorButtonSprite* createWithSprite(

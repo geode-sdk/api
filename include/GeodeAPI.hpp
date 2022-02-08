@@ -6,7 +6,7 @@
 #include "nodes/BasedButtonSprite.hpp"
 
 namespace geode {
-    class GeodeAPI : public APIMod {
+    class GEODE_API_DLL GeodeAPI : public APIMod {
     public:
         /**
          * Add a new keybind action, i.e. a 
