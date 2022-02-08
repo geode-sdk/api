@@ -22,15 +22,15 @@ bool BasedButtonSprite::init(CCNode* ontop, int type, int size, int color) {
 }
 
 CCPoint BasedButtonSprite::getTopOffset() const {
-    switch (static_cast<BaseType>(this->m_type)) {
-        case BaseType::Circle:
-            switch (static_cast<CircleBaseSize>(this->m_size)) {
-                case CircleBaseSize::Medium2: return { -1, 2.5f };
-                default: break;
-            }
-            return { -3, -3 };
-        default: break;
-    }
+    // switch (static_cast<BaseType>(this->m_type)) {
+    //     case BaseType::Circle:
+    //         switch (static_cast<CircleBaseSize>(this->m_size)) {
+    //             case CircleBaseSize::Medium2: return { -1, 2.5f };
+    //             default: break;
+    //         }
+    //         return { -3, -3 };
+    //     default: break;
+    // }
     return { 0, 0 };
 }
 
