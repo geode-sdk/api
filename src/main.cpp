@@ -5,7 +5,8 @@ USE_GEODE_NAMESPACE();
 
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
-#if GEODE_IS_WINDOWS
+    
+    #ifdef GEODE_IS_WINDOWS
     mod->with<GeodeAPI>()->addKeybindAction(TriggerableAction {
         "Keybind Test",
         "test_keybind",
@@ -17,7 +18,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
             return false;
         }
     }, {{ Keybind::Modifiers::Control | Keybind::Modifiers::Alt, KEY_T }});
-    
-#endif
+    #endif
+
     return true;
 }
