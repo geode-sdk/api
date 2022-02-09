@@ -7,15 +7,16 @@ USE_GEODE_NAMESPACE();
 
 class ModListLayer : public CCLayer {
 protected:
-	GJListLayer* m_pList = nullptr;
-	CCLabelBMFont* m_pListLabel;
-	CCMenu* m_pMenu;
+	GJListLayer* m_list = nullptr;
+	CCLabelBMFont* m_listLabel;
+	CCMenu* m_menu;
 
 	bool init() override;
 
 	void onExit(CCObject*);
 	void onReload(CCObject*);
 	void keyDown(enumKeyCodes) override;
+	void onTab(CCObject*);
 
 	void reloadList();
 

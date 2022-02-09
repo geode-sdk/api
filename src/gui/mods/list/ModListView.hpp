@@ -7,6 +7,11 @@ USE_GEODE_NAMESPACE();
 static constexpr const BoomListType kBoomListType_Mod
     = static_cast<BoomListType>(0x350);
 
+enum class ModListType {
+	Installed,
+	Download,
+};
+
 // Wrapper so you can pass Mods in a CCArray
 struct ModObject : public CCObject {
     Mod* m_mod;
@@ -48,9 +53,12 @@ class ModListView : public CustomListView {
         void setupList() override;
         TableViewCell* getListCell(const char* key) override;
         void loadCell(TableViewCell* cell, unsigned int index) override;
+
+        bool init(CCArray* mods, ModListType type);
     
     public:
-        static ModListView* create(CCArray* mods);
+        static ModListView* create(CCArray* mods, ModListType type = ModListType::Installed);
+        static ModListView* create(ModListType type);
 
         void updateAllStates(ModCell* toggled = nullptr);
 };

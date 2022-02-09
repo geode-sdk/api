@@ -176,12 +176,33 @@ void ModListView::loadCell(TableViewCell* cell, unsigned int index) {
     as<ModCell*>(cell)->updateBGColor(index);
 }
 
+bool ModListView::init(CCArray* mods, ModListType type) {
+    if (!mods) {
+        switch (type) {
+            case ModListType::Installed: {
+                mods = CCArray::create();
+                mods->addObject(new ModObject(Loader::getInternalMod()));
+                for (auto const& mod : Loader::get()->getLoadedMods()) {
+                    mods->addObject(new ModObject(mod));
+                }
+            } break;
+
+            case ModListType::Download: {
+                mods = CCArray::create();
+            } break;
+
+            default: return false;
+        }
+    }
+    return CustomListView::init(mods, kBoomListType_Mod, 356.f, 220.f);
+}
+
 ModListView* ModListView::create(
-    CCArray* mods
+    CCArray* mods, ModListType type
 ) {
     auto pRet = new ModListView;
     if (pRet) {
-        if (pRet->init(mods, kBoomListType_Mod, 356.f, 220.f)) {
+        if (pRet->init(mods, type)) {
             pRet->autorelease();
             return pRet;
         }
@@ -189,3 +210,8 @@ ModListView* ModListView::create(
     CC_SAFE_DELETE(pRet);
     return nullptr;
 }
+
+ModListView* ModListView::create(ModListType type) {
+    return ModListView::create(nullptr, type);
+}
+

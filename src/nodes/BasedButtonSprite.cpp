@@ -22,15 +22,6 @@ bool BasedButtonSprite::init(CCNode* ontop, int type, int size, int color) {
 }
 
 CCPoint BasedButtonSprite::getTopOffset() const {
-    // switch (static_cast<BaseType>(this->m_type)) {
-    //     case BaseType::Circle:
-    //         switch (static_cast<CircleBaseSize>(this->m_size)) {
-    //             case CircleBaseSize::Medium2: return { -1, 2.5f };
-    //             default: break;
-    //         }
-    //         return { -3, -3 };
-    //     default: break;
-    // }
     return { 0, 0 };
 }
 
@@ -151,6 +142,20 @@ CircleButtonSprite* CircleButtonSprite::createWithSpriteFrameName(
     if (ret && ret->initWithSpriteFrameName(
         sprName, sprScale,
         static_cast<int>(BaseType::Circle), static_cast<int>(size), static_cast<int>(color)
+    )) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+TabButtonSprite* TabButtonSprite::create(const char* text, TabBaseColor color) {
+    auto ret = new TabButtonSprite();
+    auto label = CCLabelBMFont::create(text, "bigFont.fnt");
+    label->limitLabelWidth(60.f, 1.f, .1f);
+    if (ret && ret->init(
+        label, static_cast<int>(BaseType::Tab), 0, static_cast<int>(color)
     )) {
         ret->autorelease();
         return ret;

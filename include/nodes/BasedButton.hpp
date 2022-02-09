@@ -1,0 +1,12 @@
+#pragma once
+
+#include "BasedButtonSprite.hpp"
+
+#pragma warning(disable: 4275)
+
+namespace geode {
+    class GEODE_API_DLL TabButton : public CCMenuItemToggler {
+    public:
+        static TabButton* create(const char* text, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback);
+    };
+}

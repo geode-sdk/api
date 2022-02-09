@@ -1,4 +1,7 @@
 #include "ModListLayer.hpp"
+#include <nodes/BasedButton.hpp>
+
+ModListType g_tab = ModListType::Installed;
 
 bool ModListLayer::init() {
 	if (!CCLayer::init())
@@ -17,7 +20,7 @@ bool ModListLayer::init() {
 
 	this->addChild(bg);
 
-	this->m_pMenu = CCMenu::create();
+	this->m_menu = CCMenu::create();
 
 
     auto backBtn = CCMenuItemSpriteExtra::create(
@@ -26,9 +29,9 @@ bool ModListLayer::init() {
 		menu_selector(ModListLayer::onExit)
 	);
 	backBtn->setPosition(-winSize.width / 2 + 25.0f, winSize.height / 2 - 25.0f);
-	this->m_pMenu->addChild(backBtn);
+	this->m_menu->addChild(backBtn);
 
-	this->addChild(this->m_pMenu);
+	this->addChild(this->m_menu);
 
 	auto reloadSpr = CCSprite::createWithSpriteFrameName("GJ_updateBtn_001.png");
 	reloadSpr->setScale(.8f);
@@ -36,21 +39,32 @@ bool ModListLayer::init() {
 		reloadSpr, this, menu_selector(ModListLayer::onReload)
 	);
 	reloadBtn->setPosition(-winSize.width / 2 + 30.0f, - winSize.height / 2 + 30.0f);
-	this->m_pMenu->addChild(reloadBtn);
-
-	this->addChild(this->m_pMenu);
+	this->m_menu->addChild(reloadBtn);
 
 	
-    this->m_pListLabel = CCLabelBMFont::create("No mods loaded!", "bigFont.fnt");
+    this->m_listLabel = CCLabelBMFont::create("No mods loaded!", "bigFont.fnt");
 
-    this->m_pListLabel->setPosition(winSize / 2);
-    this->m_pListLabel->setScale(.6f);
-    this->m_pListLabel->setVisible(false);
-    this->m_pListLabel->setZOrder(1001);
+    this->m_listLabel->setPosition(winSize / 2);
+    this->m_listLabel->setScale(.6f);
+    this->m_listLabel->setVisible(false);
+    this->m_listLabel->setZOrder(1001);
 
-    this->addChild(this->m_pListLabel);
+    this->addChild(this->m_listLabel);
 
 	this->reloadList();
+
+	auto installedTab = TabButton::create("Installed", this, menu_selector(ModListLayer::onTab));
+	installedTab->setPosition(-30.f, 80.f);
+	installedTab->setTag(static_cast<int>(ModListType::Installed));
+	this->m_menu->addChild(installedTab);
+
+	auto tab = TabButton::create("Download", this, menu_selector(ModListLayer::onTab));
+	tab->setPosition(30.f, 80.f);
+	tab->setTag(static_cast<int>(ModListType::Download));
+	this->m_menu->addChild(tab);
+
+	this->m_menu->setZOrder(10000);
+	this->addChild(this->m_menu);
 
     this->setKeyboardEnabled(true);
     this->setKeypadEnabled(true);
@@ -61,32 +75,26 @@ bool ModListLayer::init() {
 void ModListLayer::reloadList() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    if (this->m_pList)
-        this->m_pList->removeFromParent();
+    if (this->m_list)
+        this->m_list->removeFromParent();
 
-    ModListView* list = nullptr;
+    CustomListView* list = nullptr;
 
 	auto mods = Loader::get()->getLoadedMods();
     if (!mods.size()) {
-        m_pListLabel->setVisible(true);
+        m_listLabel->setVisible(true);
     } else {
-        m_pListLabel->setVisible(false);
-
-		auto arr = CCArray::create();
-		arr->addObject(new ModObject(Loader::getInternalMod()));
-		for (auto const& mod : mods) {
-			arr->addObject(new ModObject(mod));
-		}
-        list = ModListView::create(arr);
+		m_listLabel->setVisible(false);
+		list = ModListView::create(g_tab);
     }
 
-    this->m_pList = GJListLayer::create(
-        list, "Mods", { 0, 0, 0, 180 }, 356.0f, 220.0f
+    this->m_list = GJListLayer::create(
+        list, nullptr, { 0, 0, 0, 180 }, 356.0f, 220.0f
     );
-    this->m_pList->setPosition(
-        winSize / 2 - this->m_pList->getScaledContentSize() / 2
+    this->m_list->setPosition(
+        winSize / 2 - this->m_list->getScaledContentSize() / 2
     );
-    this->addChild(this->m_pList);
+    this->addChild(this->m_list);
 }
 
 void ModListLayer::onExit(CCObject*) {
@@ -104,6 +112,11 @@ void ModListLayer::keyDown(enumKeyCodes key) {
 	if (key == KEY_Escape) {
         this->onExit(nullptr);
 	}
+}
+
+void ModListLayer::onTab(CCObject* pSender) {
+	g_tab = static_cast<ModListType>(pSender->getTag());
+	this->reloadList();
 }
 
 ModListLayer* ModListLayer::create() {

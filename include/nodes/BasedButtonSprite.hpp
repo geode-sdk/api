@@ -127,4 +127,9 @@ namespace geode {
             EditorBaseColor color = EditorBaseColor::Green
         );
     };
+
+    class GEODE_API_DLL TabButtonSprite : public BasedButtonSprite {
+    public:
+        static TabButtonSprite* create(const char* text, TabBaseColor color);
+    };
 }

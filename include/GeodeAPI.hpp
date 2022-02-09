@@ -4,6 +4,7 @@
 #include "keybinds/KeybindManager.hpp"
 #include "settings/CustomSettingNode.hpp"
 #include "nodes/BasedButtonSprite.hpp"
+#include "nodes/BasedButton.hpp"
 
 namespace geode {
     class GEODE_API_DLL GeodeAPI : public APIMod {
