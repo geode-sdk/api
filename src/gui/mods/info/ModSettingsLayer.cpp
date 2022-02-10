@@ -64,13 +64,13 @@ void ModSettingsLayer::keyDown(enumKeyCodes key) {
     return FLAlertLayer::keyDown(key);
 }
 
-void ModSettingsLayer::onClose(CCObject* pSender) {
+void ModSettingsLayer::onClose(CCObject*) {
     this->setKeyboardEnabled(false);
     this->removeFromParentAndCleanup(true);
 };
 
 ModSettingsLayer* ModSettingsLayer::create(Mod* mod) {
-    auto ret = new ModSettingsLayer;
+    auto ret = new ModSettingsLayer();
     if (ret && ret->init(mod)) {
         ret->autorelease();
         return ret;

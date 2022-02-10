@@ -153,7 +153,7 @@ CircleButtonSprite* CircleButtonSprite::createWithSpriteFrameName(
 TabButtonSprite* TabButtonSprite::create(const char* text, TabBaseColor color) {
     auto ret = new TabButtonSprite();
     auto label = CCLabelBMFont::create(text, "bigFont.fnt");
-    label->limitLabelWidth(60.f, 1.f, .1f);
+    label->limitLabelWidth(75.f, 1.f, .1f);
     if (ret && ret->init(
         label, static_cast<int>(BaseType::Tab), 0, static_cast<int>(color)
     )) {

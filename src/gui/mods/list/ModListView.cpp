@@ -161,8 +161,8 @@ void ModListView::setupList() {
 
     if (this->m_entries->count() == 1)
         this->m_tableView->moveToTopWithOffset(this->m_itemSeparation);
-    
-    this->m_tableView->moveToTop();
+    else
+        this->m_tableView->moveToTop();
 }
 
 TableViewCell* ModListView::getListCell(const char* key) {
@@ -176,33 +176,77 @@ void ModListView::loadCell(TableViewCell* cell, unsigned int index) {
     as<ModCell*>(cell)->updateBGColor(index);
 }
 
-bool ModListView::init(CCArray* mods, ModListType type) {
+bool ModListView::filter(Mod* mod, const char* searchFilter, int searchFlags) {
+    if (!searchFilter || !strlen(searchFilter)) return true;
+    auto check = [searchFlags, searchFilter](SearchFlags flag, std::string const& name) -> bool {
+        if (!(searchFlags & flag)) return false;
+        return string_utils::contains(
+            string_utils::toLower(name),
+            string_utils::toLower(searchFilter)
+        );
+    };
+    if (check(SearchFlags::Name,        mod->getName())) return true;
+    if (check(SearchFlags::ID,          mod->getID())) return true;
+    if (check(SearchFlags::Developer,   mod->getDeveloper())) return true;
+    if (check(SearchFlags::Credits,     mod->getCredits())) return true;
+    if (check(SearchFlags::Description, mod->getDescription())) return true;
+    if (check(SearchFlags::Details,     mod->getDetails())) return true;
+    return false;
+}
+
+bool ModListView::init(
+    CCArray* mods,
+    ModListType type,
+    float width,
+    float height,
+    const char* searchFilter,
+    int searchFlags
+) {
     if (!mods) {
         switch (type) {
             case ModListType::Installed: {
                 mods = CCArray::create();
-                mods->addObject(new ModObject(Loader::getInternalMod()));
+                auto imod = Loader::getInternalMod();
+                if (this->filter(imod, searchFilter, searchFlags)) {
+                    mods->addObject(new ModObject(imod));
+                }
                 for (auto const& mod : Loader::get()->getLoadedMods()) {
-                    mods->addObject(new ModObject(mod));
+                    if (this->filter(mod, searchFilter, searchFlags)) {
+                        mods->addObject(new ModObject(mod));
+                    }
+                }
+                if (!mods->count()) {
+                    this->m_status = Status::SearchEmpty;
                 }
             } break;
 
             case ModListType::Download: {
                 mods = CCArray::create();
+                this->m_status = Status::NoModsFound;
+            } break;
+
+            case ModListType::Featured: {
+                mods = CCArray::create();
+                this->m_status = Status::NoModsFound;
             } break;
 
             default: return false;
         }
     }
-    return CustomListView::init(mods, kBoomListType_Mod, 356.f, 220.f);
+    return CustomListView::init(mods, kBoomListType_Mod, width, height);
 }
 
 ModListView* ModListView::create(
-    CCArray* mods, ModListType type
+    CCArray* mods,
+    ModListType type,
+    float width,
+    float height,
+    const char* searchFilter,
+    int searchFlags
 ) {
     auto pRet = new ModListView;
     if (pRet) {
-        if (pRet->init(mods, type)) {
+        if (pRet->init(mods, type, width, height, searchFilter, searchFlags)) {
             pRet->autorelease();
             return pRet;
         }
@@ -211,7 +255,26 @@ ModListView* ModListView::create(
     return nullptr;
 }
 
-ModListView* ModListView::create(ModListType type) {
-    return ModListView::create(nullptr, type);
+ModListView* ModListView::create(
+    ModListType type,
+    float width,
+    float height,
+    const char* searchFilter,
+    int searchFlags
+) {
+    return ModListView::create(nullptr, type, width, height, searchFilter, searchFlags);
 }
 
+ModListView::Status ModListView::getStatus() const {
+    return m_status;
+}
+
+std::string ModListView::getStatusAsString() const {
+    switch (m_status) {
+        case Status::OK:          return "";
+        case Status::Unknown:     return "Unknown Issue";
+        case Status::NoModsFound: return "No Mods Found";
+        case Status::SearchEmpty: return "No Mods Match Search Query";
+    }
+    return "Unrecorded Status";
+}

@@ -10,6 +10,7 @@ static constexpr const BoomListType kBoomListType_Mod
 enum class ModListType {
 	Installed,
 	Download,
+	Featured,
 };
 
 // Wrapper so you can pass Mods in a CCArray
@@ -49,16 +50,67 @@ class ModCell : public TableViewCell {
 };
 
 class ModListView : public CustomListView {
+    public:
+        // this is not enum class so | works
+        enum SearchFlags {
+            Name        = 0b1,
+            ID          = 0b10,
+            Developer   = 0b100,
+            Credits     = 0b1000,
+            Description = 0b10000,
+            Details     = 0b100000,
+        };
+        static constexpr int s_allFlags =
+            SearchFlags::Name |
+            SearchFlags::ID |
+            SearchFlags::Developer |
+            SearchFlags::Credits |
+            SearchFlags::Description |
+            SearchFlags::Details;
+
     protected:
+        enum class Status {
+            OK,
+            Unknown,
+            NoModsFound,
+            SearchEmpty,
+        };
+
+        Status m_status = Status::OK;
+
         void setupList() override;
         TableViewCell* getListCell(const char* key) override;
         void loadCell(TableViewCell* cell, unsigned int index) override;
 
-        bool init(CCArray* mods, ModListType type);
+        bool init(
+            CCArray* mods,
+            ModListType type,
+            float width,
+            float height,
+            const char* searchFilter,
+            int searchFlags
+        );
+        bool filter(Mod* mod, const char* searchFilter, int searchFlags);
     
     public:
-        static ModListView* create(CCArray* mods, ModListType type = ModListType::Installed);
-        static ModListView* create(ModListType type);
+        static ModListView* create(
+            CCArray* mods,
+            ModListType type = ModListType::Installed,
+            float width = 358.f,
+            float height = 220.f,
+            const char* searchFilter = nullptr,
+            int searchFlags = 0
+        );
+        static ModListView* create(
+            ModListType type,
+            float width = 358.f,
+            float height = 220.f,
+            const char* searchFilter = nullptr,
+            int searchFlags = 0
+        );
 
         void updateAllStates(ModCell* toggled = nullptr);
+
+        Status getStatus() const;
+        std::string getStatusAsString() const;
 };
