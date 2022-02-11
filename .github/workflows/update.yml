@@ -15,11 +15,11 @@ jobs:
         - name: "windows"
           os: windows-latest
           extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
-          upload_paths:  './build/Release/GeodeAPI.dll ./build/Release/GeodeAPI.lib'
-        - name: "macos"
-          os: macos-latest
-          extra_flags: ""
-          upload_paths:  './build/GeodeAPI.dylib'
+          upload_paths:  './build/Release/GeodeAPI.lib'
+#        - name: "macos"
+#          os: macos-latest
+#          extra_flags: ""
+#          upload_paths:  './build/GeodeAPI.dylib'
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
