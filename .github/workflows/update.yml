@@ -16,10 +16,10 @@ jobs:
           os: windows-latest
           extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
           upload_paths:  './build/Release/GeodeAPI.lib'
-#        - name: "macos"
-#          os: macos-latest
-#          extra_flags: ""
-#          upload_paths:  './build/GeodeAPI.dylib'
+        - name: "macos"
+          os: macos-latest
+          extra_flags: ""
+          upload_paths:  './build/GeodeAPI.dylib'
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -61,5 +61,5 @@ jobs:
       run: |
         git config --local user.email "${{ secrets.GEODE_BOT_EMAIL }}"
         git config --local user.name "GeodeBot"
-        git commit -am "Auto-update from ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+        git commit -am "Auto-update ${{ matrix.config.name }} from ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
         git push "https://GeodeBot:${{ secrets.GEODE_BOT_PUSH_BIN_TOKEN}}@github.com/geode-sdk/bin.git" main
