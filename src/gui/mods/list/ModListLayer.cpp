@@ -93,13 +93,20 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	filterBtn->setPosition(-8.f, 0.f);
 	menu->addChild(filterBtn);
 
-	// todo: use "gj_findBtn_001.png" when no search thing has been typed
-	auto searchSpr = CCSprite::createWithSpriteFrameName("gj_findBtnOff_001.png");
+	auto searchSpr = CCSprite::createWithSpriteFrameName("gj_findBtn_001.png");
 	searchSpr->setScale(.7f);
 
-	auto searchBtn = CCMenuItemSpriteExtra::create(searchSpr, this, menu_selector(ModListLayer::onResetSearch));
-	searchBtn->setPosition(-35.f, 0.f);
-	menu->addChild(searchBtn);
+	this->m_searchBtn = CCMenuItemSpriteExtra::create(searchSpr, this, nullptr);
+	this->m_searchBtn->setPosition(-35.f, 0.f);
+	menu->addChild(this->m_searchBtn);
+
+	auto searchClearSpr = CCSprite::createWithSpriteFrameName("gj_findBtnOff_001.png");
+	searchClearSpr->setScale(.7f);
+
+	this->m_searchClearBtn = CCMenuItemSpriteExtra::create(searchClearSpr, this, menu_selector(ModListLayer::onResetSearch));
+	this->m_searchClearBtn->setPosition(-35.f, 0.f);
+	this->m_searchClearBtn->setVisible(false);
+	menu->addChild(this->m_searchClearBtn);
 
 	auto inputBG = CCScale9Sprite::create(
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
@@ -172,6 +179,10 @@ void ModListLayer::reloadList() {
 		this->m_list->addChild(this->m_searchBG);
 		this->m_searchBG->release();
 	}
+
+	auto hasQuery = filter && strlen(filter);
+	this->m_searchBtn->setVisible(!hasQuery);
+	this->m_searchClearBtn->setVisible(hasQuery);
 }
 
 void ModListLayer::textChanged(CCTextInputNode* input) {
@@ -191,7 +202,6 @@ void ModListLayer::onReload(CCObject*) {
 
 void ModListLayer::onResetSearch(CCObject*) {
 	this->m_searchInput->setString("");
-	this->reloadList();
 }
 
 void ModListLayer::keyDown(enumKeyCodes key) {

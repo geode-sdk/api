@@ -16,6 +16,8 @@ protected:
 	CCMenuItemToggler* m_installedTabBtn;
 	CCMenuItemToggler* m_downloadTabBtn;
 	CCMenuItemToggler* m_featuredTabBtn;
+	CCMenuItemSpriteExtra* m_searchBtn;
+	CCMenuItemSpriteExtra* m_searchClearBtn;
 	CCNode* m_searchBG = nullptr;
 	CCTextInputNode* m_searchInput = nullptr;
 	int m_searchFlags = ModListView::s_allFlags;
