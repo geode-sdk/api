@@ -1,6 +1,7 @@
 #include "ModListView.hpp"
 #include "../info/ModInfoLayer.hpp"
 #include <utils/WackyGeodeMacros.hpp>
+#include <APIInternal.hpp>
 
 ModCell::ModCell(const char* name, CCSize size) :
     TableViewCell(name, size.width, size.height) {}
@@ -77,6 +78,19 @@ void ModCell::updateBGColor(int index) {
 }
 
 void ModCell::onEnable(CCObject* pSender) {
+    if (!APIInternal::get()->m_shownEnableWarning) {
+        APIInternal::get()->m_shownEnableWarning = true;
+        FLAlertLayer::create(
+            "Notice",
+            "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
+            "calls its user-defined disable function if one exists. You may "
+            "still see some effects of the mod left however, and you may "
+            "need to <cg>restart</c> the game to have it fully unloaded.",
+            "OK"
+        )->show();
+        this->m_list->updateAllStates(this);
+        return;
+    }
     if (!as<CCMenuItemToggler*>(pSender)->isToggled()) {
         auto res = this->m_mod->enable();
         if (!res) {

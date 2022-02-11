@@ -15,6 +15,7 @@ set(SOURCE_FILES
 set(INCLUDE_DIRECTORIES
 	"include"
 	"include/keybinds"
+	"src"
 	"src/gui/loading"
 	"src/gui"
 	"src/gui/mods"
