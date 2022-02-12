@@ -1,0 +1,50 @@
+name: Build Binaries
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - name: "Windows"
+          os: windows-latest
+          extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
+          upload_paths:  |
+            ./build/Release/GeodeAPI.dll
+            ./build/Release/GeodeAPI.lib
+        - name: "macOS"
+          os: macos-latest
+          extra_flags: ""
+          upload_paths:  |
+            ./build/GeodeAPI.dylib
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x86
+      if: matrix.config.os == 'windows-latest'
+
+    - name: Configure CMake
+      run: |
+        cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }}
+    
+    - name: Build
+      run: |
+        cd ${{ github.workspace }}/build
+        cmake --build . --config Release
+        
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.config.name }} API Binary + Libraries
+        path: ${{ matrix.config.upload_paths }}
