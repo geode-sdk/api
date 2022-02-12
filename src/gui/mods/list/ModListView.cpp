@@ -10,8 +10,57 @@ void ModCell::draw() {
     reinterpret_cast<StatsCell*>(this)->StatsCell::draw();
 }
 
-void ModCell::loadFromMod(ModObject* Mod) {
-    this->m_mod = Mod->m_mod;
+void ModCell::onFailedInfo(CCObject*) {
+    FLAlertLayer::create(
+        nullptr,
+        "Error Info",
+        this->m_obj->m_info.m_reason,
+        "OK",
+        nullptr,
+        360.f
+    )->show();
+}
+
+void ModCell::loadFromFailureInfo(Loader::UnloadedModInfo info) {
+    this->m_mainLayer->setVisible(true);
+    this->m_backgroundLayer->setOpacity(255);
+    this->m_backgroundLayer->setColor({ 153, 0, 0 });
+    
+    auto menu = CCMenu::create();
+    menu->setPosition(this->m_width - this->m_height, this->m_height / 2);
+    this->m_mainLayer->addChild(menu);
+
+    auto titleLabel = CCLabelBMFont::create("Failed to Load", "bigFont.fnt");
+    titleLabel->setAnchorPoint({ .0f, .5f });
+    titleLabel->setScale(.5f);
+    titleLabel->setPosition(this->m_height / 2, this->m_height / 2 + 7.f);
+    this->m_mainLayer->addChild(titleLabel);
+    
+    auto pathLabel = CCLabelBMFont::create(info.m_file.c_str(), "chatFont.fnt");
+    pathLabel->setAnchorPoint({ .0f, .5f });
+    pathLabel->setScale(.43f);
+    pathLabel->setPosition(this->m_height / 2, this->m_height / 2 - 7.f);
+    pathLabel->setColor({ 255, 255, 0 });
+    this->m_mainLayer->addChild(pathLabel);
+
+    auto whySpr = ButtonSprite::create(
+        "Info", 0, 0, "bigFont.fnt", "GJ_button_01.png", 0, .8f
+    );
+    whySpr->setScale(.65f);
+
+    auto viewBtn = CCMenuItemSpriteExtra::create(
+        whySpr, this, menu_selector(ModCell::onFailedInfo)
+    );
+    menu->addChild(viewBtn);
+}
+
+void ModCell::loadFromMod(ModObject* mod) {
+    this->m_mod = mod->m_mod;
+    this->m_obj = mod;
+
+    if (!mod->m_mod) {
+        return this->loadFromFailureInfo(mod->m_info);
+    }
 
     this->m_mainLayer->setVisible(true);
     this->m_backgroundLayer->setOpacity(255);
@@ -184,10 +233,11 @@ TableViewCell* ModListView::getListCell(const char* key) {
 }
 
 void ModListView::loadCell(TableViewCell* cell, unsigned int index) {
-    as<ModCell*>(cell)->loadFromMod(
-        as<ModObject*>(this->m_entries->objectAtIndex(index))
-    );
-    as<ModCell*>(cell)->updateBGColor(index);
+    auto obj = as<ModObject*>(this->m_entries->objectAtIndex(index));
+    as<ModCell*>(cell)->loadFromMod(obj);
+    if (obj->m_mod) {
+        as<ModCell*>(cell)->updateBGColor(index);
+    }
 }
 
 bool ModListView::filter(Mod* mod, const char* searchFilter, int searchFlags) {
@@ -220,6 +270,9 @@ bool ModListView::init(
         switch (type) {
             case ModListType::Installed: {
                 mods = CCArray::create();
+                for (auto const& mod : Loader::get()->getFailedMods()) {
+                    mods->addObject(new ModObject(mod));
+                }
                 auto imod = Loader::getInternalMod();
                 if (this->filter(imod, searchFilter, searchFlags)) {
                     mods->addObject(new ModObject(imod));

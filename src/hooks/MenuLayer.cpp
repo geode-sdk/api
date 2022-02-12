@@ -38,6 +38,18 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		bottomMenu->addChild(chest);
 		chest->release();
 
+		auto failed = Loader::get()->getFailedMods();
+		if (failed.size()) {
+            auto layer = FLAlertLayer::create(
+				"Notice",
+				"Some mods failed to load; see <cy>Geode</c> for details",
+				"OK"
+			);
+			layer->m_scene = this;
+			layer->m_noElasticity = true;
+			layer->show();
+        }
+
 		return true;
 	}
 
