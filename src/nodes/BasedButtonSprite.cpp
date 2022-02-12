@@ -4,7 +4,9 @@ USE_GEODE_NAMESPACE();
 
 bool BasedButtonSprite::init(CCNode* ontop, int type, int size, int color) {
     if (!CCSprite::initWithSpriteFrameName(
-        CCString::createWithFormat("GEODE_blank%02d_%02d_%02d.png", type, size, color)->getCString()
+        Interface::mod()->expandSpriteName(
+            CCString::createWithFormat("GEODE_blank%02d_%02d_%02d.png", type, size, color)->getCString()
+        )
     )) return false;
 
     this->m_type = type;

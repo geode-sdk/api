@@ -18,7 +18,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		auto y = getChild<>(bottomMenu, 0)->getPositionY();
 
 		CCSprite* spr = CircleButtonSprite::createWithSpriteFrameName(
-			"geode-logo-outline-gold.png", 1.0f,
+			"geode-logo-outline-gold.png"_sprite, 1.0f,
 			CircleBaseColor::Green, CircleBaseSize::Medium2
 		);
 		if (!spr) {

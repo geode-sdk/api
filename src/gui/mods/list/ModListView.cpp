@@ -69,12 +69,22 @@ void ModCell::loadFromMod(ModObject* mod) {
     menu->setPosition(this->m_width - this->m_height, this->m_height / 2);
     this->m_mainLayer->addChild(menu);
 
+    auto logoSize = this->m_height - 12.f;
+
+    auto logoSpr = CCSprite::create(CCString::createWithFormat("%s.png", mod->m_mod->getID().c_str())->getCString());
+    if (!logoSpr) {
+        logoSpr = CCSprite::createWithSpriteFrameName("geode-logo-color.png"_sprite);
+    }
+    logoSpr->setPosition({ logoSize / 2 + 10.f, this->m_height / 2 });
+    logoSpr->setScale(logoSize / logoSpr->getContentSize().width);
+    this->m_mainLayer->addChild(logoSpr);
+
     auto titleLabel = CCLabelBMFont::create(
         this->m_mod->getName().c_str(), "bigFont.fnt"
     );
     titleLabel->setAnchorPoint({ .0f, .5f });
     titleLabel->setScale(.5f);
-    titleLabel->setPosition(this->m_height / 2, this->m_height / 2 + 7.f);
+    titleLabel->setPosition(this->m_height / 2 + logoSize, this->m_height / 2 + 7.f);
     this->m_mainLayer->addChild(titleLabel);
 
     auto versionLabel = CCLabelBMFont::create(
@@ -83,7 +93,7 @@ void ModCell::loadFromMod(ModObject* mod) {
     versionLabel->setAnchorPoint({ .0f, .5f });
     versionLabel->setScale(.3f);
     versionLabel->setPosition(
-        this->m_height / 2 + titleLabel->getScaledContentSize().width + 5.f,
+        titleLabel->getPositionX() + titleLabel->getScaledContentSize().width + 5.f,
         this->m_height / 2 + 7.f
     );
     versionLabel->setColor({ 0, 255, 0 });
@@ -95,7 +105,7 @@ void ModCell::loadFromMod(ModObject* mod) {
     );
     creatorLabel->setAnchorPoint({ .0f, .5f });
     creatorLabel->setScale(.43f);
-    creatorLabel->setPosition(this->m_height / 2, this->m_height / 2 - 7.f);
+    creatorLabel->setPosition(this->m_height / 2 + logoSize, this->m_height / 2 - 7.f);
     this->m_mainLayer->addChild(creatorLabel);
 
     auto viewSpr = ButtonSprite::create(

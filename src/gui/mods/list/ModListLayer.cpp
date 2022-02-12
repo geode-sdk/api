@@ -86,7 +86,7 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	auto menu = CCMenu::create();
 	menu->setPosition(340.f, 15.f);
 
-	auto filterSpr = EditorButtonSprite::createWithSpriteFrameName("filters.png", 1.0f, EditorBaseColor::Gray);
+	auto filterSpr = EditorButtonSprite::createWithSpriteFrameName("filters.png"_sprite, 1.0f, EditorBaseColor::Gray);
 	filterSpr->setScale(.7f);
 
 	auto filterBtn = CCMenuItemSpriteExtra::create(filterSpr, this, menu_selector(ModListLayer::onSearchFilters));
