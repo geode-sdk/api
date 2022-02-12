@@ -76,6 +76,18 @@ void ModCell::loadFromMod(ModObject* mod) {
     titleLabel->setScale(.5f);
     titleLabel->setPosition(this->m_height / 2, this->m_height / 2 + 7.f);
     this->m_mainLayer->addChild(titleLabel);
+
+    auto versionLabel = CCLabelBMFont::create(
+        this->m_mod->getVersion().toString().c_str(), "bigFont.fnt"
+    );
+    versionLabel->setAnchorPoint({ .0f, .5f });
+    versionLabel->setScale(.3f);
+    versionLabel->setPosition(
+        this->m_height / 2 + titleLabel->getScaledContentSize().width + 5.f,
+        this->m_height / 2 + 7.f
+    );
+    versionLabel->setColor({ 0, 255, 0 });
+    this->m_mainLayer->addChild(versionLabel);
     
     auto creatorStr = "by " + this->m_mod->getDeveloper();
     auto creatorLabel = CCLabelBMFont::create(
