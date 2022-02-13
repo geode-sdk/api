@@ -1,5 +1,6 @@
 #include "hook.hpp"
 #include <KeybindManager.hpp>
+#include <DragDropManager.hpp>
 
 #ifdef GEODE_IS_WINDOWS
 
@@ -31,6 +32,24 @@ class $modify(CCEGLView) {
             static_cast<MouseButton>(btn), pressed
         );
         return $CCEGLView::onGLFWMouseCallBack(wnd, btn, pressed, z);
+    }
+
+    void pollEvents() {
+        MSG msg;
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&msg);
+            if (msg.message == WM_DROPFILES) {
+                UINT buffsize = MAX_PATH;
+                char* buf = new char[MAX_PATH];
+                HDROP hDropInfo = (HDROP) msg.wParam;
+                DragQueryFile(hDropInfo, 0, buf, buffsize);
+                DragDropManager::get()->dispatchEvent(buf);
+
+                delete[] buf;
+            }
+            DispatchMessage(&msg);
+        }
+        $CCEGLView::pollEvents();
     }
 };
 

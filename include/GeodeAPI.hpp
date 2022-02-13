@@ -2,6 +2,7 @@
 
 #include <Geode.hpp>
 #include "keybinds/KeybindManager.hpp"
+#include "dragdrop/DragDropManager.hpp"
 #include "settings/CustomSettingNode.hpp"
 #include "nodes/BasedButtonSprite.hpp"
 #include "nodes/BasedButton.hpp"
@@ -39,6 +40,54 @@ namespace geode {
          * removed, false if not.
          */
         bool removeKeybindAction(keybind_action_id const& id);
+
+        /**
+         * Add a new file drag and drop handler
+         * @param handler_id A unique identifier 
+         * for the handler.
+         * @param handler A function that takes a 
+         * Path object and returns a bool that
+         * signifies whether you'd like to stop
+         * further handlers from being triggered.
+         * @returns True if the action was added, 
+         * false if not. If the function returns 
+         * false, it's probably the action's ID 
+         * being invalid / colliding with another 
+         * action's ID.
+         */
+        bool addDragDropHandler(
+            std::string handler_id,
+            std::function<bool(Path)> handler
+        );
+
+        /**
+         * Add a new file drag and drop handler
+         * @param handler_id A unique identifier 
+         * for the handler.
+         * @param handler A function that takes a 
+         * Path object and returns a bool that
+         * signifies whether you'd like to stop
+         * @param extension The file extension you'd
+         * like the handler to listen for.
+         * @returns True if the action was added, 
+         * false if not. If the function returns 
+         * false, it's probably the action's ID 
+         * being invalid / colliding with another 
+         * action's ID.
+         */
+        bool addDragDropHandler(
+            std::string handler_id,
+            std::function<bool(Path)> handler,
+            std::string extension
+        );
+
+        /**
+         * Remove a Drag+Drop handler.
+         * @param id ID of the handler.
+         * @returns True if the handler was 
+         * removed, false if not.
+         */
+        bool removeKeybindAction(std::string handler_id);
 
         Result<> setCustomSettingNode(
             std::string const& key,
