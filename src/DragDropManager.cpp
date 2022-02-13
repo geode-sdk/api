@@ -46,12 +46,14 @@ bool DragDropManager::addDropHandler(Mod* owner, std::string handler_id, std::fu
     if (m_extensiondelegates.find(handler_id) != m_extensiondelegates.end() || m_delegates.find(handler_id) != m_delegates.end()) return false;
     m_extensiondelegates[handler_id] = new DragDropDelegate(owner, handler);
     
-    while (extension.size() > 1 && extension.at(0) == '.') extension = extension.substr(1);
-    if (extension == ".") return false;
+    int index = extension.find_last_of(".");
+    if (index == extension.size() - 1) return false;
+
+    std::string cleaned = index == std::string::npos ? extension : extension.substr(index + 1);
 
     Interface::mod()->log() << "Added drop handler for ." + extension + " files with id " + handler_id << geode::endl;
 
-    m_extensions[extension].push_back(handler_id);
+    m_extensions[cleaned].push_back(handler_id);
     return true;
 }
 
