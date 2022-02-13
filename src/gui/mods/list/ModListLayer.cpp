@@ -117,8 +117,6 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	inputBG->setScale(.5f);
 	layer->addChild(inputBG);
 
-	std::cout << "this" << this << std::endl;
-	std::cout << "this" << static_cast<TextInputDelegate*>(this) << std::endl;
 	auto input = CCTextInputNode::create(250.f, 20.f, "Search Mods...", "bigFont.fnt");
 	input->setLabelPlaceholderColor({ 150, 150, 150 });
 	input->setLabelPlaceholderScale(.4f);
@@ -185,7 +183,6 @@ void ModListLayer::reloadList() {
 }
 
 void ModListLayer::textChanged(CCTextInputNode* input) {
-	std::cout << "text this" << this << std::endl;
 	this->reloadList();
 }
 
