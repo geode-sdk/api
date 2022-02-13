@@ -68,6 +68,6 @@ DragDropDelegate::DragDropDelegate(Mod* owner, decltype(handler) handler) {
 }
 
 bool DragDropDelegate::handleDrop(Path file) {
-    return this->owner->isEnabled() ? this->handler(file) : false;
+    return this->owner->isEnabled() && this->handler(file);
 }
 #endif
