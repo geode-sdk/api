@@ -71,11 +71,16 @@ void ModCell::loadFromMod(ModObject* mod) {
 
     auto logoSize = this->m_height - 12.f;
 
-    auto logoSpr = CCSprite::create(CCString::createWithFormat("%s.png", mod->m_mod->getID().c_str())->getCString());
-    if (!logoSpr) {
-        logoSpr = CCSprite::createWithSpriteFrameName("geode-logo-color.png"_sprite);
+    CCSprite* logoSpr = nullptr;
+    if (mod->m_mod == Loader::getInternalMod()) {
+        logoSpr = CCSprite::create("com.geode.api.png");
+    } else {
+        logoSpr = CCSprite::create(CCString::createWithFormat("%s.png", mod->m_mod->getID().c_str())->getCString());
     }
-    logoSpr->setPosition({ logoSize / 2 + 10.f, this->m_height / 2 });
+    if (!logoSpr) {
+        logoSpr = CCSprite::createWithSpriteFrameName("no-logo.png"_sprite);
+    }
+    logoSpr->setPosition({ logoSize / 2 + 12.f, this->m_height / 2 });
     logoSpr->setScale(logoSize / logoSpr->getContentSize().width);
     this->m_mainLayer->addChild(logoSpr);
 
