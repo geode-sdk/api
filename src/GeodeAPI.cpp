@@ -20,21 +20,21 @@ bool GeodeAPI::removeKeybindAction(keybind_action_id const& id) {
 }
 
 bool GeodeAPI::addDragDropHandler(
-    std::string handler_id,
+    std::string const& handler_id,
     std::function<bool(Path)> handler
 ) {
     return DragDropManager::get()->addDropHandler(this, handler_id, handler);
 }
 
 bool GeodeAPI::addDragDropHandler(
-    std::string handler_id,
+    std::string const& handler_id,
     std::function<bool(Path)> handler,
-    std::string extension
+    std::string const& extension
 ) {
     return DragDropManager::get()->addDropHandler(this, handler_id, handler, extension);
 }
 
-bool GeodeAPI::removeKeybindAction(std::string handler_id) {
+bool GeodeAPI::removeDragDropHandler(std::string const& handler_id) {
     return DragDropManager::get()->removeDropHandler(handler_id);
 }
 

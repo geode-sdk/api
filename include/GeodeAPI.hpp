@@ -56,7 +56,7 @@ namespace geode {
          * action's ID.
          */
         bool addDragDropHandler(
-            std::string handler_id,
+            std::string const& handler_id,
             std::function<bool(Path)> handler
         );
 
@@ -76,9 +76,9 @@ namespace geode {
          * action's ID.
          */
         bool addDragDropHandler(
-            std::string handler_id,
+            std::string const& handler_id,
             std::function<bool(Path)> handler,
-            std::string extension
+            std::string const& extension
         );
 
         /**
@@ -87,7 +87,7 @@ namespace geode {
          * @returns True if the handler was 
          * removed, false if not.
          */
-        bool removeKeybindAction(std::string handler_id);
+        bool removeDragDropHandler(std::string const& handler_id);
 
         Result<> setCustomSettingNode(
             std::string const& key,
