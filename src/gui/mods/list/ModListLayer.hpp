@@ -22,6 +22,8 @@ protected:
 	CCTextInputNode* m_searchInput = nullptr;
 	int m_searchFlags = ModListView::s_allFlags;
 
+	~ModListLayer() override;
+
 	bool init() override;
 
 	void onExit(CCObject*);

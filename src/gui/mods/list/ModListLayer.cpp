@@ -117,6 +117,8 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	inputBG->setScale(.5f);
 	layer->addChild(inputBG);
 
+	std::cout << "this" << this << std::endl;
+	std::cout << "this" << static_cast<TextInputDelegate*>(this) << std::endl;
 	auto input = CCTextInputNode::create(250.f, 20.f, "Search Mods...", "bigFont.fnt");
 	input->setLabelPlaceholderColor({ 150, 150, 150 });
 	input->setLabelPlaceholderScale(.4f);
@@ -133,10 +135,7 @@ void ModListLayer::reloadList() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     if (this->m_list) {
-		if (this->m_searchInput) {
-			this->m_searchInput->retain();
-			this->m_searchBG->retain();
-		}
+		if (this->m_searchBG) this->m_searchBG->retain();
         this->m_list->removeFromParent();
 	}
 
@@ -186,6 +185,7 @@ void ModListLayer::reloadList() {
 }
 
 void ModListLayer::textChanged(CCTextInputNode* input) {
+	std::cout << "text this" << this << std::endl;
 	this->reloadList();
 }
 
@@ -238,7 +238,7 @@ void ModListLayer::onSearchFilters(CCObject*) {
 }
 
 ModListLayer* ModListLayer::create() {
-	auto ret = new ModListLayer;
+	auto ret = new ModListLayer();
 	if (ret && ret->init()) {
 		ret->autorelease();
 		return ret;
@@ -255,4 +255,8 @@ ModListLayer* ModListLayer::scene() {
 		CCTransitionFade::create(.5f, scene)
 	);
 	return layer;
+}
+
+ModListLayer::~ModListLayer() {
+	removeAllChildrenWithCleanup(true);
 }
