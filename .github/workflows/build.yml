@@ -32,7 +32,7 @@ jobs:
 
     - name: Add CLI to path
       shell: bash
-      with:
+      env:
         CONFIG_OS: ${{ matrix.config.name }}
       run: |
         echo "./sdk/bin/${CONFIG_OS,,}" >> $GITHUB_PATH
