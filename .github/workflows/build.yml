@@ -11,12 +11,14 @@ jobs:
       matrix:
         config:
         - name: "Windows"
+          bin_folder: "windows"
           os: windows-latest
           extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
           upload_paths:  |
             ./build/Release/GeodeAPI.geode
             ./build/Release/GeodeAPI.lib
         - name: "macOS"
+          bin_folder: "macos"
           os: macos-latest
           extra_flags: ""
           upload_paths:  |
@@ -30,13 +32,11 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Add CLI to path
+    - name: Setup CLI
       shell: bash
-      env:
-        CONFIG_OS: ${{ matrix.config.name }}
       run: |
-        echo ./sdk/bin/${CONFIG_OS,,} >> $GITHUB_PATH
-        echo {\"install_path\":\"/\"} >> ./sdk/bin/config.json
+        echo ./sdk/bin/${{ matrix.config.bin_folder }} >> $GITHUB_PATH
+        echo {\"install_path\":\"/\"} >> ./sdk/bin/${{ matrix.config.bin_folder }}/config.json
 
     - uses: ilammy/msvc-dev-cmd@v1
       with:
