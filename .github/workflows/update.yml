@@ -43,7 +43,7 @@ jobs:
       working-directory: ${{ github.workspace }}
       run: |
         mv ./windows/GeodeAPI.lib ./windows/GeodeAPI.geode ./bin/windows
-        mv ./macos/GeodeAPI.dylib ./mac/GeodeAPI.geode ./bin/macos
+        mv ./macos/GeodeAPI.dylib ./macos/GeodeAPI.geode ./bin/macos
         
     - name: Commit and push to bin
       working-directory: ${{ github.workspace }}/bin
