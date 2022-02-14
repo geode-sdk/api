@@ -14,12 +14,13 @@ jobs:
           os: windows-latest
           extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
           upload_paths:  |
-            ./build/Release/GeodeAPI.dll
+            ./build/Release/GeodeAPI.geode
             ./build/Release/GeodeAPI.lib
         - name: "macOS"
           os: macos-latest
           extra_flags: ""
           upload_paths:  |
+            ./build/GeodeAPI.geode
             ./build/GeodeAPI.dylib
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -28,6 +29,14 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
+
+    - name: Add CLI to path
+      shell: bash
+      with:
+        CONFIG_OS: ${{ matrix.config.name }}
+      run: |
+        echo "./sdk/bin/${CONFIG_OS,,}" >> $GITHUB_PATH
+        echo {\"install_path\":\"/\"} >> ./sdk/bin/config.json
 
     - uses: ilammy/msvc-dev-cmd@v1
       with:
