@@ -45,11 +45,6 @@ jobs:
       with:
         arch: x86
       if: matrix.config.os == 'windows-latest'
-      
-    - name: Setup CLI Ownership
-      with:
-        arch: x86
-      if: matrix.config.os != 'windows-latest'
 
     - name: Configure CMake
       run: |
