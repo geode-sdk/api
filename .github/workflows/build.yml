@@ -35,7 +35,7 @@ jobs:
       env:
         CONFIG_OS: ${{ matrix.config.name }}
       run: |
-        echo "./sdk/bin/${CONFIG_OS,,}" >> $GITHUB_PATH
+        echo ./sdk/bin/${CONFIG_OS,,} >> $GITHUB_PATH
         echo {\"install_path\":\"/\"} >> ./sdk/bin/config.json
 
     - uses: ilammy/msvc-dev-cmd@v1
