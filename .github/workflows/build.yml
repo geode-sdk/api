@@ -12,6 +12,7 @@ jobs:
         config:
         - name: "Windows"
           bin_folder: "windows"
+          cli_name: "geode.exe"
           os: windows-latest
           extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
           upload_paths:  |
@@ -19,6 +20,7 @@ jobs:
             ./build/Release/GeodeAPI.lib
         - name: "macOS"
           bin_folder: "macos"
+          cli_name: "geode"
           os: macos-latest
           extra_flags: ""
           upload_paths:  |
@@ -37,11 +39,17 @@ jobs:
       run: |
         echo ./sdk/bin/${{ matrix.config.bin_folder }} >> $GITHUB_PATH
         echo {\"install_path\":\"/\"} >> ./sdk/bin/${{ matrix.config.bin_folder }}/config.json
+        chmod +x ./sdk/bin/${{ matrix.config.bin_folder }}/${{ matrix.config.cli_name }}
 
     - uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: x86
       if: matrix.config.os == 'windows-latest'
+      
+    - name: Setup CLI Ownership
+      with:
+        arch: x86
+      if: matrix.config.os != 'windows-latest'
 
     - name: Configure CMake
       run: |
