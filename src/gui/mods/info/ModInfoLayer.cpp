@@ -2,6 +2,42 @@
 #include "../dev/HookListLayer.hpp"
 #include "../dev/DevSettingsLayer.hpp"
 #include "ModSettingsLayer.hpp"
+#include <nodes/BasedButton.hpp>
+
+CCMenuItemToggler* ModInfoLayer::createTab(Tab id, const char* text, const char* icon) {
+    std::string str = text;
+    if (icon) str = "   " + str;
+
+    auto offSpr = ButtonSprite::create(str.c_str(), "goldFont.fnt", "GJ_button_05.png", .7f);
+    offSpr->setScale(.7f);
+    if (icon) {
+        auto offIcon = CCSprite::createWithSpriteFrameName(icon);
+        offIcon->setScale(offIcon->getContentSize().height / offSpr->getContentSize().height);
+        offIcon->setPosition({
+            offSpr->getContentSize().height / 2 + 2.f,
+            offSpr->getContentSize().height / 2
+        });
+        offSpr->addChild(offIcon);
+    }
+
+    auto onSpr = ButtonSprite::create(str.c_str(), "goldFont.fnt", "GJ_button_02.png", .7f);
+    onSpr->setScale(.7f);
+    if (icon) {
+        auto onIcon = CCSprite::createWithSpriteFrameName(icon);
+        onIcon->setScale(onIcon->getContentSize().height / offSpr->getContentSize().height);
+        onIcon->setPosition({
+            onSpr->getContentSize().height / 2 + 2.f,
+            onSpr->getContentSize().height / 2
+        });
+        onSpr->addChild(onIcon);
+    }
+
+    auto ret = CCMenuItemToggler::create(offSpr, onSpr, this, menu_selector(ModInfoLayer::onTab));
+	ret->setTag(static_cast<int>(id));
+	this->m_buttonMenu->addChild(ret);
+    this->m_tabBtns.push_back(ret);
+    return ret;
+}
 
 bool ModInfoLayer::init(Mod* mod) {
     this->m_noElasticity = true;
@@ -9,7 +45,7 @@ bool ModInfoLayer::init(Mod* mod) {
     this->m_mod = mod;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-	CCSize size { 420.f, 280.f };
+	CCSize size { 440.f, 290.f };
 
     if (!this->initWithColor({ 0, 0, 0, 105 })) return false;
     this->m_mainLayer = CCLayer::create();
@@ -23,110 +59,64 @@ bool ModInfoLayer::init(Mod* mod) {
     this->m_buttonMenu = CCMenu::create();
     this->m_mainLayer->addChild(this->m_buttonMenu);
 
+    constexpr float logoSize = 40.f;
+    constexpr float logoOffset = 10.f;
+
     auto nameLabel = CCLabelBMFont::create(
         this->m_mod->getName().c_str(), "bigFont.fnt"
     );
-    nameLabel->setPosition(winSize.width / 2, winSize.height / 2 + 110.f);
     nameLabel->setScale(.7f);
+    nameLabel->setAnchorPoint({ .0f, .5f });
     this->m_mainLayer->addChild(nameLabel, 2); 
 
-    auto creatorStr = "by " + this->m_mod->getDeveloper();
-    auto creatorLabel = CCLabelBMFont::create(
-        creatorStr.c_str(), "goldFont.fnt"
+    auto logoSpr = this->createLogoSpr(mod);
+    logoSpr->setScale(logoSize / logoSpr->getContentSize().width);
+    this->m_mainLayer->addChild(logoSpr);
+
+    auto developerStr = "by " + this->m_mod->getDeveloper();
+    auto developerLabel = CCLabelBMFont::create(
+        developerStr.c_str(), "goldFont.fnt"
     );
-    creatorLabel->setPosition(winSize.width / 2, winSize.height / 2 + 85.f);
-    creatorLabel->setScale(.8f);
-    this->m_mainLayer->addChild(creatorLabel);
+    developerLabel->setScale(.5f);
+    developerLabel->setAnchorPoint({ .0f, .5f });
+    this->m_mainLayer->addChild(developerLabel);
 
-    auto descBG = CCScale9Sprite::create("square02b_001.png");
-    descBG->setPosition(winSize.width / 2, winSize.height / 2 + 30.f);
-    descBG->setContentSize({ 700.f, 120.f });
-    descBG->setScale(.5f);
-    descBG->setOpacity(100);
-    descBG->setColor(cc3x(0));
-    this->m_mainLayer->addChild(descBG);
+    auto logoTitleWidth = std::max(
+        nameLabel->getScaledContentSize().width,
+        developerLabel->getScaledContentSize().width
+    ) + logoSize + logoOffset;
 
-    auto desc = this->m_mod->getDetails().size() ?
-        this->m_mod->getDetails() :
-        "[No Description Provided]";
-
-    auto descLabel = TextArea::create(
-        desc, "chatFont.fnt", 
-        1.f, 325.f, { .5f, .5f }, 16.f, false
+    nameLabel->setPosition(
+        winSize.width / 2 - logoTitleWidth / 2 + logoSize + logoOffset,
+        winSize.height / 2 + 125.f
     );
-    descLabel->setPosition({ winSize.width / 2, winSize.height / 2 + 30.f });
-    this->m_mainLayer->addChild(descLabel, 2);
-
-    auto creditsBG = CCScale9Sprite::create("square02b_001.png");
-    creditsBG->setPosition(winSize.width / 2, winSize.height / 2 - 50.f);
-    creditsBG->setContentSize({ 700.f, 120.f });
-    creditsBG->setScale(.5f);
-    creditsBG->setOpacity(100);
-    creditsBG->setColor(cc3x(0));
-    this->m_mainLayer->addChild(creditsBG);
-
-    auto credits = this->m_mod->getCredits().size() ?
-        "Credits: " + this->m_mod->getCredits() :
-        "[No Credits Provided]";
-
-    auto creditsLabel = TextArea::create(
-        credits, "chatFont.fnt",  
-        1.0f, 300.f, { .5f, .5f }, 50.f, false
+    logoSpr->setPosition({
+        winSize.width / 2 - logoTitleWidth / 2 + logoSize / 2,
+        winSize.height / 2 + 115.f
+    });
+    developerLabel->setPosition(
+        winSize.width / 2 - logoTitleWidth / 2 + logoSize + logoOffset,
+        winSize.height / 2 + 105.f
     );
-    creditsLabel->setPosition({ winSize.width / 2, winSize.height / 2 - 50.f });
-    this->m_mainLayer->addChild(creditsLabel, 2);
 
+	auto infoTab = this->createTab(Tab::Info, "Info", "GJ_infoIcon_001.png");
+	this->createTab(Tab::Credits, "Credits", "GJ_starsIcon_001.png");
+	this->createTab(Tab::Settings, "Settings", "GJ_hammerIcon_001.png");
+	this->createTab(Tab::About, "About", "GJ_infoIcon_001.png");
+    this->m_buttonMenu->alignItemsHorizontallyWithPadding(4.f);
 
-    auto hooksSpr = ButtonSprite::create(
-        "Hooks", 0, 0, "bigFont.fnt", "GJ_button_05.png", 0, .8f
-    );
-    hooksSpr->setScale(.6f);
+    for (auto& btn : this->m_tabBtns) {
+        btn->setPositionY(75.f);
+    }
 
-    auto hooksBtn = CCMenuItemSpriteExtra::create(
-        hooksSpr, this, menu_selector(ModInfoLayer::onHooks)
-    );
-    hooksBtn->setPosition(
-        -size.width / 2 + 45.f,
-        -size.height / 2 + 25.f
-    );
-    this->m_buttonMenu->addChild(hooksBtn);
-
-
-    auto settingsSpr = ButtonSprite::create(
-        "Settings", 0, 0, "bigFont.fnt", "GJ_button_05.png", 0, .8f
-    );
-    settingsSpr->setScale(.6f);
-
-    auto settingsBtn = CCMenuItemSpriteExtra::create(
-        settingsSpr, this, menu_selector(ModInfoLayer::onSettings)
-    );
-    settingsBtn->setPosition(
-        0.f,
-        -size.height / 2 + 25.f
-    );
-    this->m_buttonMenu->addChild(settingsBtn);
-
-
-    auto devSpr = ButtonSprite::create(
-        "Dev Options", 0, 0, "bigFont.fnt", "GJ_button_05.png", 0, .8f
-    );
-    devSpr->setScale(.6f);
-
-    auto devBtn = CCMenuItemSpriteExtra::create(
-        devSpr, this, menu_selector(ModInfoLayer::onDev)
-    );
-    devBtn->setPosition(
-        size.width / 2 - 65.f,
-        -size.height / 2 + 25.f
-    );
-    this->m_buttonMenu->addChild(devBtn);
-
+    this->onTab(infoTab);
+    infoTab->toggle(true);
 
     CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
     this->registerWithTouchDispatcher();
     
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
-    closeSpr->setScale(1.0f);
+    closeSpr->setScale(.8f);
 
     auto closeBtn = CCMenuItemSpriteExtra::create(
         closeSpr,
@@ -137,12 +127,18 @@ bool ModInfoLayer::init(Mod* mod) {
 
     this->m_buttonMenu->addChild(closeBtn);
 
-    closeBtn->setPosition( - size.width / 2, size.height / 2 );
+    closeBtn->setPosition(-size.width / 2 + 3.f, size.height / 2 - 3.f);
 
     this->setKeypadEnabled(true);
     this->setTouchEnabled(true);
 
     return true;
+}
+
+void ModInfoLayer::onTab(CCObject* pSender) {
+    for (auto& tab : this->m_tabBtns) {
+        tab->toggle(false);
+    }
 }
 
 void ModInfoLayer::onDev(CCObject*) {
@@ -183,4 +179,16 @@ ModInfoLayer* ModInfoLayer::create(Mod* mod) {
     }
     CC_SAFE_DELETE(ret);
     return nullptr;
+}
+
+CCNode* ModInfoLayer::createLogoSpr(Mod* mod) {
+    CCNode* spr = nullptr;
+    if (mod == Loader::getInternalMod()) {
+        spr = CCSprite::create("com.geode.api.png");
+    } else {
+        spr = CCSprite::create(CCString::createWithFormat("%s.png", mod->getID().c_str())->getCString());
+    }
+    if (!spr) { spr = CCSprite::createWithSpriteFrameName("no-logo.png"_sprite); }
+    if (!spr) { spr = CCLabelBMFont::create("OwO", "goldFont.fnt"); }
+    return spr;
 }
