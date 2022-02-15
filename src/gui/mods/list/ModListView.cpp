@@ -23,8 +23,6 @@ void ModCell::onFailedInfo(CCObject*) {
 
 void ModCell::loadFromFailureInfo(Loader::UnloadedModInfo info) {
     this->m_mainLayer->setVisible(true);
-    this->m_backgroundLayer->setOpacity(255);
-    this->m_backgroundLayer->setColor({ 153, 0, 0 });
     
     auto menu = CCMenu::create();
     menu->setPosition(this->m_width - this->m_height, this->m_height / 2);
@@ -54,12 +52,12 @@ void ModCell::loadFromFailureInfo(Loader::UnloadedModInfo info) {
     menu->addChild(viewBtn);
 }
 
-void ModCell::loadFromMod(ModObject* mod) {
-    this->m_mod = mod->m_mod;
-    this->m_obj = mod;
+void ModCell::loadFromMod(ModObject* modobj) {
+    this->m_mod = modobj->m_mod;
+    this->m_obj = modobj;
 
-    if (!mod->m_mod) {
-        return this->loadFromFailureInfo(mod->m_info);
+    if (!modobj->m_mod) {
+        return this->loadFromFailureInfo(modobj->m_info);
     }
 
     this->m_mainLayer->setVisible(true);
@@ -71,7 +69,7 @@ void ModCell::loadFromMod(ModObject* mod) {
 
     auto logoSize = this->m_height - 12.f;
 
-    auto logoSpr = ModInfoLayer::createLogoSpr(mod->m_mod);
+    auto logoSpr = ModInfoLayer::createLogoSpr(modobj->m_mod);
     logoSpr->setPosition({ logoSize / 2 + 12.f, this->m_height / 2 });
     logoSpr->setScale(logoSize / logoSpr->getContentSize().width);
     this->m_mainLayer->addChild(logoSpr);
@@ -105,9 +103,9 @@ void ModCell::loadFromMod(ModObject* mod) {
     creatorLabel->setPosition(this->m_height / 2 + logoSize, this->m_height / 2 - 7.f);
     this->m_mainLayer->addChild(creatorLabel);
 
-    auto viewSpr = ButtonSprite::create(
-        "View", 0, 0, "bigFont.fnt", "GJ_button_01.png", 0, .8f
-    );
+    auto viewSpr = this->m_mod->wasSuccesfullyLoaded() ?
+        ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f) :
+        ButtonSprite::create("Why", "bigFont.fnt", "GJ_button_06.png", .8f);
     viewSpr->setScale(.65f);
 
     auto viewBtn = CCMenuItemSpriteExtra::create(
@@ -115,7 +113,7 @@ void ModCell::loadFromMod(ModObject* mod) {
     );
     menu->addChild(viewBtn);
 
-    if (this->m_mod->supportsDisabling()) {
+    if (this->m_mod->wasSuccesfullyLoaded() && this->m_mod->supportsDisabling()) {
         this->m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
             this, menu_selector(ModCell::onEnable), .7f
         );
@@ -131,6 +129,10 @@ void ModCell::loadFromMod(ModObject* mod) {
     );
     this->m_unresolvedExMark->setPosition(-80.f, 0.f);
     menu->addChild(this->m_unresolvedExMark);
+
+    if (!this->m_mod->wasSuccesfullyLoaded()) {
+        this->m_unresolvedExMark->setVisible(false);
+    }
 
     this->updateState();
 }
@@ -254,8 +256,11 @@ TableViewCell* ModListView::getListCell(const char* key) {
 void ModListView::loadCell(TableViewCell* cell, unsigned int index) {
     auto obj = as<ModObject*>(this->m_entries->objectAtIndex(index));
     as<ModCell*>(cell)->loadFromMod(obj);
-    if (obj->m_mod) {
+    if (obj->m_mod && obj->m_mod->wasSuccesfullyLoaded()) {
         as<ModCell*>(cell)->updateBGColor(index);
+    } else {
+        cell->m_backgroundLayer->setOpacity(255);
+        cell->m_backgroundLayer->setColor({ 153, 0, 0 });
     }
 }
 
