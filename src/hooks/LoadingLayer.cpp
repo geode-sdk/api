@@ -3,7 +3,7 @@
 
 class $modify(CustomLoadingLayer, LoadingLayer) {
     bool init(bool fromReload) {
-        if (!$LoadingLayer::init(fromReload))
+        if (!LoadingLayer::init(fromReload))
             return false;
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
