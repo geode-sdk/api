@@ -15,14 +15,14 @@ class $modify(CCKeyboardDispatcher) {
                 down
             )) return true;
         }
-        return $CCKeyboardDispatcher::dispatchKeyboardMSG(key, down);
+        return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down);
     }
 };
 
 class $modify(CCScheduler) {
     void update(float dt) {
         KeybindManager::get()->handleRepeats(dt);
-        return $CCScheduler::update(dt);
+        return CCScheduler::update(dt);
     }
 };
 
@@ -31,7 +31,7 @@ class $modify(CCEGLView) {
         KeybindManager::get()->registerMousePress(
             static_cast<MouseButton>(btn), pressed
         );
-        return $CCEGLView::onGLFWMouseCallBack(wnd, btn, pressed, z);
+        return CCEGLView::onGLFWMouseCallBack(wnd, btn, pressed, z);
     }
 
     void pollEvents() {
@@ -49,7 +49,7 @@ class $modify(CCEGLView) {
             }
             DispatchMessage(&msg);
         }
-        $CCEGLView::pollEvents();
+        CCEGLView::pollEvents();
     }
 };
 

@@ -6,7 +6,7 @@
 class $modify(CustomMenuLayer, MenuLayer) {
 
 	bool init() {
-		if (!$MenuLayer::init())
+		if (!MenuLayer::init())
 			return false;
 		
 		auto bottomMenu = getChild<CCMenu*>(this, 3);
