@@ -24,10 +24,10 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
     mod->with<GeodeAPI>()->addDragDropHandler("geode_mod_installer", [](ghc::filesystem::path path) -> bool {
         auto to_file = Loader::get()->getGeodeDirectory() / geode_mod_directory / path.filename();
 
-        if (!ghc::filesystem::copy_file(path, to_file)) {
-            ghc::filesystem::remove(path);
+        if (!ghc::filesystem::copy_file(path, to_file, ghc::filesystem::copy_options::overwrite_existing)) {
             FLAlertLayer::create("Oops!", path.stem().u8string() + " couldn't be installed!", "OK")->show();
         } else {
+            ghc::filesystem::remove(path);
             FLAlertLayer::create("Success!", path.stem().u8string() + " successfully installed!", "OK")->show();
         }
         return true;
