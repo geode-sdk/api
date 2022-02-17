@@ -15,17 +15,13 @@ jobs:
           cli_name: "geode.exe"
           os: windows-latest
           extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
-          upload_paths:  |
-            ./build/Release/GeodeAPI.geode
-            ./build/Release/GeodeAPI.lib
+          out_paths:  './build/Release/GeodeAPI.geode ./build/Release/GeodeAPI.lib'
         - name: "macOS"
           bin_folder: "macos"
           cli_name: "geode"
           os: macos-latest
           extra_flags: ""
-          upload_paths:  |
-            ./build/GeodeAPI.geode
-            ./build/GeodeAPI.dylib
+          out_paths:  './build/GeodeAPI.geode ./build/GeodeAPI.dylib'
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
 
@@ -54,9 +50,16 @@ jobs:
       run: |
         cd ${{ github.workspace }}/build
         cmake --build . --config Release
-        
+    
+    - name: Move to output folder
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        mkdir ./out
+        mv ${{ matrix.config.out_paths }} ./out
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.config.name }} API Binary + Package
-        path: ${{ matrix.config.upload_paths }}
+        path: ./out/
