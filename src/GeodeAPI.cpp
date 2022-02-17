@@ -19,6 +19,8 @@ bool GeodeAPI::removeKeybindAction(keybind_action_id const& id) {
     return KeybindManager::get()->removeKeybindAction(this, id);
 }
 
+#endif
+
 bool GeodeAPI::addDragDropHandler(
     std::string const& handler_id,
     std::function<bool(ghc::filesystem::path)> handler
@@ -37,8 +39,6 @@ bool GeodeAPI::addDragDropHandler(
 bool GeodeAPI::removeDragDropHandler(std::string const& handler_id) {
     return DragDropManager::get()->removeDropHandler(handler_id);
 }
-
-#endif
 
 Result<> GeodeAPI::setCustomSettingNode(
     std::string const& key,
