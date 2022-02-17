@@ -1,8 +1,6 @@
 #include <Geode.hpp>
 #include <KeybindManager.hpp>
 
-#ifdef GEODE_IS_WINDOWS
-
 USE_GEODE_NAMESPACE();
 
 bool KeybindManager::init() {
@@ -412,5 +410,3 @@ bool KeybindManager::keyIsModifier(cocos2d::enumKeyCodes code) {
         code == KEY_Shift   ||
         code == KEY_Alt;
 }
-
-#endif

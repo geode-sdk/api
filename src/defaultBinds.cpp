@@ -1,8 +1,6 @@
 #include <Geode.hpp>
 #include <KeybindManager.hpp>
 
-#ifdef GEODE_IS_WINDOWS
-
 USE_GEODE_NAMESPACE();
 using namespace std::literals::string_literals;
 
@@ -535,5 +533,3 @@ void KeybindManager::loadDefaultKeybinds() {
         BIND( KEY_S, Keybind::Modifiers::Shift )
     ); }
 }
-
-#endif

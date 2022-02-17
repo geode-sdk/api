@@ -10,6 +10,7 @@ set(GEODE_BUILD_CODEGEN On)
 
 set(SOURCE_FILES 
 	${CORE_SOURCES}
+	src/hooks/objcHook.mm
 )
 set(INCLUDE_DIRECTORIES
 	"include"

@@ -37,7 +37,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 }
 
 GEODE_API bool GEODE_CALL geode_load_data(const char* path) {
-    Interface::mod()->log() << __FUNCTION__ << geode::endl;
+    Interface::mod()->log() << __FUNCTION__;
     auto settingsPath = ghc::filesystem::path(path) / "api.json";
     if (ghc::filesystem::exists(settingsPath)) {
         try {

@@ -23,7 +23,7 @@ Result<> APIInternal::save(nlohmann::json& json) {
 }
 
 Result<> APIInternal::load(nlohmann::json const& json) {
-    Interface::mod()->log() << __FUNCTION__ << geode::endl;
+    Interface::mod()->log() << __FUNCTION__;
     LOAD_KEY("shown-mod-enable-warning", m_shownEnableWarning, boolean, is_boolean);
     return Ok<>();
 }

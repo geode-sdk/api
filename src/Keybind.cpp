@@ -1,8 +1,6 @@
 #include <Geode.hpp>
 #include <Keybind.hpp>
 
-#ifdef GEODE_IS_WINDOWS
-
 USE_GEODE_NAMESPACE();
 
 std::string geode::keyToStringFixed(enumKeyCodes code) {
@@ -230,6 +228,3 @@ std::size_t std::hash<Input>::operator()(Input const& inp) const {
     }
     return 0;
 }
-
-#endif
-

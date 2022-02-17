@@ -2,8 +2,6 @@
 #include <KeybindManager.hpp>
 #include <DragDropManager.hpp>
 
-#ifdef GEODE_IS_WINDOWS
-
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
         KeybindManager::get()->registerKeyPress(key, down);
@@ -25,6 +23,8 @@ class $modify(CCScheduler) {
         return CCScheduler::update(dt);
     }
 };
+
+#ifdef GEODE_IS_WINDOWS
 
 class $modify(CCEGLView) {
     void onGLFWMouseCallBack(GLFWwindow* wnd, int btn, int pressed, int z) {
