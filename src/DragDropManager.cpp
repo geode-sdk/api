@@ -16,8 +16,8 @@ void DragDropManager::dispatchEvent(std::string path) {
 
     ghc::filesystem::path p(path.c_str());
 
-    std::string fileExtension = p.extension();
-    if (fileExtension.at(0) == '.')
+    std::string fileExtension = p.extension().u8string();
+    if (fileExtension.at(0) == '.') {
         fileExtension = fileExtension.substr(1);
     }
 

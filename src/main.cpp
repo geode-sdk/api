@@ -26,9 +26,9 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 
         if (!ghc::filesystem::copy_file(path, to_file)) {
             ghc::filesystem::remove(path);
-            FLAlertLayer::create("Oops!", path.stem() + " couldn't be installed!", "OK")->show();
+            FLAlertLayer::create("Oops!", path.stem().u8string() + " couldn't be installed!", "OK")->show();
         } else {
-            FLAlertLayer::create("Success!", path.stem() + " successfully installed!", "OK")->show();
+            FLAlertLayer::create("Success!", path.stem().u8string() + " successfully installed!", "OK")->show();
         }
         return true;
     }, ".geode");
