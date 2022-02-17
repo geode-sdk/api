@@ -46,7 +46,7 @@ namespace geode {
          * @param handler_id A unique identifier 
          * for the handler.
          * @param handler A function that takes a 
-         * Path object and returns a bool that
+         * ghc::filesystem::path object and returns a bool that
          * signifies whether you'd like to stop
          * further handlers from being triggered.
          * @returns True if the action was added, 
@@ -57,7 +57,7 @@ namespace geode {
          */
         bool addDragDropHandler(
             std::string const& handler_id,
-            std::function<bool(Path)> handler
+            std::function<bool(ghc::filesystem::path)> handler
         );
 
         /**
@@ -65,7 +65,7 @@ namespace geode {
          * @param handler_id A unique identifier 
          * for the handler.
          * @param handler A function that takes a 
-         * Path object and returns a bool that
+         * ghc::filesystem::path object and returns a bool that
          * signifies whether you'd like to stop
          * @param extension The file extension you'd
          * like the handler to listen for.
@@ -77,7 +77,7 @@ namespace geode {
          */
         bool addDragDropHandler(
             std::string const& handler_id,
-            std::function<bool(Path)> handler,
+            std::function<bool(ghc::filesystem::path)> handler,
             std::string const& extension
         );
 

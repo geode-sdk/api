@@ -19,21 +19,19 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
             return false;
         }
     }, {{ KEY_T, Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});
+    #endif
 
-    mod->with<GeodeAPI>()->addDragDropHandler("geode_mod_installer", [](Path path) -> bool {
-        char buffer[MAX_PATH];
-        GetModuleFileNameA(NULL, buffer, MAX_PATH);
-        std::string::size_type pos = std::string(buffer).find_last_of("\\/");
-        std::string newloc = std::string(buffer).substr(0, pos) + "/geode/mods/" + path.file_name + ".geode";
+    mod->with<GeodeAPI>()->addDragDropHandler("geode_mod_installer", [](ghc::filesystem::path path) -> bool {
+        auto to_file = Loader::get()->getGeodeDirectory() / geode_mod_directory / path.filename();
 
-        if (!MoveFile(path.absolute_path.c_str(), newloc.c_str()) && !CopyFile(path.absolute_path.c_str(), newloc.c_str(), false)) {
-            FLAlertLayer::create("Oops!", path.file_name + " couldn't be installed!", "OK")->show();
+        if (!ghc::filesystem::copy_file(path, to_file)) {
+            ghc::filesystem::remove(path);
+            FLAlertLayer::create("Oops!", path.stem() + " couldn't be installed!", "OK")->show();
         } else {
-            FLAlertLayer::create("Success!", path.file_name + " successfully installed!", "OK")->show();
+            FLAlertLayer::create("Success!", path.stem() + " successfully installed!", "OK")->show();
         }
         return true;
     }, ".geode");
-    #endif
 
     return true;
 }
