@@ -6,7 +6,7 @@ USE_GEODE_NAMESPACE();
 
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
-    
+
     #ifdef GEODE_IS_WINDOWS
     mod->with<GeodeAPI>()->addKeybindAction(TriggerableAction {
         "Keybind Test",
@@ -22,7 +22,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
     #endif
 
     mod->with<GeodeAPI>()->addDragDropHandler("geode_mod_installer", [](ghc::filesystem::path path) -> bool {
-        auto to_file = Loader::get()->getGeodeDirectory() / geode_mod_directory / path.filename();
+        auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
 
         if (to_file == path) {
             FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> is already installed!", "OK")->show();
