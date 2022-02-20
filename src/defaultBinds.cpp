@@ -36,6 +36,7 @@ void KeybindManager::loadDefaultKeybinds() {
         { KB_PLAY_CATEGORY, KB_EDITOR_CATEGORY },
         [](CCNode* context, keybind_category_id const& category, bool push) -> bool {
             if (!push) return false;
+
             switch (category) {
                 case hash(KB_PLAY_CATEGORY):
                     as<PlayLayer*>(context)->m_UILayer->onPause(nullptr);

@@ -7,7 +7,6 @@ USE_GEODE_NAMESPACE();
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
 
-    #ifdef GEODE_IS_WINDOWS
     mod->with<GeodeAPI>()->addKeybindAction(TriggerableAction {
         "Keybind Test",
         "test_keybind",
@@ -19,7 +18,6 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
             return false;
         }
     }, {{ KEY_T, Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});
-    #endif
 
     mod->with<GeodeAPI>()->addDragDropHandler("geode_mod_installer", [](ghc::filesystem::path path) -> bool {
         auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();

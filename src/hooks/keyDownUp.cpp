@@ -1,8 +1,6 @@
 #include "hook.hpp"
 #include <KeybindManager.hpp>
 
-#ifdef GEODE_IS_WINDOWS
-
 class $modify(UILayer) {
     void keyDown(enumKeyCodes key) {
         KeybindManager::get()->handleKeyEvent(
@@ -30,5 +28,3 @@ class $modify(EditorUI) {
         );
     }
 };
-
-#endif

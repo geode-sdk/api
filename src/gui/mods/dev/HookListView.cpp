@@ -1,7 +1,4 @@
 #include "HookListView.hpp"
-#ifdef GEODE_IS_WINDOWS
-#include <filesystem>
-#endif
 
 HookCell::HookCell(const char* name, CCSize size) :
     TableViewCell(name, size.width, size.height) {}
