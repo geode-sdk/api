@@ -10,11 +10,11 @@ class $modify(CustomLoadingLayer, LoadingLayer) {
 
         auto [count, unresolvedCount] = Loader::get()->getLoadedModCount();
 
-        const char* text = "Loaded Geode";
+        // const char* text = "Loaded Geode";
         // commented out until someone figures out why this crashes
-        // const char* text = unresolvedCount ?
-        //     CCString::createWithFormat("Geode: Loaded %zu mods (%zu unresolved)", count, unresolvedCount)->getCString() : 
-        //     CCString::createWithFormat("Geode: Loaded %zu mods", count)->getCString();
+        const char* text = unresolvedCount ?
+            CCString::createWithFormat("Geode: Loaded %zu mods (%zu unresolved)", count, unresolvedCount)->getCString() : 
+            CCString::createWithFormat("Geode: Loaded %zu mods", count)->getCString();
 
         auto label = CCLabelBMFont::create(text, "goldFont.fnt");
         label->setPosition(winSize.width / 2, 30.f);

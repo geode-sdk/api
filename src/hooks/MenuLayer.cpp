@@ -2,6 +2,7 @@
 #include <mods/list/ModListLayer.hpp>
 #include <WackyGeodeMacros.hpp>
 #include <nodes/BasedButtonSprite.hpp>
+#include <views/BasicViews.hpp>
 
 class $modify(CustomMenuLayer, MenuLayer) {
 
@@ -29,10 +30,13 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		);
 		bottomMenu->addChild(btn);
 
-		bottomMenu->alignItemsHorizontallyWithPadding(3.f);
+		// bottomMenu->alignItemsHorizontallyWithPadding(3.f);
+
+		auto row = Row::create()->padding(3.0f);
 
 		CCARRAY_FOREACH_B_TYPE(bottomMenu->getChildren(), node, CCNode) {
 			node->setPositionY(y);
+			row->addItem("", node);
 		}
 
 		bottomMenu->addChild(chest);
