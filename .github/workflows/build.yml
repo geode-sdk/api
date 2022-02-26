@@ -13,7 +13,7 @@ jobs:
         - name: "Windows"
           bin_folder: "windows"
           cli_name: "geode.exe"
-          os: windows-latest
+          os: windows-2019
           extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
           out_paths:  './build/Release/GeodeAPI.geode ./build/Release/GeodeAPI.lib'
         - name: "macOS"
