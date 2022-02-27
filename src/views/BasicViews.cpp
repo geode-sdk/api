@@ -37,3 +37,6 @@ bool Column::format() {
 	return true;
 }
 
+bool Grid::format() {
+	return true;
+}
