@@ -8,7 +8,7 @@
 #include "nodes/BasedButton.hpp"
 
 namespace geode {
-    class GEODE_API_DLL GeodeAPI : public APIMod {
+    class GEODE_API_DLL GeodeAPI : public Mod {
     public:
         /**
          * Add a new keybind action, i.e. a 

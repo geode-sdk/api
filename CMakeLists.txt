@@ -27,6 +27,7 @@ set(INCLUDE_DIRECTORIES
 )
 set(LINK_DIRECTORIES)
 set(LINK_LIBRARIES)
+set(BINARY_NAME GeodeAPI)
 
 add_compile_definitions(EXPORTING_GEODE_API)
 
@@ -35,4 +36,3 @@ if (APPLE)
 endif()
 
 include(sdk/Geode.cmake)
-set_target_properties(GeodeAPI PROPERTIES PREFIX "" OUTPUT_NAME "GeodeAPI")
