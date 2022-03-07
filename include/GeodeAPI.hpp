@@ -57,7 +57,7 @@ namespace geode {
          */
         bool addDragDropHandler(
             std::string const& handler_id,
-            std::function<bool(ghc::filesystem::path)> handler
+            std::function<bool(ghc::filesystem::path const&)> handler
         );
 
         /**
@@ -77,7 +77,7 @@ namespace geode {
          */
         bool addDragDropHandler(
             std::string const& handler_id,
-            std::function<bool(ghc::filesystem::path)> handler,
+            std::function<bool(ghc::filesystem::path const&)> handler,
             std::string const& extension
         );
 

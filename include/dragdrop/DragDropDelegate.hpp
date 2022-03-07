@@ -5,7 +5,7 @@
 namespace geode {
     struct GEODE_API_DLL DragDropDelegate {
         Mod* owner;
-        std::function<bool(ghc::filesystem::path)> handler;
+        std::function<bool(ghc::filesystem::path const&)> handler;
 
         DragDropDelegate(Mod*, decltype(handler));
         bool handleDrop(ghc::filesystem::path file);

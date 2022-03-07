@@ -32,13 +32,13 @@ void DragDropManager::dispatchEvent(std::string path) {
     FLAlertLayer::create("Error", "No manager registered for <cr>." + fileExtension + "</c> files!", "OK")->show();
 }
 
-bool DragDropManager::addDropHandler(Mod* owner, std::string handler_id, std::function<bool(ghc::filesystem::path)> handler) {
+bool DragDropManager::addDropHandler(Mod* owner, std::string handler_id, std::function<bool(ghc::filesystem::path const&)> handler) {
     if (m_delegates.find(handler_id) != m_delegates.end() || m_extensiondelegates.find(handler_id) != m_extensiondelegates.end()) return false;
     m_delegates[handler_id] = new DragDropDelegate(owner, handler);
     return true;
 }
 
-bool DragDropManager::addDropHandler(Mod* owner, std::string handler_id, std::function<bool(ghc::filesystem::path)> handler, std::string extension) {
+bool DragDropManager::addDropHandler(Mod* owner, std::string handler_id, std::function<bool(ghc::filesystem::path const&)> handler, std::string extension) {
     if (m_extensiondelegates.find(handler_id) != m_extensiondelegates.end() || m_delegates.find(handler_id) != m_delegates.end()) return false;
     m_extensiondelegates[handler_id] = new DragDropDelegate(owner, handler);
     

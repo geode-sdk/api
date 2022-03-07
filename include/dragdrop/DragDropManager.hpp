@@ -17,8 +17,8 @@ namespace geode {
 
         void dispatchEvent(std::string path);
         
-        bool addDropHandler(Mod* owner, std::string handler_id, std::function<bool(ghc::filesystem::path)> handler);
-        bool addDropHandler(Mod* owner, std::string handler_id, std::function<bool(ghc::filesystem::path)> handler, std::string extension);
+        bool addDropHandler(Mod* owner, std::string handler_id, std::function<bool(ghc::filesystem::path const&)> handler);
+        bool addDropHandler(Mod* owner, std::string handler_id, std::function<bool(ghc::filesystem::path const&)> handler, std::string extension);
     
         bool removeDropHandler(std::string handler_id);
     };

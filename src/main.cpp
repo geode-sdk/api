@@ -19,7 +19,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
         }
     }, {{ KEY_T, Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});
 
-    mod->with<GeodeAPI>()->addDragDropHandler("geode_mod_installer", [](ghc::filesystem::path path) -> bool {
+    mod->with<GeodeAPI>()->addDragDropHandler("geode_mod_installer", [](ghc::filesystem::path const& path) -> bool {
         auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
 
         if (to_file == path) {
