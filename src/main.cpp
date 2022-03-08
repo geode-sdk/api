@@ -7,7 +7,7 @@ USE_GEODE_NAMESPACE();
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
 
-    mod->with<GeodeAPI>()->addKeybindAction(TriggerableAction {
+    /*mod->with<GeodeAPI>()->addKeybindAction(TriggerableAction {
         "Keybind Test",
         "test_keybind",
         KB_GLOBAL_CATEGORY,
@@ -17,9 +17,11 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
             }
             return false;
         }
-    }, {{ KEY_T, Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});
+    }, {{ KEY_T, Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});*/
 
-    mod->with<GeodeAPI>()->addDragDropHandler("geode_mod_installer", [](ghc::filesystem::path path) -> bool {
+
+    NotificationCenter::get()->registerObserver(Interface::mod(), "dragdrop.geode", [](auto const& data) {
+        auto path = data.template object<ghc::filesystem::path>();
         auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
 
         if (to_file == path) {
@@ -30,8 +32,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
         } else {
             FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> couldn't be installed!", "OK")->show();
         }
-        return true;
-    }, ".geode");
+    });
 
     return true;
 }

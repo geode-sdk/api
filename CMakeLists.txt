@@ -15,7 +15,7 @@ set(SOURCE_FILES
 set(INCLUDE_DIRECTORIES
 	"include"
 	"include/keybinds"
-	"include/dragdrop"
+	"include/shortcuts"
 	"src"
 	"src/gui/loading"
 	"src/gui"

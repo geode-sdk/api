@@ -2,14 +2,19 @@
 
 #include <Geode.hpp>
 #include "keybinds/KeybindManager.hpp"
-#include "dragdrop/DragDropManager.hpp"
 #include "settings/CustomSettingNode.hpp"
 #include "nodes/BasedButtonSprite.hpp"
 #include "nodes/BasedButton.hpp"
 
+
+#define EXPORT_NAME GeodeAPI
+#include <API.hpp>
+
 namespace geode {
-    class GEODE_API_DLL GeodeAPI : public APIMod {
+    class GEODE_API_DLL GeodeAPI : public ModAPI {
     public:
+        API_INIT("com.geode.api");
+
         /**
          * Add a new keybind action, i.e. a 
          * function that can be bound to a keybind.
@@ -27,11 +32,11 @@ namespace geode {
          * being invalid / colliding with another 
          * action's ID.
          */
-        bool addKeybindAction(
+        static bool addKeybindAction(
             KeybindAction     const& action,
             KeybindList       const& defaults,
             keybind_action_id const& insertAfter = nullptr
-        );
+        ) API_DECL(&GeodeAPI::addKeybindAction, action, defaults, insertAfter);
         
         /**
          * Remove a keybind action.
@@ -39,7 +44,8 @@ namespace geode {
          * @returns True if the action was 
          * removed, false if not.
          */
-        bool removeKeybindAction(keybind_action_id const& id);
+        static bool removeKeybindAction(keybind_action_id const& id)
+        API_DECL(&GeodeAPI::removeKeybindAction, id);
 
         /**
          * Add a new file drag and drop handler
@@ -55,9 +61,16 @@ namespace geode {
          * being invalid / colliding with another 
          * action's ID.
          */
-        bool addDragDropHandler(
+        static bool addDragDropHandler(
             std::string const& handler_id,
             std::function<bool(ghc::filesystem::path)> handler
+        ) API_DECL( 
+            (bool(*)(
+                std::string const&,
+                std::function<bool(ghc::filesystem::path)>
+            ))&GeodeAPI::addDragDropHandler,
+            handler_id,
+            handler
         );
 
         /**
@@ -75,10 +88,18 @@ namespace geode {
          * being invalid / colliding with another 
          * action's ID.
          */
-        bool addDragDropHandler(
+        static bool addDragDropHandler(
             std::string const& handler_id,
             std::function<bool(ghc::filesystem::path)> handler,
             std::string const& extension
+        ) API_DECL( 
+            (bool(*)(
+                std::string const&,
+                std::function<bool(ghc::filesystem::path)>,
+                std::string const&
+            ))&GeodeAPI::addDragDropHandler,
+            handler_id,
+            handler
         );
 
         /**
@@ -87,11 +108,12 @@ namespace geode {
          * @returns True if the handler was 
          * removed, false if not.
          */
-        bool removeDragDropHandler(std::string const& handler_id);
+        static bool removeDragDropHandler(std::string const& handler_id)
+        API_DECL(&GeodeAPI::removeDragDropHandler, handler_id);
 
         Result<> setCustomSettingNode(
             std::string const& key,
             CustomSettingNodeGenerator generator
-        );
+        ) API_DECL(&GeodeAPI::setCustomSettingNode, key, generator);
     };
 }

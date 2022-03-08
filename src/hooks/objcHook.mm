@@ -1,5 +1,4 @@
 #include "hook.hpp"
-#include <DragDropManager.hpp>
 
 
 #if defined(GEODE_IS_MACOS)
@@ -83,7 +82,19 @@
 	    NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
 	    
 	    for (NSURL* dragItem in dragItems) {
-	    	DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
+	    	//DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
+
+            NotificationCenter::get()->broadcast(Notification(
+                "dragdrop",
+                ghc::filesystem::path(dragItem.path.UTF8String),
+                Interface::get()->mod()                
+            ));
+
+            NotificationCenter::get()->broadcast(Notification(
+                std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String,
+                ghc::filesystem::path(dragItem.path.UTF8String),
+                Interface::get()->mod()                
+            ));
 	    }
 	    return YES;
 	}

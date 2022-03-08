@@ -1,6 +1,5 @@
 #include "hook.hpp"
 #include <KeybindManager.hpp>
-#include <DragDropManager.hpp>
 
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
@@ -43,7 +42,25 @@ class $modify(CCEGLView) {
                 char* buf = new char[MAX_PATH];
                 HDROP hDropInfo = (HDROP) msg.wParam;
                 DragQueryFile(hDropInfo, 0, buf, buffsize);
-                DragDropManager::get()->dispatchEvent(buf);
+
+                ghc::filesystem::path p(buf);
+
+                std::string fileExtension = p.extension().u8string();
+                if (fileExtension.at(0) == '.') {
+                    fileExtension = fileExtension.substr(1);
+                }
+
+                NotificationCenter::get()->broadcast(Notification(
+                    "dragdrop",
+                    p,
+                    Interface::get()->mod()                
+                ));
+
+                NotificationCenter::get()->broadcast(Notification(
+                    std::string("dragdrop.") + fileExtension,
+                    p,
+                    Interface::get()->mod()                
+                ));
 
                 delete[] buf;
             }
