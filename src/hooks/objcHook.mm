@@ -75,7 +75,17 @@
 	}
 
 	- (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender {
-		return YES;
+        NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
+        
+        if (NotificationCenter::get()->getObservers("dragdrop", nullptr).size() > 0)
+            return YES;
+
+        for (NSURL* dragItem in dragItems) {
+            //DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
+            if (NotificationCenter::get()->getObservers(std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String, nullptr).size() > 0)
+                return YES;
+        }
+        return NO;
 	}
 
 	-(BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
