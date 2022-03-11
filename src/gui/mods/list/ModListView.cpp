@@ -59,6 +59,9 @@ void ModCell::loadFromMod(ModObject* modobj) {
     if (!modobj->m_mod) {
         return this->loadFromFailureInfo(modobj->m_info);
     }
+    if (!this->m_mod->wasSuccesfullyLoaded()) {
+        this->m_obj->m_info.m_reason = this->m_mod->getLoadErrorInfo();
+    }
 
     this->m_mainLayer->setVisible(true);
     this->m_backgroundLayer->setOpacity(255);
@@ -109,7 +112,10 @@ void ModCell::loadFromMod(ModObject* modobj) {
     viewSpr->setScale(.65f);
 
     auto viewBtn = CCMenuItemSpriteExtra::create(
-        viewSpr, this, menu_selector(ModCell::onInfo)
+        viewSpr, this, 
+            this->m_mod->wasSuccesfullyLoaded() ?
+                menu_selector(ModCell::onInfo) :
+                menu_selector(ModCell::onFailedInfo)
     );
     menu->addChild(viewBtn);
 

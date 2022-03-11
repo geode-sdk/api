@@ -3,20 +3,6 @@
 
 USE_GEODE_NAMESPACE();
 
-bool GeodeAPI::addKeybindAction(
-    KeybindAction     const& action,
-    KeybindList       const& defaults,
-    keybind_action_id const& insertAfter
-) {
-    return KeybindManager::get()->addKeybindAction(
-        Mod::get(), action, defaults, insertAfter
-    );
-}
-
-bool GeodeAPI::removeKeybindAction(keybind_action_id const& id) {
-    return KeybindManager::get()->removeKeybindAction(Mod::get(), id);
-}
-
 Result<> GeodeAPI::setCustomSettingNode(
     std::string const& key,
     CustomSettingNodeGenerator generator
