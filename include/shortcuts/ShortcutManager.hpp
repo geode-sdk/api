@@ -1,27 +1,43 @@
 #pragma once
 
-#include <Geode.hpp>
+#include "../sdk/include/Geode.hpp"
 #include <Shortcut.hpp>
 #include <ShortcutAction.hpp>
-#include <string_view>
+#include <string>
+#include <map>
+#include <optional>
 
 namespace geode::api {
+	using shortcut_action_id = std::pair<std::string, Mod*>;
+	bool operator<(shortcut_action_id const& a, shortcut_action_id const& b) {
+		return a.first < b.first && a.second < b.second;
+	}
 
 	class ShortcutManager {
 	 protected:
-	 	std::unordered_map<std::string_view, ShortcutAction*> m_actions;
-	 	std::unordered_map<std::string_view, bool> m_actionState;
+
+	 	std::map<shortcut_action_id, ShortcutAction*> m_actions;
+	 	std::map<shortcut_action_id, bool> m_actionStates;
 	 	static ShortcutManager* shared;
+
 	  public:
 	  	static ShortcutManager* get();
 
-	  	void registerShortcut(ShortcutAction sa);
-	  	void unregisterShortcut(std::string_view sel);
+	  	Result<shortcut_action_id> registerShortcut(ShortcutAction&& sa);
 
-	  	bool resetToPreferred(std::string_view sel);
-	  	bool resetAllToPreferred();
+	  	void unregisterShortcut(shortcut_action_id const& id);
+	  	inline void unregisterShortcut(std::string const& sel) {
+	  		unregisterShortcut({sel, Interface::mod()});
+	  	}
 
-	  	bool remapShortcut(std::string_view sel, Shortcut const& event);
+	  	void resetToDefault(shortcut_action_id const& id);
+	  	inline void resetToDefault(std::string const& sel) {
+	  		resetToDefault({sel, Interface::mod()});
+	  	}
+
+	  	void resetAllToDefault();
+
+	  	bool remapShortcut(std::string const& sel, Shortcut const& event);
 
 	  	void dispatchEvent(Shortcut const& sc);
 	};
