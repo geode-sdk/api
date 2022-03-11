@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode.hpp>
-#include <Shortcut.hpp>
+#include "Shortcut.hpp"
 #include <string>
 
 namespace geode::api {
@@ -16,7 +16,7 @@ namespace geode::api {
 	class ShortcutManager;
 
 	class ShortcutAction {
-	 protected:
+	protected:
 	 	std::string m_selector;
 	 	std::string m_sceneTypeID;
 	 	ShortcutActionSettings m_currentSettings;
