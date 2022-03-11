@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode.hpp>
-#include <Shortcut.hpp>
+#include "Shortcut.hpp"
 #include <string>
 
 namespace geode::api {
@@ -13,14 +13,15 @@ namespace geode::api {
 		bool rapidEnabled;
 	};
 	class ShortcutAction {
-	 protected:
+	protected:
 	 	std::string m_selector;
 	 	std::string m_sceneTypeID;
 	 	ShortcutActionSettings m_currentSettings;
 	 	ShortcutActionSettings m_defaultSettings;
 
 	 	ShortcutAction() {}
-	 public:
+
+	public:
 	 	template <typename T>
 	 	inline static ShortcutAction localShortcut(std::string_view sel, Shortcut&& preferredBind) {
 	 		ShortcutAction ret;
@@ -34,7 +35,12 @@ namespace geode::api {
 	 		return ret;
 	 	}
 
-	 	inline static ShortcutAction globalShortcut(std::string_view sel, Shortcut&& preferredBind, float rapidDelay = -1, float rapidRate = -1) {
+	 	inline static ShortcutAction globalShortcut(
+			std::string_view sel,
+			Shortcut&& preferredBind,
+			float rapidDelay = -1,
+			float rapidRate = -1
+		) {
 	 		ShortcutAction ret;
 	 		ret.m_selector = sel;
 	 		ret.m_sceneTypeID = "";
@@ -46,6 +52,8 @@ namespace geode::api {
 	 		return ret;
 	 	}
 
-	 	inline ShortcutActionSettings& getSettings() {return ret.m_currentSettings;}
+	 	inline ShortcutActionSettings& getSettings() {
+			return m_currentSettings;
+		}
 	};
 }

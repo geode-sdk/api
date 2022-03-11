@@ -4,7 +4,7 @@ USE_GEODE_NAMESPACE();
 
 bool BasedButtonSprite::init(CCNode* ontop, int type, int size, int color) {
     if (!CCSprite::initWithSpriteFrameName(
-        Interface::mod()->expandSpriteName(
+        Mod::get()->expandSpriteName(
             CCString::createWithFormat("GEODE_blank%02d_%02d_%02d.png", type, size, color)->getCString()
         )
     )) return false;
@@ -155,7 +155,7 @@ CircleButtonSprite* CircleButtonSprite::createWithSpriteFrameName(
 TabButtonSprite* TabButtonSprite::create(const char* text, TabBaseColor color) {
     auto ret = new TabButtonSprite();
     auto label = CCLabelBMFont::create(text, "bigFont.fnt");
-    label->limitLabelWidth(75.f, 1.f, .1f);
+    label->limitLabelWidth(75.f, .6f, .1f);
     if (ret && ret->init(
         label, static_cast<int>(BaseType::Tab), 0, static_cast<int>(color)
     )) {

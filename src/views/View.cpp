@@ -65,7 +65,7 @@ void ViewImpl::addItem(std::string_view id, cocos2d::CCNode* node) {
 		this->format();
 	}
 	else {
-		Interface::mod()->logInfo("The node " + std::string(id) + " already exists in the view. ", Severity::Warning);
+		Mod::get()->logInfo("The node " + std::string(id) + " already exists in the view. ", Severity::Warning);
 	}
 }
 
@@ -77,7 +77,7 @@ void ViewImpl::removeItem(std::string_view id) {
 		this->format();
 	}
 	else {
-		Interface::mod()->logInfo("The node " + std::string(id) + " is not in the view. ", Severity::Warning);
+		Mod::get()->logInfo("The node " + std::string(id) + " is not in the view. ", Severity::Warning);
 	}
 }
 
@@ -89,6 +89,6 @@ void ViewImpl::removeItem(cocos2d::CCNode* node) {
 		this->format();
 	}
 	else {
-		Interface::mod()->logInfo("The node is not in the view. ", Severity::Warning);
+		Mod::get()->logInfo("The node is not in the view. ", Severity::Warning);
 	}
 }

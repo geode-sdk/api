@@ -53,13 +53,13 @@ class $modify(CCEGLView) {
                 NotificationCenter::get()->broadcast(Notification(
                     "dragdrop",
                     p,
-                    Interface::get()->mod()                
+                    Mod::get()
                 ));
 
                 NotificationCenter::get()->broadcast(Notification(
                     std::string("dragdrop.") + fileExtension,
                     p,
-                    Interface::get()->mod()                
+                    Mod::get()            
                 ));
 
                 delete[] buf;

@@ -1,18 +1,18 @@
 #pragma once
 
 #include <Geode.hpp>
-#include <Shortcut.hpp>
-#include <ShortcutAction.hpp>
+#include "Shortcut.hpp"
+#include "ShortcutAction.hpp"
 #include <string_view>
 
 namespace geode::api {
 
 	class ShortcutManager {
-	 protected:
+	protected:
 	 	std::unordered_map<std::string_view, ShortcutAction*> m_actions;
 	 	std::unordered_map<std::string_view, bool> m_actionState;
-	 	static ShortcutManager* shared;
-	  public:
+		
+	public:
 	  	static ShortcutManager* get();
 
 	  	void registerShortcut(ShortcutAction sa);

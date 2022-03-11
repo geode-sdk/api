@@ -10,6 +10,10 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		if (!MenuLayer::init())
 			return false;
 		
+		for (auto const& path : CCFileUtils::sharedFileUtils()->getSearchPaths()) {
+			Log::get() << path;
+		}
+		
 		auto bottomMenu = getChild<CCMenu*>(this, 3);
 
 		auto chest = getChild<>(bottomMenu, -1);
@@ -30,7 +34,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		);
 		bottomMenu->addChild(btn);
 
-		// bottomMenu->alignItemsHorizontallyWithPadding(3.f);
+		bottomMenu->alignItemsHorizontallyWithPadding(3.f);
 
 		auto row = Row::create()->padding(3.0f);
 

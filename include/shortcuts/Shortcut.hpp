@@ -3,7 +3,7 @@
 #include <Geode.hpp>
 #include <variant>
 
-#include <MouseEvent.hpp>
+#include "MouseEvent.hpp"
 
 namespace geode::api {
 	using KeyboardEvent = cocos2d::enumKeyCodes;
@@ -20,13 +20,11 @@ namespace geode::api {
 		KeyModifiers modifiers;
 		std::variant<KeyboardEvent, MouseEvent, std::monostate> input;
 
+		Shortcut() : Shortcut(std::monostate()) {}
 		Shortcut(std::variant<KeyboardEvent, MouseEvent, std::monostate> ev, KeyModifiers m)
 			: modifiers(m), input(ev) {}
-
 		Shortcut(std::variant<KeyboardEvent, MouseEvent, std::monostate> ev)
 			: Shortcut(ev, KeyModifiers::None) {}
-
-		Shortcut() : Shortcut(std::monostate()) {}
 
 		bool accepts(Shortcut const&) const;
 

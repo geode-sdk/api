@@ -53,8 +53,9 @@ namespace geode {
     };
 
     enum class TabBaseColor {
-        Unselected = 0,
-        Selected   = 1,
+        Unselected     = 0,
+        Selected       = 1,
+        UnselectedDark = 2,
     };
 
     enum class BaseType {

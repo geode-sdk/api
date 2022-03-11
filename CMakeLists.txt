@@ -5,6 +5,9 @@ project(GeodeAPI VERSION 0.1.0 LANGUAGES C CXX)
 file(GLOB_RECURSE CORE_SOURCES
 	src/*.cpp
 )
+file(GLOB_RECURSE HEADERS
+	include/*.hpp
+)
 
 set(GEODE_BUILD_CODEGEN On)
 
@@ -36,3 +39,5 @@ if (APPLE)
 endif()
 
 include(sdk/Geode.cmake)
+
+target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADERS})
