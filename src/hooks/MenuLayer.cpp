@@ -10,8 +10,8 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		if (!MenuLayer::init())
 			return false;
 		
-		for (auto const& path : CCFileUtils::sharedFileUtils()->getSearchPaths()) {
-			Log::get() << path;
+		for (auto const& path : (std::vector<gd::string>)CCFileUtils::sharedFileUtils()->getSearchPaths()) {
+			Log::get() << (std::string)path;
 		}
 		
 		auto bottomMenu = getChild<CCMenu*>(this, 3);
