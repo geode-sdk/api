@@ -1,5 +1,4 @@
 #include "hook.hpp"
-#include <KeybindManager.hpp>
 
 /*doesnt work on macos */
 #ifdef GEODE_IS_WINDOWS
