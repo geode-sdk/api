@@ -9,7 +9,7 @@
 
 namespace geode::api {
 	using shortcut_action_id = std::pair<std::string, Mod*>;
-	bool operator<(shortcut_action_id const& a, shortcut_action_id const& b) {
+	inline bool operator<(shortcut_action_id const& a, shortcut_action_id const& b) {
 		return a.first < b.first && a.second < b.second;
 	}
 
