@@ -83,9 +83,9 @@ std::string Shortcut::toString() const {
 		out += " + ";
 
 	if (input.index() == 0) {
-		out += keyToString(std::get<0>(input));
+		out += keyToString(std::get<api::KeyboardEvent>(input));
 	} else if (input.index() == 1) {
-		out += mouseBtnToString(std::get<1>(input));
+		out += mouseBtnToString(std::get<api::MouseEvent>(input));
 	}
 
 	return out;

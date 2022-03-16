@@ -11,10 +11,16 @@ void ModCell::draw() {
 }
 
 void ModCell::onFailedInfo(CCObject*) {
+    Log::get() << "reason: " << 
+        this->m_obj->m_info.m_reason.size() << " ? "
+            << this->m_obj->m_info.m_reason << " : " <<
+            this->m_mod->getLoadErrorInfo() << ".";
     FLAlertLayer::create(
         nullptr,
         "Error Info",
-        this->m_obj->m_info.m_reason,
+        this->m_obj->m_info.m_reason.size() ?
+            this->m_obj->m_info.m_reason :
+            this->m_mod->getLoadErrorInfo(),
         "OK",
         nullptr,
         360.f
@@ -109,7 +115,10 @@ void ModCell::loadFromMod(ModObject* modobj) {
     viewSpr->setScale(.65f);
 
     auto viewBtn = CCMenuItemSpriteExtra::create(
-        viewSpr, this, menu_selector(ModCell::onInfo)
+        viewSpr, this, 
+            this->m_mod->wasSuccesfullyLoaded() ?
+                menu_selector(ModCell::onInfo) :
+                menu_selector(ModCell::onFailedInfo)
     );
     menu->addChild(viewBtn);
 
