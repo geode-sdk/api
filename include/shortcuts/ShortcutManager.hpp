@@ -9,7 +9,7 @@
 
 namespace geode::api {
 	using shortcut_action_id = std::pair<std::string, Mod*>;
-	bool operator<(shortcut_action_id const& a, shortcut_action_id const& b) {
+	inline bool operator<(shortcut_action_id const& a, shortcut_action_id const& b) {
 		return a.first < b.first && a.second < b.second;
 	}
 
@@ -37,7 +37,10 @@ namespace geode::api {
 
 	  	void resetAllToDefault();
 
-	  	bool remapShortcut(std::string const& sel, Shortcut const& event);
+	  	bool remapShortcut(shortcut_action_id const& id, Shortcut&& event);
+	  	inline bool remapShortcut(std::string const& sel, Shortcut&& event) {
+	  		remapShortcut({sel, Interface::mod()}, std::move(event));
+	  	}
 
 	  	void dispatchEvent(Shortcut const& sc);
 	};

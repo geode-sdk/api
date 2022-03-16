@@ -40,4 +40,5 @@ endif()
 
 include(sdk/Geode.cmake)
 
+set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADERS})

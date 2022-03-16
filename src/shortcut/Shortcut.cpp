@@ -3,7 +3,7 @@
 USE_GEODE_NAMESPACE();
 using namespace api;
 
-std::string mouseToString(MouseEvent btn) {
+std::string mouseBtnToString(MouseEvent btn) {
     switch (btn) {
         case MouseEvent::Left: return "Left Click";
         case MouseEvent::DoubleClick: return "Double Click";
@@ -85,7 +85,7 @@ std::string Shortcut::toString() const {
 	if (input.index() == 0) {
 		out += keyToString(std::get<0>(input));
 	} else if (input.index() == 1) {
-		out += mouseToString(std::get<1>(input));
+		out += mouseBtnToString(std::get<1>(input));
 	}
 
 	return out;
