@@ -20,20 +20,20 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
     }, {{ KEY_T, Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});*/
 
 
-    NotificationCenter::get()->registerObserver(
-        Mod::get(), "dragdrop.geode", [](auto const& data) -> void {
-            auto path = data.template object<ghc::filesystem::path>();
-            auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
+    // NotificationCenter::get()->registerObserver(
+    //     Mod::get(), "dragdrop.geode", [](auto const& data) -> void {
+    //         auto path = data.template object<ghc::filesystem::path>();
+    //         auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
 
-            if (to_file == path) {
-                FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> is already installed!", "OK")->show();
-            } else if (ghc::filesystem::copy_file(path, to_file, ghc::filesystem::copy_options::overwrite_existing)) {
-                FLAlertLayer::create("Success!", "<cg>" + path.stem().u8string() + "</c> successfully installed!", "OK")->show();
-            } else {
-                FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> couldn't be installed!", "OK")->show();
-            }
-        }
-    );
+    //         if (to_file == path) {
+    //             FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> is already installed!", "OK")->show();
+    //         } else if (ghc::filesystem::copy_file(path, to_file, ghc::filesystem::copy_options::overwrite_existing)) {
+    //             FLAlertLayer::create("Success!", "<cg>" + path.stem().u8string() + "</c> successfully installed!", "OK")->show();
+    //         } else {
+    //             FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> couldn't be installed!", "OK")->show();
+    //         }
+    //     }
+    // );
 
     return true;
 }

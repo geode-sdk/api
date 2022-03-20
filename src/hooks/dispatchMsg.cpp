@@ -33,38 +33,38 @@ class $modify(CCEGLView) {
     }
 
     void pollEvents() {
-        MSG msg;
-		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&msg);
-            if (msg.message == WM_DROPFILES) {
-                UINT buffsize = MAX_PATH;
-                char* buf = new char[MAX_PATH];
-                HDROP hDropInfo = (HDROP) msg.wParam;
-                DragQueryFile(hDropInfo, 0, buf, buffsize);
+        // MSG msg;
+		// while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+        //     TranslateMessage(&msg);
+        //     if (msg.message == WM_DROPFILES) {
+        //         UINT buffsize = MAX_PATH;
+        //         char* buf = new char[MAX_PATH];
+        //         HDROP hDropInfo = (HDROP) msg.wParam;
+        //         DragQueryFile(hDropInfo, 0, buf, buffsize);
 
-                ghc::filesystem::path p(buf);
+        //         ghc::filesystem::path p(buf);
 
-                std::string fileExtension = p.extension().u8string();
-                if (fileExtension.at(0) == '.') {
-                    fileExtension = fileExtension.substr(1);
-                }
+        //         std::string fileExtension = p.extension().u8string();
+        //         if (fileExtension.at(0) == '.') {
+        //             fileExtension = fileExtension.substr(1);
+        //         }
 
-                NotificationCenter::get()->broadcast(Notification(
-                    "dragdrop",
-                    p,
-                    Mod::get()
-                ));
+        //         NotificationCenter::get()->broadcast(Notification(
+        //             "dragdrop",
+        //             p,
+        //             Mod::get()
+        //         ));
 
-                NotificationCenter::get()->broadcast(Notification(
-                    std::string("dragdrop.") + fileExtension,
-                    p,
-                    Mod::get()            
-                ));
+        //         NotificationCenter::get()->broadcast(Notification(
+        //             std::string("dragdrop.") + fileExtension,
+        //             p,
+        //             Mod::get()            
+        //         ));
 
-                delete[] buf;
-            }
-            DispatchMessage(&msg);
-        }
+        //         delete[] buf;
+        //     }
+        //     DispatchMessage(&msg);
+        // }
         CCEGLView::pollEvents();
     }
 };

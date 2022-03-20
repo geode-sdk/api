@@ -34,7 +34,7 @@ namespace geode::api {
 	 public:
 	 	template <typename T>
 	 	inline static ShortcutAction localShortcut(std::string_view sel, Shortcut&& preferredBind) {
-	 		ShortcutAction ret(Interface::mod());
+	 		ShortcutAction ret(Mod::get());
 	 		ret.m_selector = sel;
 	 		ret.m_sceneTypeID = typeid(T).name();
 	 		ret.m_defaultSettings.enabled = true;
@@ -46,7 +46,7 @@ namespace geode::api {
 	 	}
 
 	 	inline static ShortcutAction globalShortcut(std::string_view sel, Shortcut&& preferredBind, float rapidDelay = -1, float rapidRate = -1) {
-	 		ShortcutAction ret(Interface::mod());
+	 		ShortcutAction ret(Mod::get());
 	 		ret.m_selector = sel;
 	 		ret.m_sceneTypeID = "";
 	 		ret.m_defaultSettings.enabled = true;

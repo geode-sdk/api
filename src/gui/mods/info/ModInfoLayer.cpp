@@ -3,6 +3,7 @@
 #include "../dev/DevSettingsLayer.hpp"
 #include "ModSettingsLayer.hpp"
 #include <nodes/BasedButton.hpp>
+#include <nodes/MDTextArea.hpp>
 
 CCMenuItemToggler* ModInfoLayer::createTab(Tab id, const char* text, const char* icon) {
     std::string str = text;
@@ -111,6 +112,10 @@ bool ModInfoLayer::init(Mod* mod) {
 
     this->onTab(infoTab);
     infoTab->toggle(true);
+
+    auto details = MDTextArea::create(mod->getDetails(), {});
+    details->setPosition(winSize / 2);
+    this->m_mainLayer->addChild(details);
 
     CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
     this->registerWithTouchDispatcher();
