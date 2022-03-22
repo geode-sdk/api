@@ -5,7 +5,6 @@
     "name":         "Geode API",
     "developer":    "Geode Team",
     "description":  "Shared API utilities",
-    "details":      "Geode API, containing utilities & shared functionality such as custom keybinds support.",
     "repository": "https://github.com/geode-sdk/api",
 	"dependencies": null,
     "binary":       "GeodeAPI",

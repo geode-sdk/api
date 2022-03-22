@@ -26,21 +26,84 @@ MDTextArea::~MDTextArea() {
 void MDTextArea::updateLabel() {
     m_renderer->begin(this);
 
-    auto bigFont = m_renderer->addFont("bigFont.fnt", .5f);
-    auto blueFont = m_renderer->addFont("bigFont.fnt", .7f, 25.f, { 0, 0, 255, 255 });
-    auto goldFont = m_renderer->addFont("goldFont.fnt", 1.f);
+    auto normalFont = m_renderer->addFont("chatFont.fnt", .5f);
+    auto h1Font = m_renderer->addFont("chatFont.fnt", 1.f, TextStyleBold);
+    auto h2Font = m_renderer->addFont("chatFont.fnt", .8f, TextStyleBold);
+    auto h3Font = m_renderer->addFont("chatFont.fnt", .6f, TextStyleBold);
 
-    m_renderer->selectFont(bigFont);
-    m_renderer->renderString("wow are ");
+    m_renderer->getFont(h3Font)->m_caps = TextCapitalization::AllUpper;
 
-    m_renderer->selectFont(blueFont);
-    m_renderer->renderString("those");
+    char last = 0;
+    int headingSize = 0;
+    bool collectingHeading = false;
+    bool escapeSpecial = false;
+    int style = TextStyleRegular;
+    int collectingStars = 0;
+    for (auto& c : m_text) {
+        if ((last == '\n' || last == 0) && c == '#') {
+            collectingHeading = true;
+            headingSize = 0;
+        }
+        if (collectingHeading) {
+            if (c == '#') {
+                headingSize++;
+            } else if (c != ' ') {
+                collectingHeading = false;
+                switch (headingSize) {
+                    case 1: m_renderer->selectFont(h1Font); break;
+                    case 2: m_renderer->selectFont(h2Font); break;
+                    case 3: m_renderer->selectFont(h3Font); break;
+                    default: m_renderer->selectFont(normalFont);
+                }
+            }
+        }
 
-    m_renderer->selectFont(goldFont);
-    m_renderer->renderString(" mixed ");
+        #define FLIP_FLAG(flag) \
+            if (!(style & flag)) style |= flag; else style &= ~flag;
+        
+        /*
+            esc char -> escres
+            \   \       0
+            \   0       \
+            0   \       \
+            0   0       0
+        */
+        escapeSpecial ^= c == '\\';
 
-    m_renderer->selectFont(bigFont);
-    m_renderer->renderString("fonts");
+        if (!escapeSpecial) {
+            if (c == '*') {
+                collectingStars++;
+            } else {
+                if (collectingStars) {
+                    std::cout << "collected " << collectingStars << " stars\n";
+                    switch (collectingStars) {
+                        case 1: FLIP_FLAG(TextStyleItalic); break;
+                        case 2: FLIP_FLAG(TextStyleBold); break;
+                        case 3: FLIP_FLAG((TextStyleBold & TextStyleItalic)); break;
+                    }
+                    if (style) {
+                        std::cout << "overrode style to " << style << "\n";
+                        m_renderer->overrideTextStyle(style);
+                    } else {
+                        std::cout << "restored style\n";
+                        m_renderer->restoreTextStyle();
+                    }
+                    collectingStars = 0;
+                }
+            }
+        }
+
+        if (c == '\n') {
+            m_renderer->selectFont(normalFont);
+            headingSize = 0;
+        }
+
+        if (!collectingHeading && (c != '*' || escapeSpecial)) {
+            m_renderer->renderChar(c);
+        }
+
+        last = c;
+    }
 
     m_renderer->end();
 

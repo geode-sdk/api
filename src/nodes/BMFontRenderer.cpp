@@ -72,8 +72,11 @@ void BMFontRenderer::moveCursor(CCPoint const& pos) {
 BMFontRenderer::FontID BMFontRenderer::addFont(
     const char* bmFile,
     float scale,
+    int style,
+    ccColor4B color,
     float spacing,
-    ccColor4B color
+    TextCapitalization caps,
+    float italicSkew
 ) {
     if (!m_target) return s_invalidFontID;
     auto font = new Font;
@@ -84,6 +87,9 @@ BMFontRenderer::FontID BMFontRenderer::addFont(
     font->m_scale = scale;
     font->m_spacing = spacing;
     font->m_color = color;
+    font->m_caps = caps;
+    font->m_style = style;
+    font->m_italicSkew = italicSkew;
     m_target->addChild(font->m_batchNode);
     auto id = m_fonts.size();
     m_fonts.push_back(font);
@@ -98,6 +104,16 @@ void BMFontRenderer::selectFont(FontID font) {
     if (font != s_invalidFontID && font < m_fonts.size()) {
         m_selectedFont = m_fonts.at(font);
     }
+    m_overrideStyle.m_do = false;
+}
+
+void BMFontRenderer::overrideTextStyle(int flags) {
+    m_overrideStyle.m_value = flags;
+    m_overrideStyle.m_do = true;
+}
+
+void BMFontRenderer::restoreTextStyle() {
+    m_overrideStyle.m_do = false;
 }
 
 void BMFontRenderer::renderChar(BMFontRenderer::Char character) {
@@ -105,8 +121,13 @@ void BMFontRenderer::renderChar(BMFontRenderer::Char character) {
 
     if (character == '\n') {
         m_cursor.x = m_origin.x;
-        m_cursor.y -= m_selectedFont->m_configuration->m_nCommonHeight;
+        m_cursor.y -= m_selectedFont->m_configuration->m_nCommonHeight * m_selectedFont->m_scale;
         return;
+    }
+
+    switch (m_selectedFont->m_caps) {
+        case TextCapitalization::AllUpper: character = std::toupper(character); break;
+        case TextCapitalization::AllLower: character = std::tolower(character); break;
     }
 
     auto charSet = m_selectedFont->m_configuration->getCharacterSet();
@@ -120,6 +141,8 @@ void BMFontRenderer::renderChar(BMFontRenderer::Char character) {
 
     auto fontDef = element->fontDef;
     auto rect = CC_RECT_PIXELS_TO_POINTS(fontDef.rect);
+
+    auto textStyle = m_overrideStyle.m_do ? m_overrideStyle.m_value : m_selectedFont->m_style;
 
     auto spr = CCSprite::createWithTexture(m_selectedFont->m_texture, rect);
     spr->setTextureRect(rect, false, rect.size);
@@ -137,6 +160,12 @@ void BMFontRenderer::renderChar(BMFontRenderer::Char character) {
     spr->setColor(to3B(m_selectedFont->m_color));
     spr->setOpacity(m_selectedFont->m_color.a);
     spr->setScale(m_selectedFont->m_scale);
+    if (textStyle & TextStyleItalic) {
+        spr->setSkewX(m_selectedFont->m_italicSkew);
+    }
+    if (textStyle & TextStyleBold) {
+        // spr->setColor({ 155, 80, 255 });
+    }
 
     if (m_selectedFont->m_spacing) {
         m_cursor.x += m_selectedFont->m_spacing * m_selectedFont->m_scale * CC_CONTENT_SCALE_FACTOR();
