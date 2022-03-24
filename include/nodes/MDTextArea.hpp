@@ -2,7 +2,7 @@
 
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
-#include "BMFontRenderer.hpp"
+#include "FontRenderer.hpp"
 
 namespace geode {
     class GEODE_API_DLL MDTextArea :
@@ -11,7 +11,7 @@ namespace geode {
     {
     protected:
         std::string m_text;
-        BMFontRenderer* m_renderer = nullptr;
+        FontRenderer* m_renderer = nullptr;
 
         bool init(
             std::string const& str,

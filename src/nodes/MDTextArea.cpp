@@ -12,7 +12,7 @@ bool MDTextArea::init(
 
     m_text = str;
     m_obContentSize = size;
-    m_renderer = BMFontRenderer::create();
+    m_renderer = FontRenderer::create();
 
     this->updateLabel();
 
@@ -26,41 +26,30 @@ MDTextArea::~MDTextArea() {
 void MDTextArea::updateLabel() {
     m_renderer->begin(this);
 
-    auto normalFont = m_renderer->addFont("chatFont.fnt", .5f);
-    auto h1Font = m_renderer->addFont("chatFont.fnt", 1.f, TextStyleBold);
-    auto h2Font = m_renderer->addFont("chatFont.fnt", .8f, TextStyleBold);
-    auto h3Font = m_renderer->addFont("chatFont.fnt", .6f, TextStyleBold);
+    FontRenderer::Font normalFont = { "chatFont.fnt", false, .5f };
+    FontRenderer::Font h1Font = { "goldFont.fnt", false, 1.f };
+    FontRenderer::Font h2Font = { "bigFont.fnt", false, .6f };
+    FontRenderer::Font h3Font = { "chatFont.fnt", false, .6f };
+    h3Font.m_caps = TextCapitalization::AllUpper;
 
-    m_renderer->getFont(h3Font)->m_caps = TextCapitalization::AllUpper;
+    enum TextStyle {
+        TextStyleRegular,
+        TextStyleItalic,
+        TextStyleBold,
+    };
 
+    FontRenderer::Font* currentFont = &normalFont;
     char last = 0;
     int headingSize = 0;
     bool collectingHeading = false;
     bool escapeSpecial = false;
     int style = TextStyleRegular;
     int collectingStars = 0;
+    std::string collectingText = "";
     for (auto& c : m_text) {
-        if ((last == '\n' || last == 0) && c == '#') {
-            collectingHeading = true;
-            headingSize = 0;
-        }
-        if (collectingHeading) {
-            if (c == '#') {
-                headingSize++;
-            } else if (c != ' ') {
-                collectingHeading = false;
-                switch (headingSize) {
-                    case 1: m_renderer->selectFont(h1Font); break;
-                    case 2: m_renderer->selectFont(h2Font); break;
-                    case 3: m_renderer->selectFont(h3Font); break;
-                    default: m_renderer->selectFont(normalFont);
-                }
-            }
-        }
+        bool renderLast = false;
+        bool collectCurrent = true;
 
-        #define FLIP_FLAG(flag) \
-            if (!(style & flag)) style |= flag; else style &= ~flag;
-        
         /*
             esc char -> escres
             \   \       0
@@ -70,23 +59,46 @@ void MDTextArea::updateLabel() {
         */
         escapeSpecial ^= c == '\\';
 
+        if ((last == '\n' || last == 0) && c == '#' && !escapeSpecial) {
+            collectingHeading = true;
+            headingSize = 0;
+            renderLast = true;
+        }
+        if (collectingHeading) {
+            collectCurrent = false;
+            if (c == '#') {
+                headingSize++;
+            } else if (c != ' ') {
+                collectCurrent = true;
+                collectingHeading = false;
+                switch (headingSize) {
+                    case 1: currentFont = &h1Font; break;
+                    case 2: currentFont = &h2Font; break;
+                    case 3: currentFont = &h3Font; break;
+                    default: currentFont = &normalFont;
+                }
+            }
+        }
+
+        #define FLIP_FLAG(flag) \
+            if (!(style & flag)) style |= flag; else style &= ~flag;
+        
         if (!escapeSpecial) {
             if (c == '*') {
+                renderLast = true;
                 collectingStars++;
+                collectCurrent = false;
             } else {
                 if (collectingStars) {
-                    std::cout << "collected " << collectingStars << " stars\n";
                     switch (collectingStars) {
                         case 1: FLIP_FLAG(TextStyleItalic); break;
                         case 2: FLIP_FLAG(TextStyleBold); break;
                         case 3: FLIP_FLAG((TextStyleBold & TextStyleItalic)); break;
                     }
                     if (style) {
-                        std::cout << "overrode style to " << style << "\n";
-                        m_renderer->overrideTextStyle(style);
+                        // m_renderer->overrideTextStyle(style);
                     } else {
-                        std::cout << "restored style\n";
-                        m_renderer->restoreTextStyle();
+                        // m_renderer->restoreTextStyle();
                     }
                     collectingStars = 0;
                 }
@@ -94,22 +106,29 @@ void MDTextArea::updateLabel() {
         }
 
         if (c == '\n') {
-            m_renderer->selectFont(normalFont);
             headingSize = 0;
+            renderLast = true;
+            collectCurrent = true;
         }
 
-        if (!collectingHeading && (c != '*' || escapeSpecial)) {
-            m_renderer->renderChar(c);
+        if (collectCurrent) {
+            collectingText += c;
+        }
+
+        if (renderLast) {
+            m_renderer->renderString(collectingText, *currentFont);
+            renderLast = false;
+            collectingText = "";
+        }
+        
+        if (c == '\n') {
+            currentFont = &normalFont;
         }
 
         last = c;
     }
 
     m_renderer->end();
-
-    CCARRAY_FOREACH_B_TYPE(m_pChildren, child, CCNode) {
-        child->setPosition(child->getPosition() - this->getContentSize() / 2);
-    }
 }
 
 void MDTextArea::setString(const char* text) {

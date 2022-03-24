@@ -1,7 +1,5 @@
 # Geode API
-
 ## Subheading
-
 ### Further subheading thing
 
 **Geode API**, containing <cb>utilities</c> & shared *functionality* <cy>such</cy> as <c #ffba94>custom keybinds support</c>.
