@@ -7,12 +7,28 @@ bool MDTextArea::init(
     std::string const& str,
     CCSize const& size
 ) {
-    if (!CCNode::init())
+    if (!CCLayer::init())
         return false;
 
     m_text = str;
-    m_obContentSize = size;
+    m_size = size;
+    this->setContentSize(size);
     m_renderer = FontRenderer::create();
+    CC_SAFE_RETAIN(m_renderer);
+
+    m_bgSprite = CCScale9Sprite::create(
+        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+    );
+    m_bgSprite->setScale(.5f);
+    m_bgSprite->setColor({ 0, 0, 0 });
+    m_bgSprite->setOpacity(75);
+    m_bgSprite->setContentSize(size * 2 + CCSize { 25.f, 25.f });
+    m_bgSprite->setPosition(size / 2);
+    this->addChild(m_bgSprite);
+
+    m_content = CCNode::create();
+    m_content->setZOrder(2);
+    this->addChild(m_content);
 
     this->updateLabel();
 
@@ -24,18 +40,17 @@ MDTextArea::~MDTextArea() {
 }
 
 void MDTextArea::updateLabel() {
-    m_renderer->begin(this);
+    m_renderer->begin(m_content, CCPointZero, m_size);
 
-    FontRenderer::Font normalFont = { "chatFont.fnt", false, .5f };
-    FontRenderer::Font h1Font = { "goldFont.fnt", false, 1.f };
-    FontRenderer::Font h2Font = { "bigFont.fnt", false, .6f };
-    FontRenderer::Font h3Font = { "chatFont.fnt", false, .6f };
-    h3Font.m_caps = TextCapitalization::AllUpper;
+    FontRenderer::Font normalFont = { "mdFont.fnt"_spr, false, .5f };
+    FontRenderer::Font boldFont = { "mdFontB.fnt"_spr, false, .5f };
+    FontRenderer::Font italicFont = { "mdFontI.fnt"_spr, false, .5f };
+    FontRenderer::Font boldItalicFont = { "mdFontBI.fnt"_spr, false, .5f };
 
     enum TextStyle {
-        TextStyleRegular,
-        TextStyleItalic,
-        TextStyleBold,
+        TextStyleRegular = 0b0,
+        TextStyleItalic  = 0b10,
+        TextStyleBold    = 0b100,
     };
 
     FontRenderer::Font* currentFont = &normalFont;
@@ -45,6 +60,8 @@ void MDTextArea::updateLabel() {
     bool escapeSpecial = false;
     int style = TextStyleRegular;
     int collectingStars = 0;
+    float currentSize = .5f;
+    TextCapitalization currentCaps = TextCapitalization::Normal;
     std::string collectingText = "";
     for (auto& c : m_text) {
         bool renderLast = false;
@@ -71,11 +88,15 @@ void MDTextArea::updateLabel() {
             } else if (c != ' ') {
                 collectCurrent = true;
                 collectingHeading = false;
+                currentCaps = TextCapitalization::Normal;
                 switch (headingSize) {
-                    case 1: currentFont = &h1Font; break;
-                    case 2: currentFont = &h2Font; break;
-                    case 3: currentFont = &h3Font; break;
-                    default: currentFont = &normalFont;
+                    case 1: currentSize = 1.f; break;
+                    case 2: currentSize = .8f; break;
+                    case 3: 
+                        currentSize = .65f;
+                        currentCaps = TextCapitalization::AllUpper;
+                        break;
+                    default: currentSize = .5f;
                 }
             }
         }
@@ -95,10 +116,14 @@ void MDTextArea::updateLabel() {
                         case 2: FLIP_FLAG(TextStyleBold); break;
                         case 3: FLIP_FLAG((TextStyleBold & TextStyleItalic)); break;
                     }
-                    if (style) {
-                        // m_renderer->overrideTextStyle(style);
+                    if ((style & TextStyleItalic) && (style & TextStyleBold)) {
+                        currentFont = &boldItalicFont;
+                    } else if (style & TextStyleItalic) {
+                        currentFont = &italicFont;
+                    } else if (style & TextStyleBold) {
+                        currentFont = &boldFont;
                     } else {
-                        // m_renderer->restoreTextStyle();
+                        currentFont = &normalFont;
                     }
                     collectingStars = 0;
                 }
@@ -116,13 +141,18 @@ void MDTextArea::updateLabel() {
         }
 
         if (renderLast) {
-            m_renderer->renderString(collectingText, *currentFont);
+            auto font = *currentFont;
+            font.m_bmScaleOrTTFize = currentSize;
+            font.m_caps = currentCaps;
+            m_renderer->renderString(collectingText, font);
             renderLast = false;
             collectingText = "";
         }
         
         if (c == '\n') {
             currentFont = &normalFont;
+            currentSize = .5f;
+            currentCaps = TextCapitalization::Normal;
         }
 
         last = c;

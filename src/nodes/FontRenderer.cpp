@@ -10,8 +10,12 @@ bool FontRenderer::init() {
 
 void FontRenderer::begin(CCNode* target, CCPoint const& pos, CCSize const& size) {
     m_target = target ? target : CCNode::create();
+    m_target->setContentSize(size);
+    m_target->setPosition(pos);
+    m_target->removeAllChildren();
+    m_cursor = CCPointZero;
     m_origin = pos;
-    m_cursor = m_origin;
+    m_size = size;
 }
 
 CCNode* FontRenderer::end(bool fitToContent) {
@@ -19,14 +23,26 @@ CCNode* FontRenderer::end(bool fitToContent) {
         CCARRAY_FOREACH_B_TYPE(m_target->getChildren(), child, CCNode) {
             auto size = m_target->getContentSize();
             auto csize = child->getPosition() + child->getScaledContentSize();
-            if (csize.x > size.width) size.width = csize.x;
-            if (csize.y > size.height) size.height = csize.y;
+            csize.x = fabsf(csize.x);
+            csize.y = fabsf(csize.y);
+            if (csize.x > size.width) {
+                size.width = csize.x;
+            }
+            if (csize.y > size.height) {
+                size.height = csize.y;
+            }
             m_target->setContentSize(size);
         }
         CCARRAY_FOREACH_B_TYPE(m_target->getChildren(), child, CCNode) {
+            child->setPositionY(
+                child->getPositionY() +
+                m_target->getContentSize().height -
+                child->getScaledContentSize().height / 2
+            );
         }
     }
-    m_cursor = m_origin;
+    m_cursor = CCPointZero;
+    m_size = CCSizeZero;
     auto ret = m_target;
     m_target = nullptr;
     return ret;
@@ -36,10 +52,10 @@ void FontRenderer::moveCursor(CCPoint const& pos) {
     m_cursor = pos;
 }
 
-bool FontRenderer::renderWord(std::string const& word, CCNode* to, CCLabelProtocol* label) {
+bool FontRenderer::render(std::string const& word, CCNode* to, CCLabelProtocol* label) {
     auto origLabelStr = label->getString();
     auto str = ((origLabelStr && strlen(origLabelStr)) ?
-        (origLabelStr + " "s) : ""
+        origLabelStr : ""
     ) + word;
     if (m_size.width) {
         std::string orig = origLabelStr;
@@ -53,14 +69,6 @@ bool FontRenderer::renderWord(std::string const& word, CCNode* to, CCLabelProtoc
         label->setString(str.c_str());
         return true;
     }
-}
-
-bool FontRenderer::renderWord(std::string const& word, CCLabelTTF* to) {
-    return this->renderWord(word, to, to);
-}
-
-bool FontRenderer::renderWord(std::string const& word, CCLabelBMFont* to) {
-    return this->renderWord(word, to, to);
 }
 
 CCArray* FontRenderer::renderStringEx(
@@ -79,6 +87,7 @@ CCArray* FontRenderer::renderStringEx(
     CCRGBAProtocol* rgbaProtocol;
     CCNode* node = nullptr;
     float lineHeight = .0f;
+    bool newLine = true;
 
     auto createLabel = [&]() -> bool {
         if (isTTFFont) {
@@ -95,7 +104,8 @@ CCArray* FontRenderer::renderStringEx(
             labelProtocol = label;
             rgbaProtocol = label;
             node = label;
-            lineHeight = label->getConfiguration()->m_nCommonHeight / CC_CONTENT_SCALE_FACTOR();
+            lineHeight = label->getConfiguration()->m_nCommonHeight * bmScaleOrTTFSize /
+                CC_CONTENT_SCALE_FACTOR();
         }
         res->addObject(node);
         if (addToTarget) {
@@ -110,36 +120,67 @@ CCArray* FontRenderer::renderStringEx(
         return true;
     };
 
+    auto nextLine = [&]() -> bool {
+        auto cursorIncrementY = lineHeight;
+        if (!cursorIncrementY) {
+            cursorIncrementY = node->getScaledContentSize().height;
+        }
+        m_cursor.x = 0;
+        m_cursor.y -= cursorIncrementY;
+        if (!createLabel()) {
+            res->release();
+            return false;
+        }
+        newLine = true;
+        return true;
+    };
+
     if (!createLabel()) {
         res->release();
         return nullptr;
     }
 
+    bool firstLine = true;
     for (auto line : string_utils::split(str, "\n")) {
+        if (!firstLine && !nextLine()) {
+            return nullptr;
+        }
+        firstLine = false;
         for (auto word : string_utils::split(line, " ")) {
+            // add extra space in front of word if not on 
+            // new line
+            if (!newLine) {
+                word = " " + word;
+            }
+            newLine = false;
             switch (caps) {
                 case TextCapitalization::AllUpper: string_utils::toUpperIP(word); break;
                 case TextCapitalization::AllLower: string_utils::toLowerIP(word); break;
             }
-            while (!this->renderWord(word, node, labelProtocol)) {
-                auto cursorIncrementY = lineHeight;
-                if (!cursorIncrementY) {
-                    cursorIncrementY = node->getScaledContentSize().height;
-                }
-                m_cursor.x = m_origin.x;
-                m_cursor.y -= cursorIncrementY;
-                if (!createLabel()) {
-                    res->release();
+            // try to render at the end of current line
+            if (!this->render(word, node, labelProtocol)) {
+                if (!nextLine()) {
                     return nullptr;
+                }
+                // try to render on new line
+                if (!this->render(word, node, labelProtocol)) {
+                    // no need to create a new line as we know 
+                    // the current one has no content and is 
+                    // supposed to receive this one
+
+                    // render character by character
+                    for (auto& c : word) {
+                        if (!this->render(std::string(1, c), node, labelProtocol)) {
+                            if (!nextLine()) {
+                                return nullptr;
+                            }
+                        }
+                    }
                 }
             }
         }
-        auto cursorIncrementY = lineHeight;
-        if (!cursorIncrementY) {
-            cursorIncrementY = node->getScaledContentSize().height;
-        }
-        m_cursor.x = m_origin.x;
-        m_cursor.y -= cursorIncrementY;
+        // increment cursor position
+        m_cursor.x += node->getScaledContentSize().width;
     }
 
     return res;

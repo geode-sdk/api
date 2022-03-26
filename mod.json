@@ -10,9 +10,20 @@
     "binary":       "GeodeAPI",
     "settings":     null,
     "resources": {
-        "files": [
-            "resources/fonts/*.ttf"
-        ],
+        "fonts": {
+            "mdFont": {
+                "path": "resources/fonts/Ubuntu-Regular.ttf",
+                "size": 60
+            },
+            "mdFontB": {
+                "path": "resources/fonts/Ubuntu-Bold.ttf",
+                "size": 60
+            },
+            "mdFontI": {
+                "path": "resources/fonts/Ubuntu-Italic.ttf",
+                "size": 60
+            }
+        },
         "spritesheets": {
             "GeodeAPISheet": [
                 "resources/*.png"

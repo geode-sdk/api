@@ -49,9 +49,7 @@ namespace geode {
 
         bool init();
 
-        bool renderWord(std::string const& word, cocos2d::CCNode* to, cocos2d::CCLabelProtocol* label);
-        bool renderWord(std::string const& word, cocos2d::CCLabelBMFont* to);
-        bool renderWord(std::string const& word, cocos2d::CCLabelTTF* to);
+        bool render(std::string const& word, cocos2d::CCNode* to, cocos2d::CCLabelProtocol* label);
 
     public:
         static FontRenderer* create();
