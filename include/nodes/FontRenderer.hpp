@@ -89,6 +89,7 @@ namespace geode {
             float size,
             cocos2d::ccColor4B color = { 255, 255, 255, 255 }
         );
+        void renderNode(cocos2d::CCNode* node);
         void moveCursor(cocos2d::CCPoint const& pos);
     };
 }

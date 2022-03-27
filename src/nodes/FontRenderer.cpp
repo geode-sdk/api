@@ -221,6 +221,15 @@ CCArray* FontRenderer::renderStringTTF(
     return this->renderStringEx(str, fontName, true, size, color);
 }
 
+void FontRenderer::renderNode(cocos2d::CCNode* node) {
+    auto cursor = m_cursor;
+    cursor.x += node->getScaledContentSize().width / 2;
+    node->setPosition(cursor);
+    m_target->addChild(node);
+    m_cursor.x = m_origin.x;
+    m_cursor.y -= node->getScaledContentSize().height;
+}
+
 FontRenderer::~FontRenderer() {
     this->end();
 }

@@ -13,15 +13,15 @@
         "fonts": {
             "mdFont": {
                 "path": "resources/fonts/Ubuntu-Regular.ttf",
-                "size": 60
+                "size": 80
             },
             "mdFontB": {
                 "path": "resources/fonts/Ubuntu-Bold.ttf",
-                "size": 60
+                "size": 80
             },
             "mdFontI": {
                 "path": "resources/fonts/Ubuntu-Italic.ttf",
-                "size": 60
+                "size": 80
             }
         },
         "spritesheets": {
