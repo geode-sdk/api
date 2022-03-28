@@ -333,6 +333,7 @@ void MDTextArea::updateLabel() {
             if (c == '(') {
                 collectingLink = true;
                 collectCurrent = false;
+                linkData = "";
             } else {
                 renderLast = true;
             }
@@ -367,7 +368,6 @@ void MDTextArea::updateLabel() {
                 } else {
                     renderLast = true;
                 }
-                linkData = "";
                 linkIsImage = false;
             } else {
                 linkData += c;
