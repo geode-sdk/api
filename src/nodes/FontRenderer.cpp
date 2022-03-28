@@ -156,6 +156,7 @@ CCArray* FontRenderer::renderStringEx(
             switch (caps) {
                 case TextCapitalization::AllUpper: string_utils::toUpperIP(word); break;
                 case TextCapitalization::AllLower: string_utils::toLowerIP(word); break;
+                default: break;
             }
             // try to render at the end of current line
             if (!this->render(word, node, labelProtocol)) {

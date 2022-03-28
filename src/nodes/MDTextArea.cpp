@@ -343,7 +343,7 @@ void MDTextArea::updateLabel() {
                 linkData = linkData.substr(1);
                 if (linkIsImage) {
                     if (string_utils::contains(linkData, ":")) {
-                        if (linkData._Starts_with("frame:")) {
+                        if (string_utils::startsWith(linkData, "frame:")) {
                             auto frameName = linkData.substr(linkData.find(":") + 1);
                             auto spr = CCSprite::createWithSpriteFrameName(frameName.c_str());
                             if (spr) {
