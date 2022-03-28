@@ -17,7 +17,11 @@ set(SOURCE_FILES
 )
 set(INCLUDE_DIRECTORIES
 	"include"
+	"include/dragdrop"
+	"include/nodes"
+	"include/settings"
 	"include/shortcuts"
+	"include/views"
 	"src"
 	"src/gui/loading"
 	"src/gui"
