@@ -5,12 +5,25 @@
     "name":         "Geode API",
     "developer":    "Geode Team",
     "description":  "Shared API utilities",
-    "details":      "Geode API, containing utilities & shared functionality such as custom keybinds support.",
     "repository": "https://github.com/geode-sdk/api",
 	"dependencies": null,
     "binary":       "GeodeAPI",
     "settings":     null,
     "resources": {
+        "fonts": {
+            "mdFont": {
+                "path": "resources/fonts/Ubuntu-Regular.ttf",
+                "size": 80
+            },
+            "mdFontB": {
+                "path": "resources/fonts/Ubuntu-Bold.ttf",
+                "size": 80
+            },
+            "mdFontI": {
+                "path": "resources/fonts/Ubuntu-Italic.ttf",
+                "size": 80
+            }
+        },
         "spritesheets": {
             "GeodeAPISheet": [
                 "resources/*.png"

@@ -11,16 +11,12 @@ void ModCell::draw() {
 }
 
 void ModCell::onFailedInfo(CCObject*) {
-    Log::get() << "reason: " << 
-        this->m_obj->m_info.m_reason.size() << " ? "
-            << this->m_obj->m_info.m_reason << " : " <<
-            this->m_mod->getLoadErrorInfo() << ".";
     FLAlertLayer::create(
         nullptr,
         "Error Info",
         this->m_obj->m_info.m_reason.size() ?
             this->m_obj->m_info.m_reason :
-            this->m_mod->getLoadErrorInfo(),
+            this->m_obj->m_mod->getLoadErrorInfo(),
         "OK",
         nullptr,
         360.f

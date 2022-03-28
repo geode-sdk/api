@@ -2,16 +2,19 @@
 
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
-#include "BMFontRenderer.hpp"
+#include "FontRenderer.hpp"
 
 namespace geode {
     class GEODE_API_DLL MDTextArea :
-        public cocos2d::CCNode,
+        public cocos2d::CCLayer,
         public cocos2d::CCLabelProtocol
     {
     protected:
         std::string m_text;
-        BMFontRenderer* m_renderer = nullptr;
+        cocos2d::CCSize m_size;
+        cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
+        cocos2d::CCNode* m_content = nullptr;
+        FontRenderer* m_renderer = nullptr;
 
         bool init(
             std::string const& str,

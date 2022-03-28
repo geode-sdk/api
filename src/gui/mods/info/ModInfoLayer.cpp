@@ -113,8 +113,11 @@ bool ModInfoLayer::init(Mod* mod) {
     this->onTab(infoTab);
     infoTab->toggle(true);
 
-    auto details = MDTextArea::create(mod->getDetails(), {});
-    details->setPosition(winSize / 2);
+    auto details = MDTextArea::create(mod->getDetails(), { 350.f, 150.f});
+    details->setPosition(
+        winSize.width / 2 - details->getScaledContentSize().width / 2,
+        winSize.height / 2 - details->getScaledContentSize().height / 2 - 40.f
+    );
     this->m_mainLayer->addChild(details);
 
     CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
@@ -193,7 +196,7 @@ CCNode* ModInfoLayer::createLogoSpr(Mod* mod) {
     } else {
         spr = CCSprite::create(CCString::createWithFormat("%s.png", mod->getID().c_str())->getCString());
     }
-    if (!spr) { spr = CCSprite::createWithSpriteFrameName("no-logo.png"_sprite); }
+    if (!spr) { spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr); }
     if (!spr) { spr = CCLabelBMFont::create("OwO", "goldFont.fnt"); }
     return spr;
 }
