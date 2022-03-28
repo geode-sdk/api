@@ -28,7 +28,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		auto btn = CCMenuItemSpriteExtra::create(
 			spr, this, menu_selector(CustomMenuLayer::onGeode)
 		);
-		bottomMenu->addChild(btn);
+		bottomMenu->addChild(btn); 
 
 		bottomMenu->alignItemsHorizontallyWithPadding(3.f);
 
