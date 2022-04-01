@@ -16,9 +16,15 @@ namespace geode::api {
 	    Command   = 0b1000,
 	};
 
+	inline KeyModifiers operator|(KeyModifiers const& a, KeyModifiers const& b) {
+		return (KeyModifiers)((int)a | (int)b);
+	}
+
+	using ShortcutEvent = std::variant<KeyboardEvent, MouseEvent, std::monostate>;
+
 	struct Shortcut {
 		KeyModifiers modifiers;
-		std::variant<KeyboardEvent, MouseEvent, std::monostate> input;
+		ShortcutEvent input;
 
 		Shortcut() : Shortcut(std::monostate()) {}
 		Shortcut(std::variant<KeyboardEvent, MouseEvent, std::monostate> ev, KeyModifiers m)

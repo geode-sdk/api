@@ -13,6 +13,11 @@ namespace geode::api {
 		bool rapidEnabled;
 	};
 
+	struct ShortcutActionState {
+		bool eventActive;
+		float timeSinceRapid;
+	};
+
 	class ShortcutManager;
 
 	class ShortcutAction {

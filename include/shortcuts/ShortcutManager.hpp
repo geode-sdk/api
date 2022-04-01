@@ -17,7 +17,8 @@ namespace geode::api {
 	 protected:
 
 	 	std::map<shortcut_action_id, ShortcutAction*> m_actions;
-	 	std::map<shortcut_action_id, bool> m_actionStates;
+	 	std::map<shortcut_action_id, ShortcutActionState> m_actionStates;
+
 	 	static ShortcutManager* shared;
 
 	  public:
@@ -42,6 +43,7 @@ namespace geode::api {
 	  		remapShortcut({sel, Mod::get()}, std::move(event));
 	  	}
 
-	  	void dispatchEvent(Shortcut const& sc);
+	  	void dispatchEvent(ShortcutEvent const& sc, bool down);
+	  	void update(float dt);
 	};
 }
