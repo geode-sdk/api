@@ -63,7 +63,7 @@ namespace geode {
                     m_lineHeight = lineHeight;
                 } else {
                     if constexpr (std::is_same_v<cocos2d::CCLabelBMFont, T>) {
-                        m_lineHeight = label->getConfiguration()->m_nCommonHeight / CC_CONTENT_SCALE_FACTOR();
+                        m_lineHeight = label->getConfiguration()->m_nCommonHeight / cocos2d::CC_CONTENT_SCALE_FACTOR();
                     }
                 }
             }
