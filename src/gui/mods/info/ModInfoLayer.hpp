@@ -5,14 +5,6 @@
 USE_GEODE_NAMESPACE();
 
 class ModInfoLayer : public FLAlertLayer {
-public:
-    enum Tab {
-        Info,
-        Credits,
-        Settings,
-        About,
-    };
-
 protected:
     Mod* m_mod;
     std::vector<CCMenuItemToggler*> m_tabBtns;
@@ -20,9 +12,6 @@ protected:
     void onHooks(CCObject*);
     void onDev(CCObject*);
     void onSettings(CCObject*);
-    void onTab(CCObject*);
-
-    CCMenuItemToggler* createTab(Tab id, const char* text, const char* icon = nullptr);
 
     bool init(Mod* mod);
 
