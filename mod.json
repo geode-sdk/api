@@ -5,49 +5,25 @@
     "name":         "Geode API",
     "developer":    "Geode Team",
     "description":  "Shared API utilities",
-    "details":      "Geode API, containing utilities & shared functionality such as custom keybinds support. What if I make this description very long what happens",
-    "credits": {
-        "people": {
-            "HJfod": {
-                "role": "Lead Developer",
-                "gd": 104257,
-                "links": {
-                    "twitter": "HJfod",
-                    "github": "HJfod",
-                    "newgrounds": "HJfod"
-                }
-            },
-            "Alk1m123": {
-                "role": "Lead Developer",
-                "gd": 11535118,
-                "links": {
-                    "twitter": "Alk1m123",
-                    "github": "altalk23",
-                    "newgrounds": "alk1m123"
-                }
-            },
-            "fig": {
-                "role": "Lead Developer",
-                "gd": 107269,
-                "links": {
-                    "twitter": "FigmentBoy_",
-                    "github": "FigmentBoy",
-                    "newgrounds": "FigmentBoy"
-                }
-            },
-            "PoweredByPie": {
-                "role": "Lead Developer"
-            }
-        },
-        "thanks": [
-            "NachoBIT"
-        ]
-    },
     "repository": "https://github.com/geode-sdk/api",
 	"dependencies": null,
     "binary":       "GeodeAPI",
     "settings":     null,
     "resources": {
+        "fonts": {
+            "mdFont": {
+                "path": "resources/fonts/Ubuntu-Regular.ttf",
+                "size": 80
+            },
+            "mdFontB": {
+                "path": "resources/fonts/Ubuntu-Bold.ttf",
+                "size": 80
+            },
+            "mdFontI": {
+                "path": "resources/fonts/Ubuntu-Italic.ttf",
+                "size": 80
+            }
+        },
         "spritesheets": {
             "GeodeAPISheet": [
                 "resources/*.png"

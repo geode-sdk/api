@@ -27,19 +27,19 @@ namespace geode::api {
 
 	  	void unregisterShortcut(shortcut_action_id const& id);
 	  	inline void unregisterShortcut(std::string const& sel) {
-	  		unregisterShortcut({sel, Interface::mod()});
+	  		unregisterShortcut({sel, Mod::get()});
 	  	}
 
 	  	void resetToDefault(shortcut_action_id const& id);
 	  	inline void resetToDefault(std::string const& sel) {
-	  		resetToDefault({sel, Interface::mod()});
+	  		resetToDefault({sel, Mod::get()});
 	  	}
 
 	  	void resetAllToDefault();
 
 	  	bool remapShortcut(shortcut_action_id const& id, Shortcut&& event);
 	  	inline bool remapShortcut(std::string const& sel, Shortcut&& event) {
-	  		remapShortcut({sel, Interface::mod()}, std::move(event));
+	  		remapShortcut({sel, Mod::get()}, std::move(event));
 	  	}
 
 	  	void dispatchEvent(Shortcut const& sc);
