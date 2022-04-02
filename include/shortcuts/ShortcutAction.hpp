@@ -14,8 +14,14 @@ namespace geode::api {
 	};
 
 	struct ShortcutActionState {
+		// these are a bit weird
+		// eventActive is if the shortcut loop is currently checking
+		// eventEnabled is if the shortcut (not modifiers) is pressed
 		bool eventActive;
+		bool eventEnabled;
+
 		float timeSinceRapid;
+		bool firstFire;
 	};
 
 	class ShortcutManager;

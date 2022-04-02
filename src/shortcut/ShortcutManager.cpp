@@ -42,23 +42,30 @@ void ShortcutManager::resetAllToDefault() {
 
 bool ShortcutManager::remapShortcut(shortcut_action_id const& id, Shortcut&& event) {
 	m_actions[id]->m_currentSettings.binding = event; 
+	return true;
 }
 
 
 void ShortcutManager::dispatchEvent(ShortcutEvent const& sc, bool enabled) {
+	log << "event dispatched";
+
 	for (auto [id, action] : m_actions) {
 		auto settings = action->m_currentSettings;
 		auto& state = m_actionStates[id];
-		if (settings.binding.input == sc && state.eventActive != enabled) {
-			state.timeSinceRapid = settings.rapidDelay;
+		if (settings.binding.input == sc && state.eventEnabled != enabled) {
+			state.timeSinceRapid = 0;
 			state.eventActive = enabled;
+			state.eventEnabled = enabled;
+			state.firstFire = true;
 		}
 	}
 }
 
 void ShortcutManager::update(float dt) {
-	for (auto [id, state] : m_actionStates) {
+	for (auto& [id, state] : m_actionStates) {
 		if (state.eventActive) {
+			log << "shortcut caught";
+
 			auto action = m_actions[id];
 			auto actionSettings = action->m_currentSettings;
 
@@ -76,11 +83,14 @@ void ShortcutManager::update(float dt) {
 
 			if (actionSettings.binding.modifiers == modifiers) {
 				state.timeSinceRapid += dt;
-				if (!actionSettings.rapidEnabled || state.timeSinceRapid >= actionSettings.rapidRate) {
+				if (!actionSettings.rapidEnabled || state.timeSinceRapid >= actionSettings.rapidRate || state.firstFire) {
 					state.timeSinceRapid = 0;
+					state.firstFire = false;
 
-					if (!actionSettings.rapidEnabled)
+					if (!actionSettings.rapidEnabled) {
+						log << "no more...";
 						state.eventActive = false;
+					}
 
 					NotificationCenter::get()->send(
 						Notification<bool>(
@@ -88,20 +98,22 @@ void ShortcutManager::update(float dt) {
 							true,
 							Mod::get()
 						),
-						Mod::get()
+						action->m_owner
 					);
 				}
 			} else {
+				if (!state.firstFire) {
+					NotificationCenter::get()->send(
+						Notification<bool>(
+							action->m_selector,
+							false,
+							Mod::get()
+						),
+						action->m_owner
+					);
+				}
 				state.timeSinceRapid = 0;
 				state.eventActive = false;
-				NotificationCenter::get()->send(
-					Notification<bool>(
-						action->m_selector,
-						false,
-						Mod::get()
-					),
-					Mod::get()
-				);
 			}
 		}
 	}
