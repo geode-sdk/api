@@ -122,24 +122,7 @@ void FontRenderer::begin(CCNode* target, CCPoint const& pos, CCSize const& size)
 
 CCNode* FontRenderer::end(bool fitToContent) {
     if (fitToContent && m_target) {
-        CCRect coverage;
-        CCARRAY_FOREACH_B_TYPE(m_target->getChildren(), child, CCNode) {
-            auto pos = child->getPosition() - child->getScaledContentSize() * child->getAnchorPoint();
-            auto csize = child->getPosition() + child->getScaledContentSize() * (CCPoint { 1.f, 1.f } - child->getAnchorPoint());
-            if (pos.x < coverage.origin.x) {
-                coverage.origin.x = pos.x;
-            }
-            if (pos.y < coverage.origin.y) {
-                coverage.origin.y = pos.y;
-            }
-            if (csize.x > coverage.size.width) {
-                coverage.size.width = csize.x;
-            }
-            if (csize.y > coverage.size.height) {
-                coverage.size.height = csize.y;
-            }
-        }
-        // todo: fix this to be exact
+        auto coverage = calculateChildCoverage(m_target);
         coverage.size.height += 10.f;
         m_target->setContentSize({
             -coverage.origin.x + coverage.size.width,
@@ -173,6 +156,10 @@ void FontRenderer::moveCursor(CCPoint const& pos) {
     m_cursor = pos;
 }
 
+CCPoint const& FontRenderer::getCursorPos() {
+    return m_cursor;
+}
+
 bool FontRenderer::render(std::string const& word, CCNode* to, CCLabelProtocol* label) {
     auto origLabelStr = label->getString();
     auto str = ((origLabelStr && strlen(origLabelStr)) ?
@@ -181,7 +168,10 @@ bool FontRenderer::render(std::string const& word, CCNode* to, CCLabelProtocol* 
     if (m_size.width) {
         std::string orig = origLabelStr;
         label->setString(str.c_str());
-        if (m_cursor.x + to->getScaledContentSize().width > m_size.width) {
+        if (
+            m_cursor.x + to->getScaledContentSize().width >
+            m_size.width - this->getCurrentWrapOffset()
+        ) {
             label->setString(orig.c_str());
             return false;
         }
@@ -223,6 +213,13 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
     Label label;
     bool newLine = true;
 
+    auto lastIndent = m_indentationStack.size() > 1 ?
+        m_indentationStack.at(m_indentationStack.size() - 1) : .0f;
+
+    if (m_cursor.x == m_origin.x + lastIndent && this->getCurrentIndent() > .0f) {
+        m_cursor.x += this->getCurrentIndent();
+    }
+
     auto createLabel = [&]() -> bool {
         label = font(style);
         label.m_node->setScale(scale);
@@ -234,15 +231,19 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
         label.m_node->setAnchorPoint({ .0f, .5f });
         label.m_rgbaProtocol->setColor(color);
         label.m_rgbaProtocol->setOpacity(opacity);
+        m_renderedLine.push_back(label.m_node);
 
         return true;
     };
 
     auto nextLine = [&]() -> bool {
+        auto h = this->adjustLineAlignment();
+        m_renderedLine.clear();
         auto cursorIncrementY = label.m_lineHeight * scale;
         if (!cursorIncrementY) {
             cursorIncrementY = label.m_node->getScaledContentSize().height;
         }
+        if (h > cursorIncrementY) cursorIncrementY = h;
         m_cursor.x = m_origin.x + getCurrentIndent();
         m_cursor.y -= cursorIncrementY;
         if (!createLabel()) {
@@ -339,10 +340,13 @@ CCNode* FontRenderer::renderNode(CCNode* node) {
     CC_SAFE_RELEASE(m_lastRenderedNode);
     m_lastRenderedNode = node;
     CC_SAFE_RETAIN(m_lastRenderedNode);
+    m_renderedLine.push_back(node);
     return node;
 }
 
 void FontRenderer::breakLine(float y) {
+    auto h = this->adjustLineAlignment();
+    m_renderedLine.clear();
     if (!y && m_fontStack.size()) {
         y = m_fontStack.back()(this->getCurrentStyle()).m_lineHeight * this->getCurrentScale();
         if (!y && m_lastRendered.size()) {
@@ -352,8 +356,38 @@ void FontRenderer::breakLine(float y) {
             y = m_lastRenderedNode->getScaledContentSize().height;
         }
     }
+    if (h > y) y = h;
     m_cursor.y -= y;
     m_cursor.x = m_origin.x + getCurrentIndent();
+}
+
+float FontRenderer::adjustLineAlignment() {
+    // todo: make this work
+    auto maxHeight = .0f;
+    // for (auto& node : m_renderedLine) {
+    //     if (node->getScaledContentSize().height > maxHeight) {
+    //         maxHeight = node->getScaledContentSize().height;
+    //     }
+    // }
+    // for (auto& node : m_renderedLine) {
+    //     auto height = node->getScaledContentSize().height;
+    //     auto anchor = node->getAnchorPoint().y;
+    //     switch (this->getCurrentVerticalAlign()) {
+    //         default:
+    //         case TextAlignment::Begin: {
+    //             node->setPositionY(m_cursor.y - maxHeight / 2 + height * anchor);
+    //         } break;
+
+    //         case TextAlignment::Center: {
+    //             node->setPositionY(m_cursor.y - height * (.5f - anchor));
+    //         } break;
+
+    //         case TextAlignment::End: {
+    //             node->setPositionY(m_cursor.y + maxHeight / 2 - height * anchor);
+    //         } break;
+    //     }
+    // }
+    return maxHeight;
 }
 
 void FontRenderer::pushFont(Font const& font) {
@@ -463,6 +497,34 @@ float FontRenderer::getCurrentIndent() const {
         res += indent;
     }
     return res;
+}
+
+void FontRenderer::pushWrapOffset(float wrapOffset) {
+    m_wrapOffsetStack.push_back(wrapOffset);
+}
+
+void FontRenderer::popWrapOffset() {
+    if (m_wrapOffsetStack.size()) m_wrapOffsetStack.pop_back();
+}
+
+float FontRenderer::getCurrentWrapOffset() const {
+    float res = .0f;
+    for (auto& offset : m_wrapOffsetStack) {
+        res += offset;
+    }
+    return res;
+}
+
+void FontRenderer::pushVerticalAlign(TextAlignment align) {
+    m_vAlignmentStack.push_back(align);
+}
+
+void FontRenderer::popVerticalAlign() {
+    if (m_vAlignmentStack.size()) m_vAlignmentStack.pop_back();
+}
+
+TextAlignment FontRenderer::getCurrentVerticalAlign() const {
+    return m_vAlignmentStack.size() ? m_vAlignmentStack.back() : TextAlignment::Center;
 }
 
 FontRenderer::~FontRenderer() {

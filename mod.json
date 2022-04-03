@@ -22,6 +22,14 @@
             "mdFontI": {
                 "path": "resources/fonts/Ubuntu-Italic.ttf",
                 "size": 80
+            },
+            "mdFontBI": {
+                "path": "resources/fonts/Ubuntu-BoldItalic.ttf",
+                "size": 80
+            },
+            "mdFontMono": {
+                "path": "resources/fonts/UbuntuMono-Regular.ttf",
+                "size": 80
             }
         },
         "spritesheets": {

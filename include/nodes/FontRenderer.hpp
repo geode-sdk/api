@@ -84,12 +84,16 @@ namespace geode {
         std::vector<TextCapitalization> m_capsStack;
         std::vector<Label> m_lastRendered;
         std::vector<float> m_indentationStack;
+        std::vector<float> m_wrapOffsetStack;
+        std::vector<TextAlignment> m_vAlignmentStack;
+        std::vector<cocos2d::CCNode*> m_renderedLine;
         cocos2d::CCNode* m_lastRenderedNode = nullptr;
 
         bool init();
 
         void decorate(std::vector<Label>& labels);
         bool render(std::string const& word, cocos2d::CCNode* to, cocos2d::CCLabelProtocol* label);
+        float adjustLineAlignment();
 
     public:
         static FontRenderer* create();
@@ -149,7 +153,16 @@ namespace geode {
         void popIndent();
         float getCurrentIndent() const;
 
+        void pushWrapOffset(float wrapOffset);
+        void popWrapOffset();
+        float getCurrentWrapOffset() const;
+
+        void pushVerticalAlign(TextAlignment align);
+        void popVerticalAlign();
+        TextAlignment getCurrentVerticalAlign() const;
+
         void moveCursor(cocos2d::CCPoint const& pos);
+        cocos2d::CCPoint const& getCursorPos();
     };
 
     class TextDecorationWrapper : public cocos2d::CCNodeRGBA, public cocos2d::CCLabelProtocol {

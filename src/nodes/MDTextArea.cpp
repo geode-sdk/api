@@ -7,7 +7,25 @@ USE_GEODE_NAMESPACE();
 static constexpr float g_fontScale = .5f;
 static constexpr float g_paragraphPadding = 7.f;
 static constexpr float g_indent = 7.f;
+static constexpr float g_codeBlockIndent = 8.f;
 static constexpr ccColor3B g_linkColor = cc3x(0x7ff4f4);
+
+FontRenderer::Font g_mdFont = [](int style) -> FontRenderer::Label {
+    if ((style & TextStyleBold) && (style & TextStyleItalic)) {
+        return CCLabelBMFont::create("", "mdFontBI.fnt"_spr);
+    }
+    if ((style & TextStyleBold)) {
+        return CCLabelBMFont::create("", "mdFontB.fnt"_spr);
+    }
+    if ((style & TextStyleItalic)) {
+        return CCLabelBMFont::create("", "mdFontI.fnt"_spr);
+    }
+    return CCLabelBMFont::create("", "mdFont.fnt"_spr);
+};
+
+FontRenderer::Font g_mdMonoFont = [](int style) -> FontRenderer::Label {
+    return CCLabelBMFont::create("", "mdFontMono.fnt"_spr);
+};
 
 bool TextLinkButton::init(
     FontRenderer::Label const& label,
@@ -277,6 +295,8 @@ struct MDParser {
     static std::string s_lastLink;
     static std::string s_lastImage;
     static bool s_isOrderedList;
+    static bool s_isCodeBlock;
+    static float s_codeStart;
     static size_t s_orderedListNum;
 
     static int parseText(MD_TEXTTYPE type, MD_CHAR const* rawText, MD_SIZE size, void* mdtextarea) {
@@ -284,6 +304,30 @@ struct MDParser {
         auto renderer = textarea->m_renderer;
         auto text = std::string(rawText, size);
         switch (type) {
+            case MD_TEXTTYPE::MD_TEXT_CODE: {
+                auto rendered = renderer->renderString(text);
+                if (!s_isCodeBlock) {
+                    size_t ix = 0;
+                    for (auto& render : rendered) {
+                        auto bg = CCScale9Sprite::create(
+                            "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+                        );
+                        bg->setScale(.125f);
+                        bg->setColor({ 0, 0, 0 });
+                        bg->setOpacity(75);
+                        bg->setContentSize(render.m_node->getScaledContentSize() * 8 + CCSize { 20.f, .0f });
+                        bg->setPosition(
+                            render.m_node->getPositionX() - 2.5f * (.5f - render.m_node->getAnchorPoint().x),
+                            render.m_node->getPositionY() - 2.f // le magic number
+                        );
+                        bg->setAnchorPoint(render.m_node->getAnchorPoint());
+                        bg->setZOrder(-1);
+                        textarea->m_content->addChild(bg);
+                        ix++;
+                    }
+                }
+            } break;
+
             case MD_TEXTTYPE::MD_TEXT_BR: {
                 renderer->breakLine();
             } break;
@@ -413,13 +457,23 @@ struct MDParser {
             } break;
 
             case MD_BLOCKTYPE::MD_BLOCK_LI: {
+                renderer->pushOpacity(renderer->getCurrentOpacity() / 2);
                 auto lidetail = reinterpret_cast<MD_BLOCK_LI_DETAIL*>(detail);
                 if (s_isOrderedList) {
                     s_orderedListNum++;
                     renderer->renderString(std::to_string(s_orderedListNum) + ". ");
                 } else {
-                    renderer->renderString("- ");
+                    renderer->renderString(u8"\u2022 ");
                 }
+                renderer->popOpacity();
+            } break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_CODE: {
+                s_isCodeBlock = true;
+                s_codeStart = renderer->getCursorPos().y;
+                renderer->pushFont(g_mdMonoFont);
+                renderer->pushIndent(g_codeBlockIndent);
+                renderer->pushWrapOffset(g_codeBlockIndent);
             } break;
         }
         return 0;
@@ -453,6 +507,46 @@ struct MDParser {
             case MD_BLOCKTYPE::MD_BLOCK_UL: {
                 renderer->popIndent();
             } break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_CODE: {
+                auto codeEnd = renderer->getCursorPos().y;
+
+                auto pad = g_codeBlockIndent / 1.5f;
+
+                CCSize size {
+                    textarea->m_size.width
+                     - renderer->getCurrentIndent()
+                     - renderer->getCurrentWrapOffset() +
+                     pad * 2,
+                    s_codeStart - codeEnd + pad * 2
+                };
+
+                auto bg = CCScale9Sprite::create(
+                    "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+                );
+                bg->setScale(.25f);
+                bg->setColor({ 0, 0, 0 });
+                bg->setOpacity(75);
+                bg->setContentSize(size * 4);
+                bg->setPosition(
+                    size.width / 2 + renderer->getCurrentIndent() - pad,
+                    // mmm i love magic numbers
+                    // the -2.f is to offset the the box 
+                    // to fit the Ubuntu font very neatly.
+                    // idk if it works the same for other 
+                    // fonts
+                    s_codeStart - 2.f + pad
+                );
+                bg->setAnchorPoint({ .5f, .5f });
+                bg->setZOrder(-1);
+                textarea->m_content->addChild(bg);
+                
+                renderer->popWrapOffset();
+                renderer->popIndent();
+                renderer->popFont();
+
+                renderer->breakLine();
+            } break;
         }
         return 0;
     }
@@ -485,6 +579,11 @@ struct MDParser {
                 auto adetail = reinterpret_cast<MD_SPAN_A_DETAIL*>(detail);
                 s_lastLink = std::string(adetail->href.text, adetail->href.size);
             } break;
+
+            case MD_SPANTYPE::MD_SPAN_CODE: {
+                s_isCodeBlock = false;
+                renderer->pushFont(g_mdMonoFont);
+            } break;
         }
         return 0;
     }
@@ -492,21 +591,21 @@ struct MDParser {
     static int leaveSpan(MD_SPANTYPE type, void* detail, void* mdtextarea) {
         auto renderer = reinterpret_cast<MDTextArea*>(mdtextarea)->m_renderer;
         switch (type) {
-            case MD_SPANTYPE::MD_SPAN_STRONG:
+            case MD_SPANTYPE::MD_SPAN_STRONG: {
                 renderer->popStyleFlags();
-                break;
+            } break;
 
-            case MD_SPANTYPE::MD_SPAN_EM:
+            case MD_SPANTYPE::MD_SPAN_EM: {
                 renderer->popStyleFlags();
-                break;
+            } break;
             
-            case MD_SPANTYPE::MD_SPAN_DEL:
+            case MD_SPANTYPE::MD_SPAN_DEL: {
                 renderer->popDecoFlags();
-                break;
+            } break;
             
-            case MD_SPANTYPE::MD_SPAN_U:
+            case MD_SPANTYPE::MD_SPAN_U: {
                 renderer->popDecoFlags();
-                break;
+            } break;
             
             case MD_SPANTYPE::MD_SPAN_A: {
                 s_lastLink = "";
@@ -514,6 +613,10 @@ struct MDParser {
             
             case MD_SPANTYPE::MD_SPAN_IMG: {
                 s_lastImage = "";
+            } break;
+
+            case MD_SPANTYPE::MD_SPAN_CODE: {
+                renderer->popFont();
             } break;
         }
         return 0;
@@ -523,23 +626,13 @@ std::string MDParser::s_lastLink = "";
 std::string MDParser::s_lastImage = "";
 bool MDParser::s_isOrderedList = false;
 size_t MDParser::s_orderedListNum = 0;
+bool MDParser::s_isCodeBlock = false;
+float MDParser::s_codeStart = 0;
 
 void MDTextArea::updateLabel() {
     m_renderer->begin(m_content, CCPointZero, m_size);
 
-    FontRenderer::Font font = [](int style) -> FontRenderer::Label {
-        if ((style & TextStyleBold) && (style & TextStyleItalic)) {
-            return CCLabelBMFont::create("", "mdFontBI.fnt"_spr);
-        }
-        if ((style & TextStyleBold)) {
-            return CCLabelBMFont::create("", "mdFontB.fnt"_spr);
-        }
-        if ((style & TextStyleItalic)) {
-            return CCLabelBMFont::create("", "mdFontI.fnt"_spr);
-        }
-        return CCLabelBMFont::create("", "mdFont.fnt"_spr);
-    };
-    m_renderer->pushFont(font);
+    m_renderer->pushFont(g_mdFont);
     m_renderer->pushScale(.5f);
 
     MD_PARSER parser;
