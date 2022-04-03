@@ -6,6 +6,7 @@ USE_GEODE_NAMESPACE();
 
 static constexpr float g_fontScale = .5f;
 static constexpr float g_paragraphPadding = 7.f;
+static constexpr float g_indent = 7.f;
 static constexpr ccColor3B g_linkColor = cc3x(0x7ff4f4);
 
 bool TextLinkButton::init(
@@ -275,6 +276,8 @@ void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
 struct MDParser {
     static std::string s_lastLink;
     static std::string s_lastImage;
+    static bool s_isOrderedList;
+    static size_t s_orderedListNum;
 
     static int parseText(MD_TEXTTYPE type, MD_CHAR const* rawText, MD_SIZE size, void* mdtextarea) {
         auto textarea = reinterpret_cast<MDTextArea*>(mdtextarea);
@@ -376,7 +379,8 @@ struct MDParser {
     }
 
     static int enterBlock(MD_BLOCKTYPE type, void* detail, void* mdtextarea) {
-        auto renderer = reinterpret_cast<MDTextArea*>(mdtextarea)->m_renderer;
+        auto textarea = reinterpret_cast<MDTextArea*>(mdtextarea);
+        auto renderer = textarea->m_renderer;
         switch (type) {
             case MD_BLOCKTYPE::MD_BLOCK_H: {
                 auto hdetail = reinterpret_cast<MD_BLOCK_H_DETAIL*>(detail);
@@ -393,6 +397,29 @@ struct MDParser {
                 // switch (hdetail->level) {
                 //     case 3: renderer->pushCaps(TextCapitalization::AllUpper); break;
                 // }
+            } break;
+            
+            case MD_BLOCKTYPE::MD_BLOCK_UL:
+            case MD_BLOCKTYPE::MD_BLOCK_OL: {
+                renderer->pushIndent(g_indent);
+                s_isOrderedList = type == MD_BLOCKTYPE::MD_BLOCK_OL;
+                s_orderedListNum = 0;
+            } break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_HR: {
+                renderer->breakLine(g_paragraphPadding / 2);
+                renderer->renderNode(BreakLine::create(textarea->m_size.width));
+                renderer->breakLine(g_paragraphPadding);
+            } break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_LI: {
+                auto lidetail = reinterpret_cast<MD_BLOCK_LI_DETAIL*>(detail);
+                if (s_isOrderedList) {
+                    s_orderedListNum++;
+                    renderer->renderString(std::to_string(s_orderedListNum) + ". ");
+                } else {
+                    renderer->renderString("- ");
+                }
             } break;
         }
         return 0;
@@ -417,10 +444,15 @@ struct MDParser {
                 // }
             } break;
             
-            case MD_BLOCKTYPE::MD_BLOCK_P:
+            case MD_BLOCKTYPE::MD_BLOCK_P: {
                 renderer->breakLine();
                 renderer->breakLine(g_paragraphPadding);
-                break;
+            } break;
+            
+            case MD_BLOCKTYPE::MD_BLOCK_OL:
+            case MD_BLOCKTYPE::MD_BLOCK_UL: {
+                renderer->popIndent();
+            } break;
         }
         return 0;
     }
@@ -489,6 +521,8 @@ struct MDParser {
 };
 std::string MDParser::s_lastLink = "";
 std::string MDParser::s_lastImage = "";
+bool MDParser::s_isOrderedList = false;
+size_t MDParser::s_orderedListNum = 0;
 
 void MDTextArea::updateLabel() {
     m_renderer->begin(m_content, CCPointZero, m_size);

@@ -83,6 +83,7 @@ namespace geode {
         std::vector<int> m_decorationStack;
         std::vector<TextCapitalization> m_capsStack;
         std::vector<Label> m_lastRendered;
+        std::vector<float> m_indentationStack;
         cocos2d::CCNode* m_lastRenderedNode = nullptr;
 
         bool init();
@@ -143,6 +144,10 @@ namespace geode {
         void pushCaps(TextCapitalization caps);
         void popCaps();
         TextCapitalization getCurrentCaps() const;
+
+        void pushIndent(float indent);
+        void popIndent();
+        float getCurrentIndent() const;
 
         void moveCursor(cocos2d::CCPoint const& pos);
     };

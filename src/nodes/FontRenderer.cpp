@@ -243,7 +243,7 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
         if (!cursorIncrementY) {
             cursorIncrementY = label.m_node->getScaledContentSize().height;
         }
-        m_cursor.x = 0;
+        m_cursor.x = m_origin.x + getCurrentIndent();
         m_cursor.y -= cursorIncrementY;
         if (!createLabel()) {
             return false;
@@ -353,7 +353,7 @@ void FontRenderer::breakLine(float y) {
         }
     }
     m_cursor.y -= y;
-    m_cursor.x = m_origin.x;
+    m_cursor.x = m_origin.x + getCurrentIndent();
 }
 
 void FontRenderer::pushFont(Font const& font) {
@@ -447,6 +447,22 @@ void FontRenderer::popCaps() {
 
 TextCapitalization FontRenderer::getCurrentCaps() const {
     return m_capsStack.size() ? m_capsStack.back() : TextCapitalization::Normal;
+}
+
+void FontRenderer::pushIndent(float indent) {
+    m_indentationStack.push_back(indent);
+}
+
+void FontRenderer::popIndent() {
+    if (m_indentationStack.size()) m_indentationStack.pop_back();
+}
+
+float FontRenderer::getCurrentIndent() const {
+    float res = .0f;
+    for (auto& indent : m_indentationStack) {
+        res += indent;
+    }
+    return res;
 }
 
 FontRenderer::~FontRenderer() {
