@@ -237,18 +237,8 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
     };
 
     auto nextLine = [&]() -> bool {
-        auto h = this->adjustLineAlignment();
-        m_renderedLine.clear();
-        auto cursorIncrementY = label.m_lineHeight * scale;
-        if (!cursorIncrementY) {
-            cursorIncrementY = label.m_node->getScaledContentSize().height;
-        }
-        if (h > cursorIncrementY) cursorIncrementY = h;
-        m_cursor.x = m_origin.x + getCurrentIndent();
-        m_cursor.y -= cursorIncrementY;
-        if (!createLabel()) {
-            return false;
-        }
+        this->breakLine(label.m_lineHeight * scale);
+        if (!createLabel()) return false;
         newLine = true;
         return true;
     };
@@ -344,9 +334,10 @@ CCNode* FontRenderer::renderNode(CCNode* node) {
     return node;
 }
 
-void FontRenderer::breakLine(float y) {
+void FontRenderer::breakLine(float incY) {
     auto h = this->adjustLineAlignment();
     m_renderedLine.clear();
+    float y = incY;
     if (!y && m_fontStack.size()) {
         y = m_fontStack.back()(this->getCurrentStyle()).m_lineHeight * this->getCurrentScale();
         if (!y && m_lastRendered.size()) {
@@ -356,7 +347,7 @@ void FontRenderer::breakLine(float y) {
             y = m_lastRenderedNode->getScaledContentSize().height;
         }
     }
-    if (h > y) y = h;
+    if (h + incY > y) y = h + incY;
     m_cursor.y -= y;
     m_cursor.x = m_origin.x + getCurrentIndent();
 }
