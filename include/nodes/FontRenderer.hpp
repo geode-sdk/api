@@ -91,7 +91,7 @@ namespace geode {
 
         bool init();
 
-        void decorate(std::vector<Label>& labels);
+        void decorate(Label* label);
         bool render(std::string const& word, cocos2d::CCNode* to, cocos2d::CCLabelProtocol* label);
         float adjustLineAlignment();
 

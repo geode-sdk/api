@@ -15,7 +15,7 @@ bool TextDecorationWrapper::init(
     
     label.m_node->removeFromParent();
     this->addChild(label.m_node);
-    this->setContentSize(label.m_node->getContentSize());
+    this->setContentSize(label.m_node->getScaledContentSize());
     this->setAnchorPoint(label.m_node->getAnchorPoint());
     this->setScale(label.m_node->getScale());
     label.m_node->setScale(1.f);
@@ -41,8 +41,6 @@ void TextDecorationWrapper::draw() {
     // some nodes sometimes set the blend func to
     // something else without resetting it back
     ccGLBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    this->setContentSize(m_label.m_node->getScaledContentSize());
-    m_label.m_node->setPosition(m_obContentSize * m_label.m_node->getAnchorPoint());
     if (m_deco & TextDecorationUnderline) {
         ccDrawSolidRect(
             { 0, 0 },
@@ -72,6 +70,8 @@ void TextDecorationWrapper::draw() {
 
 void TextDecorationWrapper::setString(const char* text) {
     m_label.m_labelProtocol->setString(text);
+    this->setContentSize(m_label.m_node->getScaledContentSize());
+    m_label.m_node->setPosition(m_obContentSize * m_label.m_node->getAnchorPoint());
 }
 
 const char* TextDecorationWrapper::getString() {
@@ -100,6 +100,8 @@ TextDecorationWrapper* TextDecorationWrapper::wrap(
     GLubyte opacity
 ) {
     auto pos = label.m_node->getPosition();
+    std::cout << "wrapping \"" << label.m_labelProtocol->getString() << "\" whose size is " <<
+        label.m_node->getScaledContentSize() << " at " << pos << "\n";
     auto wrapper = TextDecorationWrapper::create(label, deco, color, opacity);
     wrapper->setPosition(pos);
     return wrapper;
@@ -182,18 +184,14 @@ bool FontRenderer::render(std::string const& word, CCNode* to, CCLabelProtocol* 
     }
 }
 
-void FontRenderer::decorate(std::vector<Label>& labels) {
+void FontRenderer::decorate(Label* label) {
     if (this->getCurrentDeco() != TextDecorationNone) {
-        std::vector<FontRenderer::Label> res;
-        for (auto const& label : labels) {
-            auto wrapper = TextDecorationWrapper::wrap(
-                label, this->getCurrentDeco(), this->getCurrentColor(), 
-                this->getCurrentOpacity()
-            );
-            m_target->addChild(wrapper);
-            res.push_back(Label(wrapper));
-        }
-        labels = res;
+        auto wrapper = TextDecorationWrapper::wrap(
+            *label, this->getCurrentDeco(), this->getCurrentColor(), 
+            this->getCurrentOpacity()
+        );
+        m_target->addChild(wrapper);
+        *label = Label(wrapper);
     }
 }
 
@@ -232,6 +230,9 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
         label.m_rgbaProtocol->setColor(color);
         label.m_rgbaProtocol->setOpacity(opacity);
         m_renderedLine.push_back(label.m_node);
+
+        // add decorations (underline, strikethrough)
+        this->decorate(&label);
 
         return true;
     };
@@ -297,10 +298,6 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
         m_cursor.x += label.m_node->getScaledContentSize().width;
     }
 
-    // add decorations to rendered nodes 
-    // (underline, strikethrough)
-    this->decorate(res);
-
     CC_SAFE_RELEASE_NULL(m_lastRenderedNode);
     m_lastRendered = res;
 
@@ -347,7 +344,7 @@ void FontRenderer::breakLine(float incY) {
             y = m_lastRenderedNode->getScaledContentSize().height;
         }
     }
-    if (h + incY > y) y = h + incY;
+    if (h > y) y = h;
     m_cursor.y -= y;
     m_cursor.x = m_origin.x + getCurrentIndent();
 }
@@ -355,11 +352,15 @@ void FontRenderer::breakLine(float incY) {
 float FontRenderer::adjustLineAlignment() {
     // todo: make this work
     auto maxHeight = .0f;
-    // for (auto& node : m_renderedLine) {
-    //     if (node->getScaledContentSize().height > maxHeight) {
-    //         maxHeight = node->getScaledContentSize().height;
-    //     }
-    // }
+    std::cout << "cursor y: " << m_cursor.y << "\n";
+    for (auto& node : m_renderedLine) {
+        auto label = dynamic_cast<CCLabelProtocol*>(node);
+        // maxHeight = node->getScaledContentSize().height;
+        std::cout << "node y: " << node->getPositionY() << ", size h: " <<
+            node->getScaledContentSize().height << (label ? "("s + label->getString() + ")" : "") << "\n";
+        if (node->getScaledContentSize().height > maxHeight) {
+        }
+    }
     // for (auto& node : m_renderedLine) {
     //     auto height = node->getScaledContentSize().height;
     //     auto anchor = node->getAnchorPoint().y;
