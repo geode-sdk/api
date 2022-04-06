@@ -36,6 +36,9 @@ namespace geode {
         TextDecorationStrikethrough= 0b10,
     };
 
+    class TextDecorationWrapper;
+    class TextLinkedButtonWrapper;
+
     class FontRenderer : public cocos2d::CCObject {
     public:
         struct Label {
@@ -91,7 +94,12 @@ namespace geode {
 
         bool init();
 
-        void decorate(Label* label);
+        Label addWrappers(
+            Label const& label,
+            bool isButton,
+            cocos2d::CCObject* target,
+            cocos2d::SEL_MenuHandler callback
+        );
         bool render(std::string const& word, cocos2d::CCNode* to, cocos2d::CCLabelProtocol* label);
         float adjustLineAlignment();
 
@@ -115,9 +123,17 @@ namespace geode {
             int style = TextStyleRegular,
             int deco = TextDecorationNone,
             TextCapitalization caps = TextCapitalization::Normal,
-            bool addToTarget = true
+            bool addToTarget = true,
+            bool isButton = false,
+            cocos2d::CCObject* target = nullptr,
+            cocos2d::SEL_MenuHandler callback = nullptr
         );
         std::vector<Label> renderString(std::string const& str);
+        std::vector<Label> renderStringInteractive(
+            std::string const& str,
+            cocos2d::CCObject* target,
+            cocos2d::SEL_MenuHandler callback
+        );
         cocos2d::CCNode* renderNode(cocos2d::CCNode* node);
         void breakLine(float y = .0f);
 
@@ -193,9 +209,55 @@ namespace geode {
             GLubyte opacity
         );
 
+        void setColor(cocos2d::ccColor3B const& color) override;
+        void setOpacity(GLubyte opacity) override;
+        void updateDisplayedColor(cocos2d::ccColor3B const& color) override;
+        void updateDisplayedOpacity(GLubyte opacity) override;
+
         void setString(const char* text) override;
         const char* getString() override;
+    };
+
+    class TextLinkedButtonWrapper :
+        public cocos2d::CCMenuItemSprite,
+        public cocos2d::CCLabelProtocol
+    {
+    protected:
+        FontRenderer::Label m_label;
+        GLubyte m_opacity;
+        cocos2d::ccColor3B m_color;
+        std::vector<TextLinkedButtonWrapper*> m_linked;
+
+        bool init(
+            FontRenderer::Label const& label,
+            cocos2d::CCObject* target,
+            cocos2d::SEL_MenuHandler handler
+        );
+    
+    public:
+        static TextLinkedButtonWrapper* create(
+            FontRenderer::Label const& label,
+            cocos2d::CCObject* target,
+            cocos2d::SEL_MenuHandler handler
+        );
+        static TextLinkedButtonWrapper* wrap(
+            FontRenderer::Label const& label,
+            cocos2d::CCObject* target,
+            cocos2d::SEL_MenuHandler handler
+        );
+
+        void link(TextLinkedButtonWrapper* other);
+
+        void selectedWithoutPropagation(bool selected);
+        void selected() override;
+        void unselected() override;
 
         void setColor(cocos2d::ccColor3B const& color) override;
+        void setOpacity(GLubyte opacity) override;
+        void updateDisplayedColor(cocos2d::ccColor3B const& color) override;
+        void updateDisplayedOpacity(GLubyte opacity) override;
+
+        void setString(const char* text) override;
+        const char* getString() override;
     };
 }

@@ -4,7 +4,7 @@
 
 ### Further subheading thing
 
-**Geode API**, containing <cl>utilities</c> & shared *functionality* <cy>such</cy> _as <c ffba94>custom keybinds support</c>_. More text on this line?
+**Geode API**, containing <cl>utilities</c> & shared ![Alt text](GJ_button_01.png) ![Communism](frame:GJ_sStarsIcon_001.png) *functionality* <cy>such</cy> _as <c ffba94>custom keybinds support</c>_. More text on this line?
 
 ~<cb>i have <cp>blue</c> balls</c>~
 

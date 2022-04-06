@@ -27,82 +27,6 @@ FontRenderer::Font g_mdMonoFont = [](int style) -> FontRenderer::Label {
     return CCLabelBMFont::create("", "mdFontMono.fnt"_spr);
 };
 
-bool TextLinkButton::init(
-    FontRenderer::Label const& label,
-    cocos2d::CCObject* target,
-    cocos2d::SEL_MenuHandler handler
-) {
-    if (!CCMenuItemSprite::initWithNormalSprite(label.m_node, nullptr, nullptr, target, handler))
-        return false;
-    
-    m_label = label.m_labelProtocol;
-    m_rgba = label.m_rgbaProtocol;
-
-    label.m_node->removeFromParent();
-    this->addChild(label.m_node);
-    this->setContentSize(label.m_node->getContentSize());
-    this->setAnchorPoint(label.m_node->getAnchorPoint());
-    this->setScale(label.m_node->getScale());
-    label.m_node->setScale(1.f);
-    label.m_node->setPosition(0, 0);
-
-    return true;
-}
-
-void TextLinkButton::link(TextLinkButton* other) {
-    if (this != other) {
-        m_linked.push_back(other);
-    }
-}
-
-void TextLinkButton::setString(const char* text) {
-    return m_label->setString(text);
-}
-
-const char* TextLinkButton::getString() {
-    return m_label->getString();
-}
-
-void TextLinkButton::selectedWithoutPropagation(bool selected) {
-    if (selected) {
-        m_opacity = m_rgba->getOpacity();
-        m_color = m_rgba->getColor();
-        m_rgba->setOpacity(150);
-        m_rgba->setColor({ 255, 255, 255 });
-    } else {
-        m_rgba->setOpacity(m_opacity);
-        m_rgba->setColor(m_color);
-    }
-}
-
-void TextLinkButton::selected() {
-    this->selectedWithoutPropagation(true);
-    for (auto& node : m_linked) {
-        node->selectedWithoutPropagation(true);
-    }
-}
-
-void TextLinkButton::unselected() {
-    this->selectedWithoutPropagation(false);
-    for (auto& node : m_linked) {
-        node->selectedWithoutPropagation(false);
-    }
-}
-
-TextLinkButton* TextLinkButton::create(
-    FontRenderer::Label const& label,
-    cocos2d::CCObject* target,
-    cocos2d::SEL_MenuHandler handler
-) {
-    auto ret = new TextLinkButton;
-    if (ret && ret->init(label, target, handler)) {
-        ret->autorelease();
-        return ret;
-    }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
-
 
 class MDContentLayer : public CCContentLayer {
 protected:
@@ -340,31 +264,15 @@ struct MDParser {
                 if (s_lastLink.size()) {
                     renderer->pushColor(g_linkColor);
                     renderer->pushDecoFlags(TextDecorationUnderline);
-                    auto rendered = renderer->renderString(text);
-                    std::vector<TextLinkButton*> btns;
+                    auto rendered = renderer->renderStringInteractive(
+                        text,
+                        textarea,
+                        string_utils::startsWith(s_lastLink, "user:") ?
+                            menu_selector(MDTextArea::onGDProfile) : 
+                            menu_selector(MDTextArea::onLink)
+                    );
                     for (auto const& label : rendered) {
-                        label.m_node->removeFromParent();
-                        auto pos = label.m_node->getPosition();
-                        auto anchor = label.m_node->getAnchorPoint();
-                        label.m_node->setPosition(0, 0);
-                        auto btn = TextLinkButton::create(
-                            label, textarea,
-                            string_utils::startsWith(s_lastLink, "user:") ?
-                                menu_selector(MDTextArea::onGDProfile) : 
-                                menu_selector(MDTextArea::onLink)
-                        );
-                        btns.push_back(btn);
-                        btn->setUserObject(CCString::create(s_lastLink));
-                        btn->setPosition(pos - btn->getScaledContentSize() * anchor);
-                        textarea->m_content->addChild(btn);
-                    }
-                    // O(N^2)
-                    for (auto& btn : btns) {
-                        for (auto& b : btns) {
-                            if (b != btn) {
-                                btn->link(b);
-                            }
-                        }
+                        label.m_node->setUserObject(CCString::create(s_lastLink));
                     }
                     renderer->popDecoFlags();
                     renderer->popColor();
@@ -634,6 +542,7 @@ void MDTextArea::updateLabel() {
 
     m_renderer->pushFont(g_mdFont);
     m_renderer->pushScale(.5f);
+    m_renderer->pushVerticalAlign(TextAlignment::End);
 
     MD_PARSER parser;
 

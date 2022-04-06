@@ -15,26 +15,13 @@ bool TextDecorationWrapper::init(
     
     label.m_node->removeFromParent();
     this->addChild(label.m_node);
-    this->setContentSize(label.m_node->getScaledContentSize());
-    this->setAnchorPoint(label.m_node->getAnchorPoint());
-    this->setScale(label.m_node->getScale());
-    label.m_node->setScale(1.f);
-    label.m_node->setPosition(0, 0);
 
     m_label = label;
     m_deco = deco;
     this->setColor(color);
     this->setOpacity(opacity);
 
-    this->setCascadeColorEnabled(true);
-    this->setCascadeOpacityEnabled(true);
-
     return true;
-}
-
-void TextDecorationWrapper::setColor(ccColor3B const& color) {
-    m_label.m_rgbaProtocol->setColor(color);
-    return CCNodeRGBA::setColor(color);
 }
 
 void TextDecorationWrapper::draw() {
@@ -71,11 +58,31 @@ void TextDecorationWrapper::draw() {
 void TextDecorationWrapper::setString(const char* text) {
     m_label.m_labelProtocol->setString(text);
     this->setContentSize(m_label.m_node->getScaledContentSize());
-    m_label.m_node->setPosition(m_obContentSize * m_label.m_node->getAnchorPoint());
+    m_label.m_node->setPosition(m_obContentSize / 2);
 }
 
 const char* TextDecorationWrapper::getString() {
     return m_label.m_labelProtocol->getString();
+}
+
+void TextDecorationWrapper::setColor(cocos2d::ccColor3B const& color) {
+    m_label.m_rgbaProtocol->setColor(color);
+    return CCNodeRGBA::setColor(color);
+}
+
+void TextDecorationWrapper::setOpacity(GLubyte opacity) {
+    m_label.m_rgbaProtocol->setOpacity(opacity);
+    return CCNodeRGBA::setOpacity(opacity);
+}
+
+void TextDecorationWrapper::updateDisplayedColor(ccColor3B const& color) {
+    m_label.m_rgbaProtocol->updateDisplayedColor(color);
+    return CCNodeRGBA::updateDisplayedColor(color);
+}
+
+void TextDecorationWrapper::updateDisplayedOpacity(GLubyte opacity) {
+    m_label.m_rgbaProtocol->updateDisplayedOpacity(opacity);
+    return CCNodeRGBA::updateDisplayedOpacity(opacity);
 }
 
 TextDecorationWrapper* TextDecorationWrapper::create(
@@ -100,10 +107,116 @@ TextDecorationWrapper* TextDecorationWrapper::wrap(
     GLubyte opacity
 ) {
     auto pos = label.m_node->getPosition();
-    std::cout << "wrapping \"" << label.m_labelProtocol->getString() << "\" whose size is " <<
-        label.m_node->getScaledContentSize() << " at " << pos << "\n";
     auto wrapper = TextDecorationWrapper::create(label, deco, color, opacity);
     wrapper->setPosition(pos);
+    return wrapper;
+}
+
+
+bool TextLinkedButtonWrapper::init(
+    FontRenderer::Label const& label,
+    cocos2d::CCObject* target,
+    cocos2d::SEL_MenuHandler handler
+) {
+    if (!CCMenuItemSprite::initWithNormalSprite(label.m_node, nullptr, nullptr, target, handler))
+        return false;
+
+    m_label = label;
+    
+    label.m_node->removeFromParent();
+    this->addChild(label.m_node);
+
+    this->setCascadeColorEnabled(true);
+    this->setCascadeOpacityEnabled(true);
+
+    return true;
+}
+
+void TextLinkedButtonWrapper::link(TextLinkedButtonWrapper* other) {
+    if (this != other) {
+        m_linked.push_back(other);
+    }
+}
+
+void TextLinkedButtonWrapper::setString(const char* text) {
+    m_label.m_labelProtocol->setString(text);
+    this->setContentSize(m_label.m_node->getScaledContentSize());
+    m_label.m_node->setPosition(m_obContentSize * m_label.m_node->getAnchorPoint());
+}
+
+const char* TextLinkedButtonWrapper::getString() {
+    return m_label.m_labelProtocol->getString();
+}
+
+void TextLinkedButtonWrapper::setColor(cocos2d::ccColor3B const& color) {
+    m_label.m_rgbaProtocol->setColor(color);
+    return CCMenuItemSprite::setColor(color);
+}
+
+void TextLinkedButtonWrapper::setOpacity(GLubyte opacity) {
+    m_label.m_rgbaProtocol->setOpacity(opacity);
+    return CCMenuItemSprite::setOpacity(opacity);
+}
+
+void TextLinkedButtonWrapper::updateDisplayedColor(ccColor3B const& color) {
+    m_label.m_rgbaProtocol->updateDisplayedColor(color);
+    return CCMenuItemSprite::updateDisplayedColor(color);
+}
+
+void TextLinkedButtonWrapper::updateDisplayedOpacity(GLubyte opacity) {
+    m_label.m_rgbaProtocol->updateDisplayedOpacity(opacity);
+    return CCMenuItemSprite::updateDisplayedOpacity(opacity);
+}
+
+void TextLinkedButtonWrapper::selectedWithoutPropagation(bool selected) {
+    if (selected) {
+        m_opacity = this->getOpacity();
+        m_color = this->getColor();
+        this->setOpacity(150);
+        this->setColor({ 255, 255, 255 });
+    } else {
+        this->setOpacity(m_opacity);
+        this->setColor(m_color);
+    }
+}
+
+void TextLinkedButtonWrapper::selected() {
+    this->selectedWithoutPropagation(true);
+    for (auto& node : m_linked) {
+        node->selectedWithoutPropagation(true);
+    }
+}
+
+void TextLinkedButtonWrapper::unselected() {
+    this->selectedWithoutPropagation(false);
+    for (auto& node : m_linked) {
+        node->selectedWithoutPropagation(false);
+    }
+}
+
+TextLinkedButtonWrapper* TextLinkedButtonWrapper::create(
+    FontRenderer::Label const& label,
+    cocos2d::CCObject* target,
+    cocos2d::SEL_MenuHandler handler
+) {
+    auto ret = new TextLinkedButtonWrapper;
+    if (ret && ret->init(label, target, handler)) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+TextLinkedButtonWrapper* TextLinkedButtonWrapper::wrap(
+    FontRenderer::Label const& label,
+    cocos2d::CCObject* target,
+    cocos2d::SEL_MenuHandler handler
+) {
+    auto pos = label.m_node->getPosition();
+    auto anchor = label.m_node->getAnchorPoint();
+    auto wrapper = TextLinkedButtonWrapper::create(label, target, handler);
+    wrapper->setPosition(pos - wrapper->getScaledContentSize() * anchor);
     return wrapper;
 }
 
@@ -184,15 +297,28 @@ bool FontRenderer::render(std::string const& word, CCNode* to, CCLabelProtocol* 
     }
 }
 
-void FontRenderer::decorate(Label* label) {
+FontRenderer::Label FontRenderer::addWrappers(
+    Label const& label,
+    bool isButton,
+    CCObject* target,
+    SEL_MenuHandler callback
+) {
+    Label ret = label;
     if (this->getCurrentDeco() != TextDecorationNone) {
         auto wrapper = TextDecorationWrapper::wrap(
-            *label, this->getCurrentDeco(), this->getCurrentColor(), 
+            ret, this->getCurrentDeco(), this->getCurrentColor(), 
             this->getCurrentOpacity()
         );
-        m_target->addChild(wrapper);
-        *label = Label(wrapper);
+        ret = Label(wrapper);
     }
+    if (isButton) {
+        auto wrapper = TextLinkedButtonWrapper::wrap(
+            ret, target, callback
+        );
+        ret = Label(wrapper);
+    }
+    ret.m_lineHeight = label.m_lineHeight;
+    return ret;
 }
 
 std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
@@ -204,9 +330,14 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
     int style,
     int deco,
     TextCapitalization caps,
-    bool addToTarget
+    bool addToTarget,
+    bool isButton,
+    CCObject* target,
+    SEL_MenuHandler callback
 ) {
     std::vector<Label> res;
+
+    if (!target) target = m_target;
 
     Label label;
     bool newLine = true;
@@ -219,20 +350,24 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
     }
 
     auto createLabel = [&]() -> bool {
-        label = font(style);
+        // create label through font and add 
+        // decorations (underline, strikethrough) + 
+        // buttonize (new word just dropped)
+        label = this->addWrappers(
+            font(style), isButton, target, callback
+        );
+
         label.m_node->setScale(scale);
-        res.push_back(label);
-        if (addToTarget) {
-            m_target->addChild(label.m_node);
-        }
         label.m_node->setPosition(m_cursor);
         label.m_node->setAnchorPoint({ .0f, .5f });
         label.m_rgbaProtocol->setColor(color);
         label.m_rgbaProtocol->setOpacity(opacity);
-        m_renderedLine.push_back(label.m_node);
 
-        // add decorations (underline, strikethrough)
-        this->decorate(&label);
+        res.push_back(label);
+        m_renderedLine.push_back(label.m_node);
+        if (addToTarget) {
+            m_target->addChild(label.m_node);
+        }
 
         return true;
     };
@@ -298,6 +433,16 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
         m_cursor.x += label.m_node->getScaledContentSize().width;
     }
 
+    if (isButton) {
+        for (auto& btn : res) for (auto& b : res) {
+            if (btn.m_node != b.m_node) {
+                as<TextLinkedButtonWrapper*>(btn.m_node)->link(
+                    as<TextLinkedButtonWrapper*>(b.m_node)
+                );
+            }
+        }
+    }
+
     CC_SAFE_RELEASE_NULL(m_lastRenderedNode);
     m_lastRendered = res;
 
@@ -314,7 +459,27 @@ std::vector<FontRenderer::Label> FontRenderer::renderString(std::string const& s
         this->getCurrentStyle(),
         this->getCurrentDeco(),
         this->getCurrentCaps(),
-        true
+        true, false,
+        nullptr, nullptr
+    );
+}
+
+std::vector<FontRenderer::Label> FontRenderer::renderStringInteractive(
+    std::string const& str,
+    CCObject* target,
+    SEL_MenuHandler callback
+) {
+    return this->renderStringEx(
+        str,
+        this->getCurrentFont(),
+        this->getCurrentScale(),
+        this->getCurrentColor(),
+        this->getCurrentOpacity(),
+        this->getCurrentStyle(),
+        this->getCurrentDeco(),
+        this->getCurrentCaps(),
+        true, true,
+        target, callback
     );
 }
 
@@ -350,35 +515,15 @@ void FontRenderer::breakLine(float incY) {
 }
 
 float FontRenderer::adjustLineAlignment() {
-    // todo: make this work
     auto maxHeight = .0f;
-    std::cout << "cursor y: " << m_cursor.y << "\n";
+    // note: FontRenderer::end makes all nodes be aligned to top. 
+    // this should prolly be changed at some point to reflect the 
+    // requested vertical alignment
     for (auto& node : m_renderedLine) {
-        auto label = dynamic_cast<CCLabelProtocol*>(node);
-        // maxHeight = node->getScaledContentSize().height;
-        std::cout << "node y: " << node->getPositionY() << ", size h: " <<
-            node->getScaledContentSize().height << (label ? "("s + label->getString() + ")" : "") << "\n";
         if (node->getScaledContentSize().height > maxHeight) {
+            maxHeight = node->getScaledContentSize().height;
         }
     }
-    // for (auto& node : m_renderedLine) {
-    //     auto height = node->getScaledContentSize().height;
-    //     auto anchor = node->getAnchorPoint().y;
-    //     switch (this->getCurrentVerticalAlign()) {
-    //         default:
-    //         case TextAlignment::Begin: {
-    //             node->setPositionY(m_cursor.y - maxHeight / 2 + height * anchor);
-    //         } break;
-
-    //         case TextAlignment::Center: {
-    //             node->setPositionY(m_cursor.y - height * (.5f - anchor));
-    //         } break;
-
-    //         case TextAlignment::End: {
-    //             node->setPositionY(m_cursor.y + maxHeight / 2 - height * anchor);
-    //         } break;
-    //     }
-    // }
     return maxHeight;
 }
 
