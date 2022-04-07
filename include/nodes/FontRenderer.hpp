@@ -88,6 +88,7 @@ namespace geode {
         std::vector<Label> m_lastRendered;
         std::vector<float> m_indentationStack;
         std::vector<float> m_wrapOffsetStack;
+        std::vector<TextAlignment> m_hAlignmentStack;
         std::vector<TextAlignment> m_vAlignmentStack;
         std::vector<cocos2d::CCNode*> m_renderedLine;
         cocos2d::CCNode* m_lastRenderedNode = nullptr;
@@ -176,6 +177,10 @@ namespace geode {
         void pushVerticalAlign(TextAlignment align);
         void popVerticalAlign();
         TextAlignment getCurrentVerticalAlign() const;
+
+        void pushHorizontalAlign(TextAlignment align);
+        void popHorizontalAlign();
+        TextAlignment getCurrentHorizontalAlign() const;
 
         void moveCursor(cocos2d::CCPoint const& pos);
         cocos2d::CCPoint const& getCursorPos();

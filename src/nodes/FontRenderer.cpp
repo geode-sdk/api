@@ -238,7 +238,6 @@ void FontRenderer::begin(CCNode* target, CCPoint const& pos, CCSize const& size)
 CCNode* FontRenderer::end(bool fitToContent) {
     if (fitToContent && m_target) {
         auto coverage = calculateChildCoverage(m_target);
-        coverage.size.height += 10.f;
         m_target->setContentSize({
             -coverage.origin.x + coverage.size.width,
             -coverage.origin.y + coverage.size.height
@@ -246,11 +245,12 @@ CCNode* FontRenderer::end(bool fitToContent) {
         CCARRAY_FOREACH_B_TYPE(m_target->getChildren(), child, CCNode) {
             child->setPositionY(
                 child->getPositionY() +
-                m_target->getContentSize().height -
-                child->getScaledContentSize().height / 2
+                m_target->getContentSize().height - 
+                coverage.size.height
             );
         }
     }
+
     m_fontStack.clear();
     m_scaleStack.clear();
     m_styleStack.clear();
@@ -258,12 +258,20 @@ CCNode* FontRenderer::end(bool fitToContent) {
     m_opacityStack.clear();
     m_decorationStack.clear();
     m_capsStack.clear();
+    m_lastRendered.clear();
+    m_indentationStack.clear();
+    m_wrapOffsetStack.clear();
+    m_hAlignmentStack.clear();
+    m_vAlignmentStack.clear();
+
     m_cursor = CCPointZero;
     m_size = CCSizeZero;
     auto ret = m_target;
     m_target = nullptr;
     m_lastRendered = {};
     CC_SAFE_RELEASE_NULL(m_lastRenderedNode);
+    m_renderedLine.clear();
+
     return ret;
 }
 
@@ -359,7 +367,7 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
 
         label.m_node->setScale(scale);
         label.m_node->setPosition(m_cursor);
-        label.m_node->setAnchorPoint({ .0f, .5f });
+        label.m_node->setAnchorPoint({ .0f, label.m_node->getAnchorPoint().y });
         label.m_rgbaProtocol->setColor(color);
         label.m_rgbaProtocol->setOpacity(opacity);
 
@@ -515,13 +523,46 @@ void FontRenderer::breakLine(float incY) {
 }
 
 float FontRenderer::adjustLineAlignment() {
+    auto coverage = calculateNodeCoverage(m_renderedLine);
+    auto maxWidth = -coverage.origin.x + coverage.size.width;
     auto maxHeight = .0f;
-    // note: FontRenderer::end makes all nodes be aligned to top. 
-    // this should prolly be changed at some point to reflect the 
-    // requested vertical alignment
     for (auto& node : m_renderedLine) {
         if (node->getScaledContentSize().height > maxHeight) {
             maxHeight = node->getScaledContentSize().height;
+        }
+    }
+    for (auto& node : m_renderedLine) {
+        auto height = node->getScaledContentSize().height;
+        auto anchor = node->getAnchorPoint().y;
+        switch (this->getCurrentVerticalAlign()) {
+            case TextAlignment::Begin: default: {
+                node->setPositionY(m_cursor.y - height * (1.f - anchor));
+            } break;
+
+            case TextAlignment::Center: {
+                node->setPositionY(m_cursor.y - maxHeight / 2 + height * (.5f - anchor));
+            } break;
+
+            case TextAlignment::End: {
+                node->setPositionY(m_cursor.y - maxHeight + height * anchor);
+            } break;
+        }
+        switch (this->getCurrentHorizontalAlign()) {
+            case TextAlignment::Begin: default: {
+                // already correct
+            } break;
+
+            case TextAlignment::Center: {
+                node->setPositionX(
+                    node->getPositionX() + (m_size.width - maxWidth) / 2
+                );
+            } break;
+
+            case TextAlignment::End: {
+                node->setPositionX(
+                    node->getPositionX() + m_size.width - maxWidth - this->getCurrentIndent()
+                );
+            } break;
         }
     }
     return maxHeight;
@@ -663,6 +704,19 @@ void FontRenderer::popVerticalAlign() {
 TextAlignment FontRenderer::getCurrentVerticalAlign() const {
     return m_vAlignmentStack.size() ? m_vAlignmentStack.back() : TextAlignment::Center;
 }
+
+void FontRenderer::pushHorizontalAlign(TextAlignment align) {
+    m_hAlignmentStack.push_back(align);
+}
+
+void FontRenderer::popHorizontalAlign() {
+    if (m_hAlignmentStack.size()) m_hAlignmentStack.pop_back();
+}
+
+TextAlignment FontRenderer::getCurrentHorizontalAlign() const {
+    return m_hAlignmentStack.size() ? m_hAlignmentStack.back() : TextAlignment::Begin;
+}
+
 
 FontRenderer::~FontRenderer() {
     this->end();
