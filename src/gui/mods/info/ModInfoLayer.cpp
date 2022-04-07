@@ -5,41 +5,6 @@
 #include <nodes/BasedButton.hpp>
 #include <nodes/MDTextArea.hpp>
 
-CCMenuItemToggler* ModInfoLayer::createTab(Tab id, const char* text, const char* icon) {
-    std::string str = text;
-    if (icon) str = "   " + str;
-
-    auto offSpr = ButtonSprite::create(str.c_str(), "goldFont.fnt", "GJ_button_05.png", .7f);
-    offSpr->setScale(.7f);
-    if (icon) {
-        auto offIcon = CCSprite::createWithSpriteFrameName(icon);
-        offIcon->setScale(offIcon->getContentSize().height / offSpr->getContentSize().height);
-        offIcon->setPosition({
-            offSpr->getContentSize().height / 2 + 2.f,
-            offSpr->getContentSize().height / 2
-        });
-        offSpr->addChild(offIcon);
-    }
-
-    auto onSpr = ButtonSprite::create(str.c_str(), "goldFont.fnt", "GJ_button_02.png", .7f);
-    onSpr->setScale(.7f);
-    if (icon) {
-        auto onIcon = CCSprite::createWithSpriteFrameName(icon);
-        onIcon->setScale(onIcon->getContentSize().height / offSpr->getContentSize().height);
-        onIcon->setPosition({
-            onSpr->getContentSize().height / 2 + 2.f,
-            onSpr->getContentSize().height / 2
-        });
-        onSpr->addChild(onIcon);
-    }
-
-    auto ret = CCMenuItemToggler::create(offSpr, onSpr, this, menu_selector(ModInfoLayer::onTab));
-	ret->setTag(static_cast<int>(id));
-	this->m_buttonMenu->addChild(ret);
-    this->m_tabBtns.push_back(ret);
-    return ret;
-}
-
 bool ModInfoLayer::init(Mod* mod) {
     this->m_noElasticity = true;
 
@@ -100,28 +65,15 @@ bool ModInfoLayer::init(Mod* mod) {
         winSize.height / 2 + 105.f
     );
 
-	auto infoTab = this->createTab(Tab::Info, "Info", "GJ_infoIcon_001.png");
-	this->createTab(Tab::Credits, "Credits", "GJ_starsIcon_001.png");
-	this->createTab(Tab::Settings, "Settings", "GJ_hammerIcon_001.png");
-	this->createTab(Tab::About, "About", "GJ_infoIcon_001.png");
-    this->m_buttonMenu->alignItemsHorizontallyWithPadding(4.f);
-
-    for (auto& btn : this->m_tabBtns) {
-        btn->setPositionY(75.f);
-    }
-
-    this->onTab(infoTab);
-    infoTab->toggle(true);
-
-    auto details = MDTextArea::create(mod->getDetails(), { 350.f, 150.f});
-    details->setPosition(
-        winSize.width / 2 - details->getScaledContentSize().width / 2,
-        winSize.height / 2 - details->getScaledContentSize().height / 2 - 40.f
-    );
-    this->m_mainLayer->addChild(details);
-
     CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
     this->registerWithTouchDispatcher();
+
+    auto details = MDTextArea::create(mod->getDetails(), { 350.f, 180.f});
+    details->setPosition(
+        winSize.width / 2 - details->getScaledContentSize().width / 2,
+        winSize.height / 2 - details->getScaledContentSize().height / 2 - 20.f
+    );
+    this->m_mainLayer->addChild(details);
     
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
     closeSpr->setScale(.8f);
@@ -141,12 +93,6 @@ bool ModInfoLayer::init(Mod* mod) {
     this->setTouchEnabled(true);
 
     return true;
-}
-
-void ModInfoLayer::onTab(CCObject* pSender) {
-    for (auto& tab : this->m_tabBtns) {
-        tab->toggle(false);
-    }
 }
 
 void ModInfoLayer::onDev(CCObject*) {

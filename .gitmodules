@@ -1,3 +1,6 @@
 [submodule "sdk"]
 	path = sdk
 	url = https://github.com/geode-sdk/sdk
+[submodule "md4c"]
+	path = md4c
+	url = https://github.com/mity/md4c

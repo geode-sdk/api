@@ -11,6 +11,9 @@ class $modify(CCKeyboardDispatcher) {
         //         down
         //     )) return true;
         // }
+
+
+        geode::api::ShortcutManager::get()->dispatchEvent(key, down);
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down);
     }
 };
@@ -18,6 +21,7 @@ class $modify(CCKeyboardDispatcher) {
 class $modify(CCScheduler) {
     void update(float dt) {
         // KeybindManager::get()->handleRepeats(dt);
+        geode::api::ShortcutManager::get()->update(dt);
         return CCScheduler::update(dt);
     }
 };
