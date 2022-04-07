@@ -2,7 +2,7 @@
 
 ## Subheading
 
-### Further subheading thing
+### Further subheading thing :emoji:
 
 **Geode API**, containing <cl>utilities</c> & shared ![Alt text](GJ_button_01.png) ![Communism](frame:GJ_sStarsIcon_001.png) *functionality* <cy>such</cy> _as <c ffba94>custom keybinds support</c>_. More text on this line?
 
