@@ -6,83 +6,26 @@ USE_GEODE_NAMESPACE();
 
 static constexpr float g_fontScale = .5f;
 static constexpr float g_paragraphPadding = 7.f;
+static constexpr float g_indent = 7.f;
+static constexpr float g_codeBlockIndent = 8.f;
 static constexpr ccColor3B g_linkColor = cc3x(0x7ff4f4);
 
-bool TextLinkButton::init(
-    FontRenderer::Label const& label,
-    cocos2d::CCObject* target,
-    cocos2d::SEL_MenuHandler handler
-) {
-    if (!CCMenuItemSprite::initWithNormalSprite(label.m_node, nullptr, nullptr, target, handler))
-        return false;
-    
-    m_label = label.m_labelProtocol;
-    m_rgba = label.m_rgbaProtocol;
-
-    label.m_node->removeFromParent();
-    this->addChild(label.m_node);
-    this->setContentSize(label.m_node->getContentSize());
-    this->setAnchorPoint(label.m_node->getAnchorPoint());
-    this->setScale(label.m_node->getScale());
-    label.m_node->setScale(1.f);
-    label.m_node->setPosition(0, 0);
-
-    return true;
-}
-
-void TextLinkButton::link(TextLinkButton* other) {
-    if (this != other) {
-        m_linked.push_back(other);
+TextRenderer::Font g_mdFont = [](int style) -> TextRenderer::Label {
+    if ((style & TextStyleBold) && (style & TextStyleItalic)) {
+        return CCLabelBMFont::create("", "mdFontBI.fnt"_spr);
     }
-}
-
-void TextLinkButton::setString(const char* text) {
-    return m_label->setString(text);
-}
-
-const char* TextLinkButton::getString() {
-    return m_label->getString();
-}
-
-void TextLinkButton::selectedWithoutPropagation(bool selected) {
-    if (selected) {
-        m_opacity = m_rgba->getOpacity();
-        m_color = m_rgba->getColor();
-        m_rgba->setOpacity(150);
-        m_rgba->setColor({ 255, 255, 255 });
-    } else {
-        m_rgba->setOpacity(m_opacity);
-        m_rgba->setColor(m_color);
+    if ((style & TextStyleBold)) {
+        return CCLabelBMFont::create("", "mdFontB.fnt"_spr);
     }
-}
-
-void TextLinkButton::selected() {
-    this->selectedWithoutPropagation(true);
-    for (auto& node : m_linked) {
-        node->selectedWithoutPropagation(true);
+    if ((style & TextStyleItalic)) {
+        return CCLabelBMFont::create("", "mdFontI.fnt"_spr);
     }
-}
+    return CCLabelBMFont::create("", "mdFont.fnt"_spr);
+};
 
-void TextLinkButton::unselected() {
-    this->selectedWithoutPropagation(false);
-    for (auto& node : m_linked) {
-        node->selectedWithoutPropagation(false);
-    }
-}
-
-TextLinkButton* TextLinkButton::create(
-    FontRenderer::Label const& label,
-    cocos2d::CCObject* target,
-    cocos2d::SEL_MenuHandler handler
-) {
-    auto ret = new TextLinkButton;
-    if (ret && ret->init(label, target, handler)) {
-        ret->autorelease();
-        return ret;
-    }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
+TextRenderer::Font g_mdMonoFont = [](int style) -> TextRenderer::Label {
+    return CCLabelBMFont::create("", "mdFontMono.fnt"_spr);
+};
 
 
 class MDContentLayer : public CCContentLayer {
@@ -167,7 +110,7 @@ bool MDTextArea::init(
     m_text = str;
     m_size = size;
     this->setContentSize(size);
-    m_renderer = FontRenderer::create();
+    m_renderer = TextRenderer::create();
     CC_SAFE_RETAIN(m_renderer);
 
     m_bgSprite = CCScale9Sprite::create(
@@ -275,12 +218,28 @@ void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
 struct MDParser {
     static std::string s_lastLink;
     static std::string s_lastImage;
+    static bool s_isOrderedList;
+    static bool s_isCodeBlock;
+    static float s_codeStart;
+    static size_t s_orderedListNum;
+    static std::vector<TextRenderer::Label> s_codeSpans;
 
     static int parseText(MD_TEXTTYPE type, MD_CHAR const* rawText, MD_SIZE size, void* mdtextarea) {
         auto textarea = reinterpret_cast<MDTextArea*>(mdtextarea);
         auto renderer = textarea->m_renderer;
         auto text = std::string(rawText, size);
         switch (type) {
+            case MD_TEXTTYPE::MD_TEXT_CODE: {
+                auto rendered = renderer->renderString(text);
+                if (!s_isCodeBlock) {
+                    // code span BGs need to be rendered after all  
+                    // rendering is done since the position of the 
+                    // rendered labels may change after alignments 
+                    // are adjusted
+                    vector_utils::push(s_codeSpans, rendered);
+                }
+            } break;
+
             case MD_TEXTTYPE::MD_TEXT_BR: {
                 renderer->breakLine();
             } break;
@@ -293,31 +252,15 @@ struct MDParser {
                 if (s_lastLink.size()) {
                     renderer->pushColor(g_linkColor);
                     renderer->pushDecoFlags(TextDecorationUnderline);
-                    auto rendered = renderer->renderString(text);
-                    std::vector<TextLinkButton*> btns;
+                    auto rendered = renderer->renderStringInteractive(
+                        text,
+                        textarea,
+                        string_utils::startsWith(s_lastLink, "user:") ?
+                            menu_selector(MDTextArea::onGDProfile) : 
+                            menu_selector(MDTextArea::onLink)
+                    );
                     for (auto const& label : rendered) {
-                        label.m_node->removeFromParent();
-                        auto pos = label.m_node->getPosition();
-                        auto anchor = label.m_node->getAnchorPoint();
-                        label.m_node->setPosition(0, 0);
-                        auto btn = TextLinkButton::create(
-                            label, textarea,
-                            string_utils::startsWith(s_lastLink, "user:") ?
-                                menu_selector(MDTextArea::onGDProfile) : 
-                                menu_selector(MDTextArea::onLink)
-                        );
-                        btns.push_back(btn);
-                        btn->setUserObject(CCString::create(s_lastLink));
-                        btn->setPosition(pos - btn->getScaledContentSize() * anchor);
-                        textarea->m_content->addChild(btn);
-                    }
-                    // O(N^2)
-                    for (auto& btn : btns) {
-                        for (auto& b : btns) {
-                            if (b != btn) {
-                                btn->link(b);
-                            }
-                        }
+                        label.m_node->setUserObject(CCString::create(s_lastLink));
                     }
                     renderer->popDecoFlags();
                     renderer->popColor();
@@ -376,7 +319,8 @@ struct MDParser {
     }
 
     static int enterBlock(MD_BLOCKTYPE type, void* detail, void* mdtextarea) {
-        auto renderer = reinterpret_cast<MDTextArea*>(mdtextarea)->m_renderer;
+        auto textarea = reinterpret_cast<MDTextArea*>(mdtextarea);
+        auto renderer = textarea->m_renderer;
         switch (type) {
             case MD_BLOCKTYPE::MD_BLOCK_H: {
                 auto hdetail = reinterpret_cast<MD_BLOCK_H_DETAIL*>(detail);
@@ -393,6 +337,39 @@ struct MDParser {
                 // switch (hdetail->level) {
                 //     case 3: renderer->pushCaps(TextCapitalization::AllUpper); break;
                 // }
+            } break;
+            
+            case MD_BLOCKTYPE::MD_BLOCK_UL:
+            case MD_BLOCKTYPE::MD_BLOCK_OL: {
+                renderer->pushIndent(g_indent);
+                s_isOrderedList = type == MD_BLOCKTYPE::MD_BLOCK_OL;
+                s_orderedListNum = 0;
+            } break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_HR: {
+                renderer->breakLine(g_paragraphPadding / 2);
+                renderer->renderNode(BreakLine::create(textarea->m_size.width));
+                renderer->breakLine(g_paragraphPadding);
+            } break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_LI: {
+                renderer->pushOpacity(renderer->getCurrentOpacity() / 2);
+                auto lidetail = reinterpret_cast<MD_BLOCK_LI_DETAIL*>(detail);
+                if (s_isOrderedList) {
+                    s_orderedListNum++;
+                    renderer->renderString(std::to_string(s_orderedListNum) + ". ");
+                } else {
+                    renderer->renderString(u8"\u2022 ");
+                }
+                renderer->popOpacity();
+            } break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_CODE: {
+                s_isCodeBlock = true;
+                s_codeStart = renderer->getCursorPos().y;
+                renderer->pushFont(g_mdMonoFont);
+                renderer->pushIndent(g_codeBlockIndent);
+                renderer->pushWrapOffset(g_codeBlockIndent);
             } break;
         }
         return 0;
@@ -417,10 +394,55 @@ struct MDParser {
                 // }
             } break;
             
-            case MD_BLOCKTYPE::MD_BLOCK_P:
+            case MD_BLOCKTYPE::MD_BLOCK_P: {
                 renderer->breakLine();
                 renderer->breakLine(g_paragraphPadding);
-                break;
+            } break;
+            
+            case MD_BLOCKTYPE::MD_BLOCK_OL:
+            case MD_BLOCKTYPE::MD_BLOCK_UL: {
+                renderer->popIndent();
+            } break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_CODE: {
+                auto codeEnd = renderer->getCursorPos().y;
+
+                auto pad = g_codeBlockIndent / 1.5f;
+
+                CCSize size {
+                    textarea->m_size.width
+                     - renderer->getCurrentIndent()
+                     - renderer->getCurrentWrapOffset() +
+                     pad * 2,
+                    s_codeStart - codeEnd + pad * 2
+                };
+
+                auto bg = CCScale9Sprite::create(
+                    "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+                );
+                bg->setScale(.25f);
+                bg->setColor({ 0, 0, 0 });
+                bg->setOpacity(75);
+                bg->setContentSize(size * 4);
+                bg->setPosition(
+                    size.width / 2 + renderer->getCurrentIndent() - pad,
+                    // mmm i love magic numbers
+                    // the -2.f is to offset the the box 
+                    // to fit the Ubuntu font very neatly.
+                    // idk if it works the same for other 
+                    // fonts
+                    s_codeStart - 2.f + pad - size.height / 2
+                );
+                bg->setAnchorPoint({ .5f, .5f });
+                bg->setZOrder(-1);
+                textarea->m_content->addChild(bg);
+                
+                renderer->popWrapOffset();
+                renderer->popIndent();
+                renderer->popFont();
+
+                renderer->breakLine();
+            } break;
         }
         return 0;
     }
@@ -453,6 +475,11 @@ struct MDParser {
                 auto adetail = reinterpret_cast<MD_SPAN_A_DETAIL*>(detail);
                 s_lastLink = std::string(adetail->href.text, adetail->href.size);
             } break;
+
+            case MD_SPANTYPE::MD_SPAN_CODE: {
+                s_isCodeBlock = false;
+                renderer->pushFont(g_mdMonoFont);
+            } break;
         }
         return 0;
     }
@@ -460,21 +487,21 @@ struct MDParser {
     static int leaveSpan(MD_SPANTYPE type, void* detail, void* mdtextarea) {
         auto renderer = reinterpret_cast<MDTextArea*>(mdtextarea)->m_renderer;
         switch (type) {
-            case MD_SPANTYPE::MD_SPAN_STRONG:
+            case MD_SPANTYPE::MD_SPAN_STRONG: {
                 renderer->popStyleFlags();
-                break;
+            } break;
 
-            case MD_SPANTYPE::MD_SPAN_EM:
+            case MD_SPANTYPE::MD_SPAN_EM: {
                 renderer->popStyleFlags();
-                break;
+            } break;
             
-            case MD_SPANTYPE::MD_SPAN_DEL:
+            case MD_SPANTYPE::MD_SPAN_DEL: {
                 renderer->popDecoFlags();
-                break;
+            } break;
             
-            case MD_SPANTYPE::MD_SPAN_U:
+            case MD_SPANTYPE::MD_SPAN_U: {
                 renderer->popDecoFlags();
-                break;
+            } break;
             
             case MD_SPANTYPE::MD_SPAN_A: {
                 s_lastLink = "";
@@ -483,30 +510,29 @@ struct MDParser {
             case MD_SPANTYPE::MD_SPAN_IMG: {
                 s_lastImage = "";
             } break;
+
+            case MD_SPANTYPE::MD_SPAN_CODE: {
+                renderer->popFont();
+            } break;
         }
         return 0;
     }
 };
 std::string MDParser::s_lastLink = "";
 std::string MDParser::s_lastImage = "";
+bool MDParser::s_isOrderedList = false;
+size_t MDParser::s_orderedListNum = 0;
+bool MDParser::s_isCodeBlock = false;
+float MDParser::s_codeStart = 0;
+decltype(MDParser::s_codeSpans) MDParser::s_codeSpans = {};
 
 void MDTextArea::updateLabel() {
     m_renderer->begin(m_content, CCPointZero, m_size);
 
-    FontRenderer::Font font = [](int style) -> FontRenderer::Label {
-        if ((style & TextStyleBold) && (style & TextStyleItalic)) {
-            return CCLabelBMFont::create("", "mdFontBI.fnt"_spr);
-        }
-        if ((style & TextStyleBold)) {
-            return CCLabelBMFont::create("", "mdFontB.fnt"_spr);
-        }
-        if ((style & TextStyleItalic)) {
-            return CCLabelBMFont::create("", "mdFontI.fnt"_spr);
-        }
-        return CCLabelBMFont::create("", "mdFont.fnt"_spr);
-    };
-    m_renderer->pushFont(font);
+    m_renderer->pushFont(g_mdFont);
     m_renderer->pushScale(.5f);
+    m_renderer->pushVerticalAlign(TextAlignment::End);
+    m_renderer->pushHorizontalAlign(TextAlignment::Begin);
 
     MD_PARSER parser;
 
@@ -523,11 +549,37 @@ void MDTextArea::updateLabel() {
     parser.leave_span = &MDParser::leaveSpan;
     parser.debug_log = nullptr;
     parser.syntax = nullptr;
+    
+    MDParser::s_codeSpans = {};
 
     if (md_parse(m_text.c_str(), m_text.size(), &parser, this)) {
         m_renderer->renderString("Error parsing Markdown");
     }
 
+    for (auto& render : MDParser::s_codeSpans) {
+        auto bg = CCScale9Sprite::create(
+            "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+        );
+        bg->setScale(.125f);
+        bg->setColor({ 0, 0, 0 });
+        bg->setOpacity(75);
+        bg->setContentSize(render.m_node->getScaledContentSize() * 8 + CCSize { 20.f, .0f });
+        bg->setPosition(
+            render.m_node->getPositionX() - 2.5f * (.5f - render.m_node->getAnchorPoint().x),
+            render.m_node->getPositionY() - .5f
+        );
+        bg->setAnchorPoint(render.m_node->getAnchorPoint());
+        bg->setZOrder(-1);
+        m_content->addChild(bg);
+        // i know what you're thinking.
+        // my brother in christ, what the hell is this?
+        // where did this magical + 1.5f come from?
+        // the reason is that if you remove them, code 
+        // spans are slightly offset and it triggers my 
+        // OCD.
+        render.m_node->setPositionY(render.m_node->getPositionY() + 1.5f);
+    }
+    
     m_renderer->end();
 
     m_scrollLayer->m_contentLayer->setContentSize(m_content->getContentSize());
