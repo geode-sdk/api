@@ -2,7 +2,7 @@
 
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
-#include "FontRenderer.hpp"
+#include "TextRenderer.hpp"
 
 struct MDParser;
 
@@ -18,7 +18,7 @@ namespace geode {
         cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
         cocos2d::CCMenu* m_content = nullptr;
         CCScrollLayerExt* m_scrollLayer = nullptr;
-        FontRenderer* m_renderer = nullptr;
+        TextRenderer* m_renderer = nullptr;
 
         bool init(
             std::string const& str,

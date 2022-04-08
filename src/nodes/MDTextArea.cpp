@@ -10,7 +10,7 @@ static constexpr float g_indent = 7.f;
 static constexpr float g_codeBlockIndent = 8.f;
 static constexpr ccColor3B g_linkColor = cc3x(0x7ff4f4);
 
-FontRenderer::Font g_mdFont = [](int style) -> FontRenderer::Label {
+TextRenderer::Font g_mdFont = [](int style) -> TextRenderer::Label {
     if ((style & TextStyleBold) && (style & TextStyleItalic)) {
         return CCLabelBMFont::create("", "mdFontBI.fnt"_spr);
     }
@@ -23,7 +23,7 @@ FontRenderer::Font g_mdFont = [](int style) -> FontRenderer::Label {
     return CCLabelBMFont::create("", "mdFont.fnt"_spr);
 };
 
-FontRenderer::Font g_mdMonoFont = [](int style) -> FontRenderer::Label {
+TextRenderer::Font g_mdMonoFont = [](int style) -> TextRenderer::Label {
     return CCLabelBMFont::create("", "mdFontMono.fnt"_spr);
 };
 
@@ -110,7 +110,7 @@ bool MDTextArea::init(
     m_text = str;
     m_size = size;
     this->setContentSize(size);
-    m_renderer = FontRenderer::create();
+    m_renderer = TextRenderer::create();
     CC_SAFE_RETAIN(m_renderer);
 
     m_bgSprite = CCScale9Sprite::create(
@@ -222,7 +222,7 @@ struct MDParser {
     static bool s_isCodeBlock;
     static float s_codeStart;
     static size_t s_orderedListNum;
-    static std::vector<FontRenderer::Label> s_codeSpans;
+    static std::vector<TextRenderer::Label> s_codeSpans;
 
     static int parseText(MD_TEXTTYPE type, MD_CHAR const* rawText, MD_SIZE size, void* mdtextarea) {
         auto textarea = reinterpret_cast<MDTextArea*>(mdtextarea);

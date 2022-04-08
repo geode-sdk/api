@@ -39,7 +39,7 @@ namespace geode {
     class TextDecorationWrapper;
     class TextLinkedButtonWrapper;
 
-    class FontRenderer : public cocos2d::CCObject {
+    class TextRenderer : public cocos2d::CCObject {
     public:
         struct Label {
             cocos2d::CCNode* m_node;
@@ -105,8 +105,8 @@ namespace geode {
         float adjustLineAlignment();
 
     public:
-        static FontRenderer* create();
-        virtual ~FontRenderer();
+        static TextRenderer* create();
+        virtual ~TextRenderer();
 
         void begin(
             cocos2d::CCNode* target,
@@ -189,10 +189,10 @@ namespace geode {
     class TextDecorationWrapper : public cocos2d::CCNodeRGBA, public cocos2d::CCLabelProtocol {
     protected:
         int m_deco;
-        FontRenderer::Label m_label;
+        TextRenderer::Label m_label;
 
         bool init(
-            FontRenderer::Label const& label,
+            TextRenderer::Label const& label,
             int decoration,
             cocos2d::ccColor3B const& color,
             GLubyte opacity
@@ -202,13 +202,13 @@ namespace geode {
 
     public:
         static TextDecorationWrapper* create(
-            FontRenderer::Label const& label,
+            TextRenderer::Label const& label,
             int decoration,
             cocos2d::ccColor3B const& color,
             GLubyte opacity
         );
         static TextDecorationWrapper* wrap(
-            FontRenderer::Label const& label,
+            TextRenderer::Label const& label,
             int decoration,
             cocos2d::ccColor3B const& color,
             GLubyte opacity
@@ -228,25 +228,25 @@ namespace geode {
         public cocos2d::CCLabelProtocol
     {
     protected:
-        FontRenderer::Label m_label;
+        TextRenderer::Label m_label;
         GLubyte m_opacity;
         cocos2d::ccColor3B m_color;
         std::vector<TextLinkedButtonWrapper*> m_linked;
 
         bool init(
-            FontRenderer::Label const& label,
+            TextRenderer::Label const& label,
             cocos2d::CCObject* target,
             cocos2d::SEL_MenuHandler handler
         );
     
     public:
         static TextLinkedButtonWrapper* create(
-            FontRenderer::Label const& label,
+            TextRenderer::Label const& label,
             cocos2d::CCObject* target,
             cocos2d::SEL_MenuHandler handler
         );
         static TextLinkedButtonWrapper* wrap(
-            FontRenderer::Label const& label,
+            TextRenderer::Label const& label,
             cocos2d::CCObject* target,
             cocos2d::SEL_MenuHandler handler
         );

@@ -1,11 +1,11 @@
-#include <nodes/FontRenderer.hpp>
+#include <nodes/TextRenderer.hpp>
 #include <WackyGeodeMacros.hpp>
 
 USE_GEODE_NAMESPACE();
 using namespace std::string_literals;
 
 bool TextDecorationWrapper::init(
-    FontRenderer::Label const& label,
+    TextRenderer::Label const& label,
     int deco,
     ccColor3B const& color,
     GLubyte opacity
@@ -86,7 +86,7 @@ void TextDecorationWrapper::updateDisplayedOpacity(GLubyte opacity) {
 }
 
 TextDecorationWrapper* TextDecorationWrapper::create(
-    FontRenderer::Label const& label,
+    TextRenderer::Label const& label,
     int deco,
     ccColor3B const& color,
     GLubyte opacity
@@ -101,7 +101,7 @@ TextDecorationWrapper* TextDecorationWrapper::create(
 }
 
 TextDecorationWrapper* TextDecorationWrapper::wrap(
-    FontRenderer::Label const& label,
+    TextRenderer::Label const& label,
     int deco,
     ccColor3B const& color,
     GLubyte opacity
@@ -114,7 +114,7 @@ TextDecorationWrapper* TextDecorationWrapper::wrap(
 
 
 bool TextLinkedButtonWrapper::init(
-    FontRenderer::Label const& label,
+    TextRenderer::Label const& label,
     cocos2d::CCObject* target,
     cocos2d::SEL_MenuHandler handler
 ) {
@@ -195,7 +195,7 @@ void TextLinkedButtonWrapper::unselected() {
 }
 
 TextLinkedButtonWrapper* TextLinkedButtonWrapper::create(
-    FontRenderer::Label const& label,
+    TextRenderer::Label const& label,
     cocos2d::CCObject* target,
     cocos2d::SEL_MenuHandler handler
 ) {
@@ -209,7 +209,7 @@ TextLinkedButtonWrapper* TextLinkedButtonWrapper::create(
 }
 
 TextLinkedButtonWrapper* TextLinkedButtonWrapper::wrap(
-    FontRenderer::Label const& label,
+    TextRenderer::Label const& label,
     cocos2d::CCObject* target,
     cocos2d::SEL_MenuHandler handler
 ) {
@@ -221,11 +221,11 @@ TextLinkedButtonWrapper* TextLinkedButtonWrapper::wrap(
 }
 
 
-bool FontRenderer::init() {
+bool TextRenderer::init() {
     return true;
 }
 
-void FontRenderer::begin(CCNode* target, CCPoint const& pos, CCSize const& size) {
+void TextRenderer::begin(CCNode* target, CCPoint const& pos, CCSize const& size) {
     m_target = target ? target : CCNode::create();
     m_target->setContentSize(size);
     m_target->setPosition(pos);
@@ -235,7 +235,7 @@ void FontRenderer::begin(CCNode* target, CCPoint const& pos, CCSize const& size)
     m_size = size;
 }
 
-CCNode* FontRenderer::end(bool fitToContent) {
+CCNode* TextRenderer::end(bool fitToContent) {
     if (fitToContent && m_target) {
         auto coverage = calculateChildCoverage(m_target);
         m_target->setContentSize({
@@ -275,15 +275,15 @@ CCNode* FontRenderer::end(bool fitToContent) {
     return ret;
 }
 
-void FontRenderer::moveCursor(CCPoint const& pos) {
+void TextRenderer::moveCursor(CCPoint const& pos) {
     m_cursor = pos;
 }
 
-CCPoint const& FontRenderer::getCursorPos() {
+CCPoint const& TextRenderer::getCursorPos() {
     return m_cursor;
 }
 
-bool FontRenderer::render(std::string const& word, CCNode* to, CCLabelProtocol* label) {
+bool TextRenderer::render(std::string const& word, CCNode* to, CCLabelProtocol* label) {
     auto origLabelStr = label->getString();
     auto str = ((origLabelStr && strlen(origLabelStr)) ?
         origLabelStr : ""
@@ -305,7 +305,7 @@ bool FontRenderer::render(std::string const& word, CCNode* to, CCLabelProtocol* 
     }
 }
 
-FontRenderer::Label FontRenderer::addWrappers(
+TextRenderer::Label TextRenderer::addWrappers(
     Label const& label,
     bool isButton,
     CCObject* target,
@@ -329,7 +329,7 @@ FontRenderer::Label FontRenderer::addWrappers(
     return ret;
 }
 
-std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
+std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
     std::string const& str,
     Font font,
     float scale,
@@ -457,7 +457,7 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringEx(
     return res;
 }
 
-std::vector<FontRenderer::Label> FontRenderer::renderString(std::string const& str) {
+std::vector<TextRenderer::Label> TextRenderer::renderString(std::string const& str) {
     return this->renderStringEx(
         str,
         this->getCurrentFont(),
@@ -472,7 +472,7 @@ std::vector<FontRenderer::Label> FontRenderer::renderString(std::string const& s
     );
 }
 
-std::vector<FontRenderer::Label> FontRenderer::renderStringInteractive(
+std::vector<TextRenderer::Label> TextRenderer::renderStringInteractive(
     std::string const& str,
     CCObject* target,
     SEL_MenuHandler callback
@@ -491,7 +491,7 @@ std::vector<FontRenderer::Label> FontRenderer::renderStringInteractive(
     );
 }
 
-CCNode* FontRenderer::renderNode(CCNode* node) {
+CCNode* TextRenderer::renderNode(CCNode* node) {
     m_cursor.x += node->getScaledContentSize().width * node->getAnchorPoint().x;
     node->setPosition(m_cursor);
     m_target->addChild(node);
@@ -504,7 +504,7 @@ CCNode* FontRenderer::renderNode(CCNode* node) {
     return node;
 }
 
-void FontRenderer::breakLine(float incY) {
+void TextRenderer::breakLine(float incY) {
     auto h = this->adjustLineAlignment();
     m_renderedLine.clear();
     float y = incY;
@@ -522,7 +522,7 @@ void FontRenderer::breakLine(float incY) {
     m_cursor.x = m_origin.x + getCurrentIndent();
 }
 
-float FontRenderer::adjustLineAlignment() {
+float TextRenderer::adjustLineAlignment() {
     auto coverage = calculateNodeCoverage(m_renderedLine);
     auto maxWidth = -coverage.origin.x + coverage.size.width;
     auto maxHeight = .0f;
@@ -568,15 +568,15 @@ float FontRenderer::adjustLineAlignment() {
     return maxHeight;
 }
 
-void FontRenderer::pushFont(Font const& font) {
+void TextRenderer::pushFont(Font const& font) {
     m_fontStack.push_back(font);
 }
 
-void FontRenderer::popFont() {
+void TextRenderer::popFont() {
     if (m_fontStack.size()) m_fontStack.pop_back();
 }
 
-FontRenderer::Font FontRenderer::getCurrentFont() const {
+TextRenderer::Font TextRenderer::getCurrentFont() const {
     if (!m_fontStack.size()) {
         return [](int) -> Label {
             return CCLabelBMFont::create("", "bigFont.fnt");
@@ -585,91 +585,91 @@ FontRenderer::Font FontRenderer::getCurrentFont() const {
     return m_fontStack.back();
 }
 
-void FontRenderer::pushScale(float scale) {
+void TextRenderer::pushScale(float scale) {
     m_scaleStack.push_back(scale);
 }
 
-void FontRenderer::popScale() {
+void TextRenderer::popScale() {
     if (m_scaleStack.size()) m_scaleStack.pop_back();
 }
 
-float FontRenderer::getCurrentScale() const {
+float TextRenderer::getCurrentScale() const {
     return m_scaleStack.size() ? m_scaleStack.back() : 1.f;
 }
 
-void FontRenderer::pushStyleFlags(int style) {
+void TextRenderer::pushStyleFlags(int style) {
     int oldStyle = TextStyleRegular;
     if (m_styleStack.size()) oldStyle = m_styleStack.back();
     m_styleStack.push_back(oldStyle | style);
 }
 
-void FontRenderer::popStyleFlags() {
+void TextRenderer::popStyleFlags() {
     if (m_styleStack.size()) m_styleStack.pop_back();
 }
 
-int FontRenderer::getCurrentStyle() const {
+int TextRenderer::getCurrentStyle() const {
     return m_styleStack.size() ? m_styleStack.back() : TextStyleRegular;
 }
 
-void FontRenderer::pushColor(ccColor3B const& color) {
+void TextRenderer::pushColor(ccColor3B const& color) {
     m_colorStack.push_back(color);
 }
 
-void FontRenderer::popColor() {
+void TextRenderer::popColor() {
     if (m_colorStack.size()) m_colorStack.pop_back();
 }
 
-ccColor3B FontRenderer::getCurrentColor() const {
+ccColor3B TextRenderer::getCurrentColor() const {
     return m_colorStack.size() ? m_colorStack.back() : ccColor3B { 255, 255, 255 };
 }
 
-void FontRenderer::pushOpacity(GLubyte opacity) {
+void TextRenderer::pushOpacity(GLubyte opacity) {
     m_opacityStack.push_back(opacity);
 }
 
-void FontRenderer::popOpacity() {
+void TextRenderer::popOpacity() {
     if (m_opacityStack.size()) m_opacityStack.pop_back();
 }
 
-GLubyte FontRenderer::getCurrentOpacity() const {
+GLubyte TextRenderer::getCurrentOpacity() const {
     return m_opacityStack.size() ? m_opacityStack.back() : 255;
 }
 
-void FontRenderer::pushDecoFlags(int deco) {
+void TextRenderer::pushDecoFlags(int deco) {
     int oldDeco = TextDecorationNone;
     if (m_decorationStack.size()) oldDeco = m_decorationStack.back();
     m_decorationStack.push_back(oldDeco | deco);
 }
 
-void FontRenderer::popDecoFlags() {
+void TextRenderer::popDecoFlags() {
     if (m_decorationStack.size()) m_decorationStack.pop_back();
 }
 
-int FontRenderer::getCurrentDeco() const {
+int TextRenderer::getCurrentDeco() const {
     return m_decorationStack.size() ? m_decorationStack.back() : TextDecorationNone;
 }
 
-void FontRenderer::pushCaps(TextCapitalization caps) {
+void TextRenderer::pushCaps(TextCapitalization caps) {
     m_capsStack.push_back(caps);
 }
 
-void FontRenderer::popCaps() {
+void TextRenderer::popCaps() {
     if (m_capsStack.size()) m_capsStack.pop_back();
 }
 
-TextCapitalization FontRenderer::getCurrentCaps() const {
+TextCapitalization TextRenderer::getCurrentCaps() const {
     return m_capsStack.size() ? m_capsStack.back() : TextCapitalization::Normal;
 }
 
-void FontRenderer::pushIndent(float indent) {
+void TextRenderer::pushIndent(float indent) {
     m_indentationStack.push_back(indent);
 }
 
-void FontRenderer::popIndent() {
+void TextRenderer::popIndent() {
     if (m_indentationStack.size()) m_indentationStack.pop_back();
 }
 
-float FontRenderer::getCurrentIndent() const {
+float TextRenderer::getCurrentIndent() const {
     float res = .0f;
     for (auto& indent : m_indentationStack) {
         res += indent;
@@ -677,15 +677,15 @@ float FontRenderer::getCurrentIndent() const {
     return res;
 }
 
-void FontRenderer::pushWrapOffset(float wrapOffset) {
+void TextRenderer::pushWrapOffset(float wrapOffset) {
     m_wrapOffsetStack.push_back(wrapOffset);
 }
 
-void FontRenderer::popWrapOffset() {
+void TextRenderer::popWrapOffset() {
     if (m_wrapOffsetStack.size()) m_wrapOffsetStack.pop_back();
 }
 
-float FontRenderer::getCurrentWrapOffset() const {
+float TextRenderer::getCurrentWrapOffset() const {
     float res = .0f;
     for (auto& offset : m_wrapOffsetStack) {
         res += offset;
@@ -693,37 +693,37 @@ float FontRenderer::getCurrentWrapOffset() const {
     return res;
 }
 
-void FontRenderer::pushVerticalAlign(TextAlignment align) {
+void TextRenderer::pushVerticalAlign(TextAlignment align) {
     m_vAlignmentStack.push_back(align);
 }
 
-void FontRenderer::popVerticalAlign() {
+void TextRenderer::popVerticalAlign() {
     if (m_vAlignmentStack.size()) m_vAlignmentStack.pop_back();
 }
 
-TextAlignment FontRenderer::getCurrentVerticalAlign() const {
+TextAlignment TextRenderer::getCurrentVerticalAlign() const {
     return m_vAlignmentStack.size() ? m_vAlignmentStack.back() : TextAlignment::Center;
 }
 
-void FontRenderer::pushHorizontalAlign(TextAlignment align) {
+void TextRenderer::pushHorizontalAlign(TextAlignment align) {
     m_hAlignmentStack.push_back(align);
 }
 
-void FontRenderer::popHorizontalAlign() {
+void TextRenderer::popHorizontalAlign() {
     if (m_hAlignmentStack.size()) m_hAlignmentStack.pop_back();
 }
 
-TextAlignment FontRenderer::getCurrentHorizontalAlign() const {
+TextAlignment TextRenderer::getCurrentHorizontalAlign() const {
     return m_hAlignmentStack.size() ? m_hAlignmentStack.back() : TextAlignment::Begin;
 }
 
 
-FontRenderer::~FontRenderer() {
+TextRenderer::~TextRenderer() {
     this->end();
 }
 
-FontRenderer* FontRenderer::create() {
-    auto ret = new FontRenderer();
+TextRenderer* TextRenderer::create() {
+    auto ret = new TextRenderer();
     if (ret && ret->init()) {
         ret->autorelease();
         return ret;
