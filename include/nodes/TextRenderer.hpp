@@ -10,12 +10,6 @@ namespace geode {
         End,
     };
 
-    enum class TextWrap {
-        NoWrap,
-        CharacterWrap,
-        WordWrap,
-    };
-
     enum class TextCapitalization {
         Normal,
         AllUpper,
@@ -39,12 +33,49 @@ namespace geode {
     class TextDecorationWrapper;
     class TextLinkedButtonWrapper;
 
+    /**
+     * Utility class for creating rich text content. 
+     * Use to incrementally render strings, and push 
+     * variables to modify the renderer's state. Use 
+     * `begin` to start rendering to a target and 
+     * `end` to finish rendering.
+     * 
+     * Works for any type of label, although relies 
+     * heavily on content sizes for labels and nodes.
+     * 
+     * Not too well-performant and the rendering is 
+     * done linearly without so this is not suitable 
+     * for dynamic content. For something like a 
+     * static rich text -area though this can prove 
+     * useful. Used in MDTextArea.
+     */
     class TextRenderer : public cocos2d::CCObject {
     public:
+        /**
+         * Represents a label. As CCLabelBMFont and 
+         * CCLabelTTF have different inheritance 
+         * structures, this class can handle either 
+         * one universally. All relevant vtables are 
+         * stored in-class to avoid needing to 
+         * `dynamic_cast` everything.
+         */
         struct Label {
+            /**
+             * Label's CCNode vtable
+             */
             cocos2d::CCNode* m_node;
+            /**
+             * Label's CCLabelProtocol vtable
+             */
             cocos2d::CCLabelProtocol* m_labelProtocol;
+            /**
+             * Label's CCRGBAProtocol vtable
+             */
             cocos2d::CCRGBAProtocol* m_rgbaProtocol;
+            /**
+             * Line height. If 0, the renderer will dynamically 
+             * calculate line height based on content size.
+             */
             float m_lineHeight;
 
             explicit inline Label() {
@@ -71,6 +102,12 @@ namespace geode {
                 }
             }
         };
+        /**
+         * Label generator function. The `int` parameter 
+         * represents the current text style flags. Use 
+         * to distinguish between bold, italic and 
+         * regular text.
+         */
         using Font = std::function<Label(int)>;
 
     protected:
@@ -105,16 +142,56 @@ namespace geode {
         float adjustLineAlignment();
 
     public:
+        /**
+         * Create a TextRenderer
+         * @returns Created TextRenderer
+         */
         static TextRenderer* create();
         virtual ~TextRenderer();
 
+        /**
+         * Initialize renderer
+         * @param target Target node to render to. If nullptr, 
+         * a new CCNode will be created.
+         * @param pos Position to render to
+         * @param size Size of the render area. Needed for 
+         * text wrapping & alignment
+         */
         void begin(
             cocos2d::CCNode* target,
             cocos2d::CCPoint const& pos = cocos2d::CCPointZero,
             cocos2d::CCSize const& size = cocos2d::CCSizeZero
         );
+        /**
+         * Finish rendering and clean up renderer
+         * @param fitToContent Resize the target's content 
+         * size to match the rendered content
+         * @returns Target that was rendered onto
+         */
         cocos2d::CCNode* end(bool fitToContent = true);
 
+        /**
+         * Render a string with specific settings, bypassing 
+         * current variable stacks.
+         * @param str String to render
+         * @param font Font function to use
+         * @param scale Scale of label
+         * @param color Label color
+         * @param opacity Label opacity
+         * @param style Label style (TextStyle enum)
+         * @param deco Label decorations (TextDecoration enum)
+         * @param caps String capitalization
+         * @param addToTarget Whether to add the created label(s) 
+         * onto the target
+         * @param isButton If the label should be created as an 
+         * interactive linked button
+         * @param buttonTarget Target for the label if isButton is 
+         * true, defaults to current renderer target
+         * @param callback Callback for the label if isButton is 
+         * true
+         * @returns Vector of rendered labels. The label may be 
+         * split on multiple lines if it exceeds bounds
+         */
         std::vector<Label> renderStringEx(
             std::string const& str,
             Font font,
@@ -126,16 +203,47 @@ namespace geode {
             TextCapitalization caps = TextCapitalization::Normal,
             bool addToTarget = true,
             bool isButton = false,
-            cocos2d::CCObject* target = nullptr,
+            cocos2d::CCObject* buttonTarget = nullptr,
             cocos2d::SEL_MenuHandler callback = nullptr
         );
+        /**
+         * Render a string to target. Uses current variable stacks 
+         * for styling and parameters
+         * @param str String to render
+         * @returns Vector of rendered labels. The label may be 
+         * split on multiple lines if it exceeds bounds
+         */
         std::vector<Label> renderString(std::string const& str);
+        /**
+         * Render a string to target as a button. Note that the 
+         * target should be a CCMenu for the button to do 
+         * anything. Uses current variable stacks  for styling 
+         * and parameters
+         * @param str String to render
+         * @param buttonTarget Target for the label if isButton is 
+         * true, defaults to current renderer target
+         * @param callback Callback for the label if isButton is 
+         * true
+         * @returns Vector of rendered labels. The label may be 
+         * split on multiple lines if it exceeds bounds
+         */
         std::vector<Label> renderStringInteractive(
             std::string const& str,
-            cocos2d::CCObject* target,
+            cocos2d::CCObject* buttonTarget,
             cocos2d::SEL_MenuHandler callback
         );
+        /**
+         * Render a node to the current target, use for adding 
+         * images & other content in the middle of text
+         * @param node Node to render
+         * @returns Rendered node
+         */
         cocos2d::CCNode* renderNode(cocos2d::CCNode* node);
+        /**
+         * Start next line
+         * @param y Y offset amount from previous line. If 0, 
+         * will dynamically figure out based on content size
+         */
         void breakLine(float y = .0f);
 
         void pushFont(Font const& font);
@@ -186,6 +294,11 @@ namespace geode {
         cocos2d::CCPoint const& getCursorPos();
     };
 
+    /**
+     * Wrapper node for adding decorations (strikethrough, 
+     * underline) to an arbitary label. Is not agnostic of 
+     * font and as such will always render simple lines
+     */
     class TextDecorationWrapper : public cocos2d::CCNodeRGBA, public cocos2d::CCLabelProtocol {
     protected:
         int m_deco;
@@ -223,6 +336,11 @@ namespace geode {
         const char* getString() override;
     };
 
+    /**
+     * Wrapper node for making a label clickable. 
+     * Note that this should always be the top 
+     * wrapper above all other wrappers
+     */
     class TextLinkedButtonWrapper :
         public cocos2d::CCMenuItemSprite,
         public cocos2d::CCLabelProtocol
