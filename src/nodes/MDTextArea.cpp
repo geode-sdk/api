@@ -10,21 +10,6 @@ static constexpr float g_indent = 7.f;
 static constexpr float g_codeBlockIndent = 8.f;
 static constexpr ccColor3B g_linkColor = cc3x(0x7ff4f4);
 
-struct Emoji {
-    const char* m_name;
-    bool m_isFrame;
-};
-static std::unordered_map<std::string_view, Emoji> g_emojis = {
-    { "star", { "GJ_sStarsIcon_001.png", true } },
-    { "info", { "GJ_infoIcon_001.png", true } },
-    { "easy", { "diffIcon_01_btn_001.png", true } },
-    { "medium", { "diffIcon_02_btn_001.png", true } },
-    { "hard", { "diffIcon_03_btn_001.png", true } },
-    { "harder", { "diffIcon_04_btn_001.png", true } },
-    { "insane", { "diffIcon_05_btn_001.png", true } },
-    { "demon", { "diffIcon_06_btn_001.png", true } },
-};
-
 FontRenderer::Font g_mdFont = [](int style) -> FontRenderer::Label {
     if ((style & TextStyleBold) && (style & TextStyleItalic)) {
         return CCLabelBMFont::create("", "mdFontBI.fnt"_spr);

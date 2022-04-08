@@ -240,7 +240,7 @@ CCNode* FontRenderer::end(bool fitToContent) {
         auto coverage = calculateChildCoverage(m_target);
         m_target->setContentSize({
             -coverage.origin.x + coverage.size.width,
-            -coverage.origin.y + coverage.size.height
+            std::max(-coverage.origin.y + coverage.size.height, m_size.height)
         });
         CCARRAY_FOREACH_B_TYPE(m_target->getChildren(), child, CCNode) {
             child->setPositionY(
