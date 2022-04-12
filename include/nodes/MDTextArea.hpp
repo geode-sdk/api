@@ -3,6 +3,7 @@
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
 #include "TextRenderer.hpp"
+#include "ScrollLayer.hpp"
 
 struct MDParser;
 
@@ -37,7 +38,7 @@ namespace geode {
         cocos2d::CCSize m_size;
         cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
         cocos2d::CCMenu* m_content = nullptr;
-        CCScrollLayerExt* m_scrollLayer = nullptr;
+        ScrollLayer* m_scrollLayer = nullptr;
         TextRenderer* m_renderer = nullptr;
 
         bool init(
@@ -71,8 +72,6 @@ namespace geode {
          * sparingly as rendering may be slow
          */
         void updateLabel();
-
-        void scrollWheel(float y, float) override;
 
         void setString(const char* text) override;
         const char* getString() override;

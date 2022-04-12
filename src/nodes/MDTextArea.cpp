@@ -123,24 +123,13 @@ bool MDTextArea::init(
     m_bgSprite->setPosition(size / 2);
     this->addChild(m_bgSprite);
 
-    m_scrollLayer = CCScrollLayerExt::create({ 0, 0, m_size.width, m_size.height }, true);
+    m_scrollLayer = ScrollLayer::create({ m_size.width, m_size.height });
 
     m_content = CCMenu::create();
     m_content->setZOrder(2);
-
-    m_scrollLayer->m_contentLayer->removeFromParent();
-    m_scrollLayer->m_contentLayer = MDContentLayer::create(m_content, m_size.width, m_size.height);
-    m_scrollLayer->m_contentLayer->setAnchorPoint({ 0, 0 });
-    m_scrollLayer->m_contentLayer->addChild(m_content);
-    m_scrollLayer->addChild(m_scrollLayer->m_contentLayer);
+    m_scrollLayer->addChild(m_content);
 
     this->addChild(m_scrollLayer);
-    
-    CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
-    m_scrollLayer->registerWithTouchDispatcher();
-
-    m_scrollLayer->setMouseEnabled(true);
-    m_scrollLayer->setTouchEnabled(true);
 
     this->setMouseEnabled(true);
 
@@ -151,10 +140,6 @@ bool MDTextArea::init(
 
 MDTextArea::~MDTextArea() {
     CC_SAFE_RELEASE(m_renderer);
-}
-
-void MDTextArea::scrollWheel(float y, float) {
-    m_scrollLayer->scrollLayer(y);
 }
 
 class BreakLine : public CCNode {

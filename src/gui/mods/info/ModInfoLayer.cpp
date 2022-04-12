@@ -6,46 +6,45 @@
 #include <nodes/MDTextArea.hpp>
 
 bool ModInfoLayer::init(Mod* mod) {
-    this->m_noElasticity = true;
-
-    this->m_mod = mod;
+    m_noElasticity = true;
+    m_mod = mod;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 	CCSize size { 440.f, 290.f };
 
     if (!this->initWithColor({ 0, 0, 0, 105 })) return false;
-    this->m_mainLayer = CCLayer::create();
-    this->addChild(this->m_mainLayer);
+    m_mainLayer = CCLayer::create();
+    this->addChild(m_mainLayer);
 
     auto bg = CCScale9Sprite::create("GJ_square01.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     bg->setContentSize(size);
     bg->setPosition(winSize.width / 2, winSize.height / 2);
-    this->m_mainLayer->addChild(bg);
+    m_mainLayer->addChild(bg);
 
-    this->m_buttonMenu = CCMenu::create();
-    this->m_mainLayer->addChild(this->m_buttonMenu);
+    m_buttonMenu = CCMenu::create();
+    m_mainLayer->addChild(m_buttonMenu);
 
     constexpr float logoSize = 40.f;
     constexpr float logoOffset = 10.f;
 
     auto nameLabel = CCLabelBMFont::create(
-        this->m_mod->getName().c_str(), "bigFont.fnt"
+        m_mod->getName().c_str(), "bigFont.fnt"
     );
     nameLabel->setScale(.7f);
     nameLabel->setAnchorPoint({ .0f, .5f });
-    this->m_mainLayer->addChild(nameLabel, 2); 
+    m_mainLayer->addChild(nameLabel, 2); 
 
     auto logoSpr = this->createLogoSpr(mod);
     logoSpr->setScale(logoSize / logoSpr->getContentSize().width);
-    this->m_mainLayer->addChild(logoSpr);
+    m_mainLayer->addChild(logoSpr);
 
-    auto developerStr = "by " + this->m_mod->getDeveloper();
+    auto developerStr = "by " + m_mod->getDeveloper();
     auto developerLabel = CCLabelBMFont::create(
         developerStr.c_str(), "goldFont.fnt"
     );
     developerLabel->setScale(.5f);
     developerLabel->setAnchorPoint({ .0f, .5f });
-    this->m_mainLayer->addChild(developerLabel);
+    m_mainLayer->addChild(developerLabel);
 
     auto logoTitleWidth = std::max(
         nameLabel->getScaledContentSize().width,
@@ -65,29 +64,42 @@ bool ModInfoLayer::init(Mod* mod) {
         winSize.height / 2 + 105.f
     );
 
+
     CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
     this->registerWithTouchDispatcher();
 
-    auto details = MDTextArea::create(mod->getDetails(), { 350.f, 180.f});
+
+    auto details = MDTextArea::create(
+        mod->getDetails().size() ?
+            mod->getDetails() :
+            "### No description provided.",
+        { 350.f, 147.f}
+    );
     details->setPosition(
         winSize.width / 2 - details->getScaledContentSize().width / 2,
         winSize.height / 2 - details->getScaledContentSize().height / 2 - 20.f
     );
     this->m_mainLayer->addChild(details);
+
+
+    auto settingsSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+    settingsSpr->setScale(.65f);
+
+    auto settingsBtn = CCMenuItemSpriteExtra::create(
+        settingsSpr, this, menu_selector(ModInfoLayer::onSettings)
+    );
+    settingsBtn->setPosition(-size.width / 2 + 25.f, -size.height / 2 + 25.f);
+    m_buttonMenu->addChild(settingsBtn);
+
     
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
     closeSpr->setScale(.8f);
 
     auto closeBtn = CCMenuItemSpriteExtra::create(
-        closeSpr,
-        this,
-        (SEL_MenuHandler)&ModInfoLayer::onClose
+        closeSpr, this, menu_selector(ModInfoLayer::onClose)
     );
-    closeBtn->setUserData(reinterpret_cast<void*>(this));
-
-    this->m_buttonMenu->addChild(closeBtn);
-
     closeBtn->setPosition(-size.width / 2 + 3.f, size.height / 2 - 3.f);
+    m_buttonMenu->addChild(closeBtn);
 
     this->setKeypadEnabled(true);
     this->setTouchEnabled(true);
@@ -113,7 +125,7 @@ void ModInfoLayer::onSettings(CCObject*) {
 
 void ModInfoLayer::keyDown(enumKeyCodes key) {
     if (key == KEY_Escape)
-        return onClose(nullptr);
+        return this->onClose(nullptr);
     if (key == KEY_Space)
         return;
     

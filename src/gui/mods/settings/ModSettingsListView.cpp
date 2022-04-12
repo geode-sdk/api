@@ -2,24 +2,24 @@
 #include "SettingNodeManager.hpp"
 
 bool ModSettingsListView::init(Mod* mod, float width, float height) {
-	this->m_mod = mod;
-	this->m_delegate = nullptr;
-	this->m_cutContent = true;
-	this->m_disableVertical = false;
+	m_mod = mod;
+	m_delegate = nullptr;
+	m_cutContent = true;
+	m_disableVertical = false;
 
 	float offset = 0.f;
 	for (auto const& sett : mod->getSettings()) {
-		auto node = SettingNodeManager::get()->generateNode(mod, sett, width);
-		if (node) {
-			// otherwise causes crashes idk
-			node->m_tableView = nullptr;
+		// auto node = SettingNodeManager::get()->generateNode(mod, sett, width);
+		// if (node) {
+		// 	// otherwise causes crashes idk
+		// 	node->m_tableView = nullptr;
 			
-			node->setPosition(0.f, offset);
-			this->m_contentLayer->addChild(node);
-			offset += node->m_height;
-		}
+		// 	node->setPosition(0.f, offset);
+		// 	m_contentLayer->addChild(node);
+		// 	offset += node->m_height;
+		// }
 	}
-	this->m_contentLayer->setContentSize({ width, offset });
+	m_contentLayer->setContentSize({ width, offset });
 	this->moveToTop();
 
 	CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
