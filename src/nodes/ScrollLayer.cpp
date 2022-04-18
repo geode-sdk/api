@@ -55,8 +55,6 @@ ScrollLayer::ScrollLayer(
     );
     m_contentLayer->setAnchorPoint({ 0, 0 });
     this->addChild(m_contentLayer);
-    
-    this->registerWithTouchDispatcher();
 
     this->setMouseEnabled(true);
     this->setTouchEnabled(true);
