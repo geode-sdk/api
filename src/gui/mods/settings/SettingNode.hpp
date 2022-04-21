@@ -42,7 +42,7 @@ namespace geode {
 			CCDirector::sharedDirector()->getTouchDispatcher()->decrementForcePrio(2);
 		}
 
-		GeodeSettingNode(float width, float height) : TableViewCell("cum", width, height) {}
+		GeodeSettingNode(float width, float height) : TableViewCell("steve", width, height) {}
 	};
 
 	class BoolSettingNode : public GeodeSettingNode<BoolSetting> {
@@ -57,14 +57,15 @@ namespace geode {
 		static BoolSettingNode* create(BoolSetting* setting, float width);
 	};
 
-	class IntSettingNode : public GeodeSettingNode<IntSetting> {
+	class IntSettingNode : public GeodeSettingNode<IntSetting>, public TextInputDelegate {
 	protected:
-		CCLabelBMFont* m_valueLabel;
+		CCTextInputNode* m_valueInput;
 
 		bool init(IntSetting* setting);
 
 		void updateValue();
 		void onArrow(CCObject*);
+		void textInputClosed(CCTextInputNode* input) override;
 
 		IntSettingNode(float width, float height) : GeodeSettingNode<IntSetting>(width, height) {}
 
@@ -72,14 +73,15 @@ namespace geode {
 		static IntSettingNode* create(IntSetting* setting, float width);
 	};
 
-	class FloatSettingNode : public GeodeSettingNode<FloatSetting> {
+	class FloatSettingNode : public GeodeSettingNode<FloatSetting>, public TextInputDelegate {
 	protected:
-		CCLabelBMFont* m_valueLabel;
+		CCTextInputNode* m_valueInput;
 
 		bool init(FloatSetting* setting);
 
 		void updateValue();
 		void onArrow(CCObject*);
+		void textInputClosed(CCTextInputNode* input) override;
 
 		FloatSettingNode(float width, float height) : GeodeSettingNode<FloatSetting>(width, height) {}
 
@@ -139,12 +141,12 @@ namespace geode {
 
 	class CustomSettingPlaceHolderNode : public TableViewCell {
 	protected:
-		bool init(CustomSettingPlaceHolder* setting);
+		bool init(CustomSettingPlaceHolder* setting, bool isLoaded);
 
 		CustomSettingPlaceHolderNode(float width, float height) : TableViewCell("custom", width, height) {}
 
 	public:
-		static CustomSettingPlaceHolderNode* create(CustomSettingPlaceHolder* setting, float width);
+		static CustomSettingPlaceHolderNode* create(CustomSettingPlaceHolder* setting, bool isLoaded, float width);
 	};
 }
 

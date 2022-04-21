@@ -27,12 +27,24 @@ bool ModSettingsLayer::init(Mod* mod) {
     auto nameLabel = CCLabelBMFont::create(
         nameStr.c_str(), "bigFont.fnt"
     );
-    nameLabel->setPosition(winSize.width / 2, winSize.height / 2 + 110.f);
+    nameLabel->setPosition(winSize.width / 2, winSize.height / 2 + 120.f);
     nameLabel->setScale(.7f);
     m_mainLayer->addChild(nameLabel, 2); 
 
-	auto settings = ModSettingsList::create(mod, 300.f, 200.f);
-	settings->setPosition(winSize.width / 2 - 150.f, winSize.height / 2 - 100.f);
+	const CCSize listSize { 350.f, 200.f };
+
+    auto bgSprite = CCScale9Sprite::create(
+        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+    );
+    bgSprite->setScale(.5f);
+    bgSprite->setColor({ 0, 0, 0 });
+    bgSprite->setOpacity(75);
+    bgSprite->setContentSize(listSize * 2);
+    bgSprite->setPosition(winSize.width / 2, winSize.height / 2);
+    m_mainLayer->addChild(bgSprite);
+
+	auto settings = ModSettingsList::create(mod, listSize.width, listSize.height);
+	settings->setPosition(winSize.width / 2 - listSize.width / 2, winSize.height / 2 - listSize.height / 2);
 	m_mainLayer->addChild(settings);
     
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");

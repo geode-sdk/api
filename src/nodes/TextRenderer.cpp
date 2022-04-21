@@ -235,22 +235,58 @@ void TextRenderer::begin(CCNode* target, CCPoint const& pos, CCSize const& size)
     m_size = size;
 }
 
-CCNode* TextRenderer::end(bool fitToContent) {
+CCNode* TextRenderer::end(
+    bool fitToContent,
+    TextAlignment horizontalAlign,
+    TextAlignment verticalAlign
+) {
+    // adjust vertical alignments of last line
+    this->adjustLineAlignment();
+    // resize target
     if (fitToContent && m_target) {
+        // figure out area covered by target children
         auto coverage = calculateChildCoverage(m_target);
+        // convert area from rect to size
+        auto renderedWidth = -coverage.origin.x + coverage.size.width;
+        auto renderedHeight = -coverage.origin.y + coverage.size.height;
+        // target size is always at least requested size
         m_target->setContentSize({
-            -coverage.origin.x + coverage.size.width,
-            std::max(-coverage.origin.y + coverage.size.height, m_size.height)
+            std::max(renderedWidth, m_size.width),
+            std::max(renderedHeight, m_size.height)
         });
+        // calculate paddings
+        float padX;
+        float padY;
+        switch (horizontalAlign) {
+            default:
+            case TextAlignment::Begin:
+                padX = .0f; break;
+            case TextAlignment::Center:
+                padX = std::max(m_size.width - renderedWidth, 0.f) / 2; break;
+            case TextAlignment::End:
+                padX = std::max(m_size.width - renderedWidth, 0.f); break;
+        }
+        switch (verticalAlign) {
+            default:
+            case TextAlignment::Begin:
+                padY = .0f; break;
+            case TextAlignment::Center:
+                padY = std::max(m_size.height - renderedHeight, 0.f) / 2; break;
+            case TextAlignment::End:
+                padY = std::max(m_size.height - renderedHeight, 0.f); break;
+        }
+        // adjust child positions
         CCARRAY_FOREACH_B_TYPE(m_target->getChildren(), child, CCNode) {
-            child->setPositionY(
+            child->setPosition(
+                child->getPositionX() + padX,
                 child->getPositionY() +
-                m_target->getContentSize().height - 
-                coverage.size.height
+                    m_target->getContentSize().height - 
+                    coverage.size.height - padY
             );
         }
     }
 
+    // clear stacks
     m_fontStack.clear();
     m_scaleStack.clear();
     m_styleStack.clear();
@@ -264,6 +300,7 @@ CCNode* TextRenderer::end(bool fitToContent) {
     m_hAlignmentStack.clear();
     m_vAlignmentStack.clear();
 
+    // reset
     m_cursor = CCPointZero;
     m_size = CCSizeZero;
     auto ret = m_target;

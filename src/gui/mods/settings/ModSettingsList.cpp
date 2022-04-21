@@ -8,13 +8,27 @@ bool ModSettingsList::init(Mod* mod, float width, float height) {
 	this->addChild(m_scrollLayer);
 
 	float offset = 0.f;
+	bool coloredBG = false;
+	std::vector<TableViewCell*> gen;
 	for (auto const& sett : mod->getSettings()) {
 		auto node = SettingNodeManager::get()->generateNode(mod, sett, width);
 		if (node) {
-			node->setPosition(0.f, offset);
+			if (coloredBG) {
+				node->m_backgroundLayer->setColor({ 0, 0, 0 });
+				node->m_backgroundLayer->setOpacity(50);
+			}
+			node->setPosition(
+				0.f, offset - node->getScaledContentSize().height
+			);
 			m_scrollLayer->m_contentLayer->addChild(node);
-			offset += node->m_height;
+			offset -= node->m_height;
+			coloredBG = !coloredBG;
+			gen.push_back(node);
 		}
+	}
+	offset = -offset;
+	for (auto& node : gen) {
+		node->setPositionY(node->getPositionY() + offset);
 	}
 	// to avoid needing to do moveToTopWithOffset, 
 	// just set the content size to the viewport 

@@ -166,9 +166,17 @@ namespace geode {
          * Finish rendering and clean up renderer
          * @param fitToContent Resize the target's content 
          * size to match the rendered content
+         * @param horizontalAlign Horizontal alignment of 
+         * the rendered text
+         * @param verticalAlign Vertical alignment of 
+         * the rendered text
          * @returns Target that was rendered onto
          */
-        cocos2d::CCNode* end(bool fitToContent = true);
+        cocos2d::CCNode* end(
+            bool fitToContent = true,
+            TextAlignment horizontalAlign = TextAlignment::Begin,
+            TextAlignment verticalAlign = TextAlignment::Begin
+        );
 
         /**
          * Render a string with specific settings, bypassing 
