@@ -49,7 +49,7 @@ namespace geode {
      * static rich text -area though this can prove 
      * useful. Used in MDTextArea.
      */
-    class TextRenderer : public cocos2d::CCObject {
+    class GEODE_API_DLL TextRenderer : public cocos2d::CCObject {
     public:
         /**
          * Represents a label. As CCLabelBMFont and 

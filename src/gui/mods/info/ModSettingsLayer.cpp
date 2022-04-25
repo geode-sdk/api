@@ -46,7 +46,29 @@ bool ModSettingsLayer::init(Mod* mod) {
 	auto settings = ModSettingsList::create(mod, listSize.width, listSize.height);
 	settings->setPosition(winSize.width / 2 - listSize.width / 2, winSize.height / 2 - listSize.height / 2);
 	m_mainLayer->addChild(settings);
-    
+        
+    {
+        auto topSprite = CCSprite::createWithSpriteFrameName("GJ_commentTop_001.png");
+        topSprite->setPosition({ winSize.width / 2, winSize.height / 2 + listSize.height / 2 - 5.f });
+        this->addChild(topSprite);
+
+        auto bottomSprite = CCSprite::createWithSpriteFrameName("GJ_commentTop_001.png");
+        bottomSprite->setFlipY(true);
+        bottomSprite->setPosition({ winSize.width / 2, winSize.height / 2 - listSize.height / 2 + 5.f });
+        this->addChild(bottomSprite);
+
+        auto leftSprite = CCSprite::createWithSpriteFrameName("GJ_commentSide_001.png");
+        leftSprite->setPosition({ winSize.width / 2 - listSize.width / 2 + 1.5f, winSize.height / 2 });
+        leftSprite->setScaleY(5.7f);
+        this->addChild(leftSprite);
+
+        auto rightSprite = CCSprite::createWithSpriteFrameName("GJ_commentSide_001.png");
+        rightSprite->setFlipX(true);
+        rightSprite->setPosition({ winSize.width / 2 + listSize.width / 2 - 1.5f, winSize.height / 2 });
+        rightSprite->setScaleY(5.7f);
+        this->addChild(rightSprite);
+    }
+
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
     closeSpr->setScale(.8f);
 

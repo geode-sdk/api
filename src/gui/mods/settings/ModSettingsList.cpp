@@ -9,7 +9,7 @@ bool ModSettingsList::init(Mod* mod, float width, float height) {
 
 	float offset = 0.f;
 	bool coloredBG = false;
-	std::vector<TableViewCell*> gen;
+	std::vector<CCNode*> gen;
 	for (auto const& sett : mod->getSettings()) {
 		auto node = SettingNodeManager::get()->generateNode(mod, sett, width);
 		if (node) {
@@ -21,11 +21,22 @@ bool ModSettingsList::init(Mod* mod, float width, float height) {
 				0.f, offset - node->getScaledContentSize().height
 			);
 			m_scrollLayer->m_contentLayer->addChild(node);
+			
+			auto separator = CCLayerColor::create({ 0, 0, 0, 50 }, width, 1.f);
+			separator->setPosition(0.f, offset - .5f);
+			m_scrollLayer->m_contentLayer->addChild(separator);
+			gen.push_back(separator);
+
 			offset -= node->m_height;
 			coloredBG = !coloredBG;
 			gen.push_back(node);
 		}
 	}
+	auto separator = CCLayerColor::create({ 0, 0, 0, 50 }, width, 1.f);
+	separator->setPosition(0.f, offset);
+	m_scrollLayer->m_contentLayer->addChild(separator);
+	gen.push_back(separator);
+
 	offset = -offset;
 	for (auto& node : gen) {
 		node->setPositionY(node->getPositionY() + offset);

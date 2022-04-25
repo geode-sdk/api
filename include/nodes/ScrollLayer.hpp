@@ -9,7 +9,7 @@ namespace geode {
      * to be TableViewCells, which is not ideal for 
      * a generic content layer
      */
-    class GenericContentLayer : public CCContentLayer {
+    class GEODE_API_DLL GenericContentLayer : public CCContentLayer {
     public:
         static GenericContentLayer* create(
             float width, float height
@@ -18,7 +18,7 @@ namespace geode {
         void setPosition(cocos2d::CCPoint const& pos) override;
     };
 
-    class ScrollLayer : public CCScrollLayerExt {
+    class GEODE_API_DLL ScrollLayer : public CCScrollLayerExt {
     protected:
         bool m_scrollWheelEnabled;
 

@@ -4,7 +4,7 @@
 #include "../APIMacros.hpp"
 
 namespace geode {
-    class GenericListCell : public TableViewCell {
+    class GEODE_API_DLL GenericListCell : public TableViewCell {
     protected:
         GenericListCell(const char* name, cocos2d::CCSize size);
 
@@ -20,7 +20,7 @@ namespace geode {
      * Class for a generic scrollable list of 
      * items like the level list in GD
      */
-    class ListView : public CustomListView {
+    class GEODE_API_DLL ListView : public CustomListView {
     protected:
         void setupList() override;
         TableViewCell* getListCell(const char* key) override;

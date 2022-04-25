@@ -3,6 +3,7 @@
 #include "SettingNode.hpp"
 #include <nodes/TextRenderer.hpp>
 #include <random>
+#include <WackyGeodeMacros.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -15,17 +16,20 @@ USE_GEODE_NAMESPACE();
 		} CC_SAFE_DELETE(ret); return nullptr; }
 	
 template <typename T>
-std::string to_string_with_precision(const T a_value, const size_t n = 6) {
+std::string toStringWithPrecision(const T a_value, const size_t n = 6, bool cutZeros = true) {
     std::ostringstream out;
     out.precision(n);
     out << std::fixed << a_value;
     auto str = out.str();
-	while (string_utils::endsWith(str, "0")) {
+	while (
+		cutZeros &&
+		string_utils::contains(str, '.') &&
+		(str.back() == '0' || str.back() == '.')
+	) {
 		str = str.substr(0, str.size() - 1);
 	}
 	return str;
 }
-
 
 // bool
 
@@ -53,26 +57,36 @@ bool IntSettingNode::init(IntSetting* setting) {
 	if (!GeodeSettingNode<IntSetting>::init(setting))
 		return false;
 	
-    auto bgSprite = CCScale9Sprite::create(
-        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-    );
-    bgSprite->setScale(.25f);
-    bgSprite->setColor({ 0, 0, 0 });
-    bgSprite->setOpacity(75);
-    bgSprite->setContentSize({ 45.f * 4, m_height * 3 });
-    bgSprite->setPosition(-30, 0);
-    m_buttonMenu->addChild(bgSprite);
+	auto controls = CCArray::create();
+	CCScale9Sprite* bgSprite = nullptr;
+	if (setting->hasInput()) {
+		bgSprite = CCScale9Sprite::create(
+			"square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+		);
+		bgSprite->setScale(.25f);
+		bgSprite->setColor({ 0, 0, 0 });
+		bgSprite->setOpacity(75);
+		bgSprite->setContentSize({ 45.f * 4, m_height * 3 });
+		bgSprite->setPosition(-20, 0);
+		m_buttonMenu->addChild(bgSprite);
+		controls->addObject(bgSprite);
+	}
 
-	m_valueInput = CCTextInputNode::create(45.f, m_height, "Num", "bigFont.fnt");
-	m_valueInput->setAllowedChars("0123456789+- ");
-	m_valueInput->setPosition(-30.f, .0f);
-	m_valueInput->setMaxLabelScale(.5f);
-    m_valueInput->setLabelPlaceholderColor({ 150, 150, 150 });
-    m_valueInput->setLabelPlaceholderScale(.75f);
-	m_valueInput->setDelegate(this);
+	m_valueInput = MenuInputNode::create(45.f, m_height, "Num", "bigFont.fnt");
+	m_valueInput->setPosition(-20.f, .0f);
+	m_valueInput->getInput()->setAllowedChars("0123456789+-. ");
+	m_valueInput->getInput()->setMaxLabelScale(.5f);
+    m_valueInput->getInput()->setLabelPlaceholderColor({ 150, 150, 150 });
+    m_valueInput->getInput()->setLabelPlaceholderScale(.75f);
+	m_valueInput->getInput()->setDelegate(this);
+	m_valueInput->setEnabled(setting->hasInput());
 	m_buttonMenu->addChild(m_valueInput);
+	controls->addObject(m_valueInput);
 
 	if (setting->hasArrows()) {
+		m_valueInput->setPositionX(-30.f);
+		if (bgSprite) bgSprite->setPositionX(-30.f);
+
 		auto decSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
 		decSpr->setScale(.3f);
 		decSpr->setFlipX(true);
@@ -83,6 +97,7 @@ bool IntSettingNode::init(IntSetting* setting) {
 		decBtn->setTag(-1);
 		decBtn->setPosition(-60.f, 0);
 		m_buttonMenu->addChild(decBtn);
+		controls->addObject(decBtn);
 
 		auto incSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
 		incSpr->setScale(.3f);
@@ -93,6 +108,32 @@ bool IntSettingNode::init(IntSetting* setting) {
 		incBtn->setTag(1);
 		incBtn->setPosition(0.f, 0);
 		m_buttonMenu->addChild(incBtn);
+		controls->addObject(incBtn);
+	}
+
+	if (setting->hasSlider()) {
+		m_height += 20.f;
+		this->setContentSize({ m_width, m_height });
+		m_backgroundLayer->setContentSize(this->getContentSize());
+		
+		m_nameLabel->setPositionY(m_nameLabel->getPositionY() + 10.f);
+		if (m_descButton) {
+			m_descButton->setPositionY(m_descButton->getPositionY() - 8.f);
+		}
+		m_buttonMenu->setPositionY(m_buttonMenu->getPositionY() + 18.f);
+
+		CCARRAY_FOREACH_B_TYPE(controls, node, CCNode) {
+			node->setPositionX(node->getPositionX() - (setting->hasArrows() ? 35.f : 45.f));
+		}
+
+		m_slider = Slider::create(this, menu_selector(IntSettingNode::onSlider), .65f);
+		m_slider->setPosition(-65.f, -22.f);
+		m_slider->setValue(
+			// normalized to 0-1
+			(m_setting->getValue() - m_setting->getMin()) /
+			(m_setting->getMax() - m_setting->getMin())
+		);
+		m_buttonMenu->addChild(m_slider);
 	}
 
 	this->updateValue();
@@ -100,28 +141,55 @@ bool IntSettingNode::init(IntSetting* setting) {
 	return true;
 }
 
-void IntSettingNode::textInputClosed(CCTextInputNode* input) {
-	std::cout << __FUNCTION__ << "\n";
+void IntSettingNode::textChanged(CCTextInputNode* input) {
 	try {
-		m_setting->setValue(m_setting->getValue() + std::stoi(input->getString()));
+		m_setting->setValue(std::stoi(input->getString()));
+	} catch(...) {}
+	this->updateValue(false);
+}
+
+void IntSettingNode::textInputClosed(CCTextInputNode* input) {
+	try {
+		m_setting->setValue(std::stoi(input->getString()));
 	} catch(...) {}
 	this->updateValue();
 }
 
-void IntSettingNode::onArrow(CCObject* pSender) {
-	m_setting->setValue(m_setting->getValue() + pSender->getTag());
-	m_valueInput->detachWithIME();
+void IntSettingNode::onSlider(CCObject* pSender) {
+	m_setting->setValue(
+		as<SliderThumb*>(pSender)->getValue() *
+		(m_setting->getMax() - m_setting->getMin()) + 
+		m_setting->getMin()
+	);
+	m_valueInput->getInput()->detachWithIME();
 	this->updateValue();
 }
 
-void IntSettingNode::updateValue() {
+void IntSettingNode::onArrow(CCObject* pSender) {
+	m_setting->setValue(m_setting->getValue() + pSender->getTag() * m_setting->getStep());
+	m_valueInput->getInput()->detachWithIME();
+	this->updateValue();
+}
+
+void IntSettingNode::updateValue(bool updateInput) {
 	if (m_setting->getValue() < m_setting->getMin()) {
 		m_setting->setValue(m_setting->getMin());
 	}
 	if (m_setting->getValue() > m_setting->getMax()) {
 		m_setting->setValue(m_setting->getMax());
 	}
-	m_valueInput->setString(std::to_string(m_setting->getValue()).c_str());
+	if (updateInput) {
+		m_valueInput->getInput()->setString(
+			std::to_string(m_setting->getValue()).c_str()
+		);
+	}
+	if (m_slider) {
+		m_slider->setValue(
+			static_cast<float>(m_setting->getValue() - m_setting->getMin()) /
+			(m_setting->getMax() - m_setting->getMin())
+		);
+		m_slider->updateBar();
+	}
 }
 
 // float
@@ -130,46 +198,85 @@ bool FloatSettingNode::init(FloatSetting* setting) {
 	if (!GeodeSettingNode<FloatSetting>::init(setting))
 		return false;
 	
-    auto bgSprite = CCScale9Sprite::create(
-        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-    );
-    bgSprite->setScale(.25f);
-    bgSprite->setColor({ 0, 0, 0 });
-    bgSprite->setOpacity(75);
-    bgSprite->setContentSize({ 45.f * 4, m_height * 3 });
-    bgSprite->setPosition(-30, 0);
-    m_buttonMenu->addChild(bgSprite);
+	auto controls = CCArray::create();
+	CCScale9Sprite* bgSprite = nullptr;
+	if (setting->hasInput()) {
+		bgSprite = CCScale9Sprite::create(
+			"square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+		);
+		bgSprite->setScale(.25f);
+		bgSprite->setColor({ 0, 0, 0 });
+		bgSprite->setOpacity(75);
+		bgSprite->setContentSize({ 45.f * 4, m_height * 3 });
+		bgSprite->setPosition(-20, 0);
+		m_buttonMenu->addChild(bgSprite);
+		controls->addObject(bgSprite);
+	}
 
-	m_valueInput = CCTextInputNode::create(45.f, m_height, "Num", "bigFont.fnt");
-	m_valueInput->setAllowedChars("0123456789+-. ");
-	m_valueInput->setPosition(-30.f, .0f);
-	m_valueInput->setMaxLabelScale(.5f);
-    m_valueInput->setLabelPlaceholderColor({ 150, 150, 150 });
-    m_valueInput->setLabelPlaceholderScale(.75f);
-	m_valueInput->setDelegate(this);
+	m_valueInput = MenuInputNode::create(45.f, m_height, "Num", "bigFont.fnt");
+	m_valueInput->setPosition(-20.f, .0f);
+	m_valueInput->getInput()->setAllowedChars("0123456789+-. ");
+	m_valueInput->getInput()->setMaxLabelScale(.5f);
+    m_valueInput->getInput()->setLabelPlaceholderColor({ 150, 150, 150 });
+    m_valueInput->getInput()->setLabelPlaceholderScale(.5f);
+	m_valueInput->getInput()->setDelegate(this);
+	m_valueInput->setEnabled(setting->hasInput());
 	m_buttonMenu->addChild(m_valueInput);
+	controls->addObject(m_valueInput);
 
+	CCMenuItemSpriteExtra* decBtn = nullptr;
+	CCMenuItemSpriteExtra* incBtn = nullptr;
 	if (setting->hasArrows()) {
+		m_valueInput->setPositionX(-30.f);
+		if (bgSprite) bgSprite->setPositionX(-30.f);
+
 		auto decSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
 		decSpr->setScale(.3f);
 		decSpr->setFlipX(true);
 
-		auto decBtn = CCMenuItemSpriteExtra::create(
+		decBtn = CCMenuItemSpriteExtra::create(
 			decSpr, this, menu_selector(FloatSettingNode::onArrow)
 		);
 		decBtn->setTag(-1);
 		decBtn->setPosition(-60.f, 0);
 		m_buttonMenu->addChild(decBtn);
+		controls->addObject(decBtn);
 
 		auto incSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
 		incSpr->setScale(.3f);
 
-		auto incBtn = CCMenuItemSpriteExtra::create(
+		incBtn = CCMenuItemSpriteExtra::create(
 			incSpr, this, menu_selector(FloatSettingNode::onArrow)
 		);
 		incBtn->setTag(1);
 		incBtn->setPosition(0.f, 0);
 		m_buttonMenu->addChild(incBtn);
+		controls->addObject(incBtn);
+	}
+
+	if (setting->hasSlider()) {
+		m_height += 20.f;
+		this->setContentSize({ m_width, m_height });
+		m_backgroundLayer->setContentSize(this->getContentSize());
+		
+		m_nameLabel->setPositionY(m_nameLabel->getPositionY() + 10.f);
+		if (m_descButton) {
+			m_descButton->setPositionY(m_descButton->getPositionY() - 8.f);
+		}
+		m_buttonMenu->setPositionY(m_buttonMenu->getPositionY() + 18.f);
+
+		CCARRAY_FOREACH_B_TYPE(controls, node, CCNode) {
+			node->setPositionX(node->getPositionX() - (setting->hasArrows() ? 35.f : 45.f));
+		}
+
+		m_slider = Slider::create(this, menu_selector(FloatSettingNode::onSlider), .65f);
+		m_slider->setPosition(-65.f, -22.f);
+		m_slider->setValue(
+			// normalized to 0-1
+			(m_setting->getValue() - m_setting->getMin()) /
+			(m_setting->getMax() - m_setting->getMin())
+		);
+		m_buttonMenu->addChild(m_slider);
 	}
 
 	this->updateValue();
@@ -177,29 +284,55 @@ bool FloatSettingNode::init(FloatSetting* setting) {
 	return true;
 }
 
-void FloatSettingNode::textInputClosed(CCTextInputNode* input) {
-	std::cout << __FUNCTION__ << "\n";
+void FloatSettingNode::textChanged(CCTextInputNode* input) {
 	try {
-		m_setting->setValue(m_setting->getValue() + std::stoi(input->getString()));
+		m_setting->setValue(std::stof(input->getString()));
+	} catch(...) {}
+	this->updateValue(false);
+}
+
+void FloatSettingNode::textInputClosed(CCTextInputNode* input) {
+	try {
+		m_setting->setValue(std::stof(input->getString()));
 	} catch(...) {}
 	this->updateValue();
 }
 
-void FloatSettingNode::onArrow(CCObject* pSender) {
-	m_setting->setValue(m_setting->getValue() + pSender->getTag());
+void FloatSettingNode::onSlider(CCObject* pSender) {
+	m_setting->setValue(
+		as<SliderThumb*>(pSender)->getValue() *
+		(m_setting->getMax() - m_setting->getMin()) + 
+		m_setting->getMin()
+	);
+	m_valueInput->getInput()->detachWithIME();
 	this->updateValue();
 }
 
-void FloatSettingNode::updateValue() {
+void FloatSettingNode::onArrow(CCObject* pSender) {
+	m_setting->setValue(m_setting->getValue() + pSender->getTag() * m_setting->getStep());
+	this->updateValue();
+}
+
+void FloatSettingNode::updateValue(bool updateInput) {
 	if (m_setting->getValue() < m_setting->getMin()) {
 		m_setting->setValue(m_setting->getMin());
 	}
 	if (m_setting->getValue() > m_setting->getMax()) {
 		m_setting->setValue(m_setting->getMax());
 	}
-	m_valueInput->setString(to_string_with_precision(
-		m_setting->getValue(), m_setting->getPrecision()
-	).c_str());
+	if (updateInput) {
+		m_valueInput->getInput()->setString(toStringWithPrecision(
+			m_setting->getValue(), m_setting->getPrecision()
+		).c_str());
+	}
+	if (m_slider) {
+		m_slider->setValue(
+			// normalized to 0-1
+			(m_setting->getValue() - m_setting->getMin()) /
+			(m_setting->getMax() - m_setting->getMin())
+		);
+		m_slider->updateBar();
+	}
 }
 
 // string
@@ -207,8 +340,36 @@ void FloatSettingNode::updateValue() {
 bool StringSettingNode::init(StringSetting* setting) {
 	if (!GeodeSettingNode<StringSetting>::init(setting))
 		return false;
+	
+	auto bgSprite = CCScale9Sprite::create(
+		"square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+	);
+	bgSprite->setScale(.25f);
+	bgSprite->setColor({ 0, 0, 0 });
+	bgSprite->setOpacity(75);
+	bgSprite->setContentSize({ (m_width / 2 - 30.f) * 4, m_height * 3 });
+	bgSprite->setPosition(-m_width / 4 + 18.f, 0);
+	m_buttonMenu->addChild(bgSprite);
+
+	m_input = MenuInputNode::create(
+		m_width / 2 - 30.f, m_height,
+		"...", "bigFont.fnt"
+	);
+	m_input->setPositionX(-m_width / 4 + 18.f);
+	m_input->getInput()->setAllowedChars(setting->getFilter());
+	m_input->getInput()->setMaxLabelScale(.5f);
+    m_input->getInput()->setLabelPlaceholderColor({ 150, 150, 150 });
+    m_input->getInput()->setLabelPlaceholderScale(.5f);
+	m_input->getInput()->setDelegate(this);
+	m_buttonMenu->addChild(m_input);
+
+	m_input->getInput()->setString(m_setting->getValue().c_str());
 
 	return true;
+}
+
+void StringSettingNode::textChanged(CCTextInputNode* input) {
+	m_setting->setValue(input->getString());
 }
 
 // color
@@ -217,7 +378,21 @@ bool ColorSettingNode::init(ColorSetting* setting) {
 	if (!GeodeSettingNode<ColorSetting>::init(setting))
 		return false;
 
+	m_colorSprite = ColorChannelSprite::create();
+	m_colorSprite->setColor(setting->getValue());
+	m_colorSprite->setScale(.65f);
+	
+	auto button = CCMenuItemSpriteExtra::create(
+		m_colorSprite, this, menu_selector(ColorSettingNode::onPickColor)
+	);
+	button->setPosition({ -m_colorSprite->getScaledContentSize().width / 2, 0 });
+	m_buttonMenu->addChild(button);
+
 	return true;
+}
+
+void ColorSettingNode::onPickColor(CCObject*) {
+	ColorPickPopup::create(this)->show();
 }
 
 // rgba
@@ -226,7 +401,22 @@ bool ColorAlphaSettingNode::init(ColorAlphaSetting* setting) {
 	if (!GeodeSettingNode<ColorAlphaSetting>::init(setting))
 		return false;
 
+	m_colorSprite = ColorChannelSprite::create();
+	m_colorSprite->setColor(to3B(setting->getValue()));
+	m_colorSprite->updateOpacity(setting->getValue().a / 255.f);
+	m_colorSprite->setScale(.65f);
+	
+	auto button = CCMenuItemSpriteExtra::create(
+		m_colorSprite, this, menu_selector(ColorAlphaSettingNode::onPickColor)
+	);
+	button->setPosition({ -m_colorSprite->getScaledContentSize().width / 2, 0 });
+	m_buttonMenu->addChild(button);
+
 	return true;
+}
+
+void ColorAlphaSettingNode::onPickColor(CCObject*) {
+	ColorPickPopup::create(this)->show();
 }
 
 // path
@@ -235,7 +425,47 @@ bool PathSettingNode::init(PathSetting* setting) {
 	if (!GeodeSettingNode<PathSetting>::init(setting))
 		return false;
 
+	auto bgSprite = CCScale9Sprite::create(
+		"square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+	);
+	bgSprite->setScale(.25f);
+	bgSprite->setColor({ 0, 0, 0 });
+	bgSprite->setOpacity(75);
+	bgSprite->setContentSize({ (m_width / 2 - 50.f) * 4, m_height * 3 });
+	bgSprite->setPosition(-m_width / 4, 0);
+	m_buttonMenu->addChild(bgSprite);
+
+	m_input = MenuInputNode::create(
+		m_width / 2 - 50.f, m_height,
+		"...", "chatFont.fnt"
+	);
+	m_input->setPositionX(-m_width / 4);
+	m_input->getInput()->setAllowedChars("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,/\\_-.+%#@!';");
+	m_input->getInput()->setMaxLabelScale(.7f);
+    m_input->getInput()->setLabelPlaceholderColor({ 150, 150, 150 });
+    m_input->getInput()->setLabelPlaceholderScale(.7f);
+	m_input->getInput()->setDelegate(this);
+	m_buttonMenu->addChild(m_input);
+
+	auto folder = CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png");
+	folder->setScale(.65f);
+	auto button = CCMenuItemSpriteExtra::create(
+		folder, this, menu_selector(PathSettingNode::onSelectFile)
+	);
+	button->setPosition({ -folder->getScaledContentSize().width / 2, 0 });
+	m_buttonMenu->addChild(button);
+	
+	m_input->getInput()->setString(m_setting->getValue().string().c_str());
+
 	return true;
+}
+
+void PathSettingNode::onSelectFile(CCObject*) {
+	FLAlertLayer::create("todo", "implement file picker", "OK")->show();
+}
+
+void PathSettingNode::textChanged(CCTextInputNode* input) {
+	m_setting->setValue(input->getString());
 }
 
 // string[]
@@ -244,7 +474,39 @@ bool StringSelectSettingNode::init(StringSelectSetting* setting) {
 	if (!GeodeSettingNode<StringSelectSetting>::init(setting))
 		return false;
 
+	m_selectedLabel = CCLabelBMFont::create(setting->getValue().c_str(), "bigFont.fnt");
+	m_selectedLabel->setPosition(-m_width / 4 + 20.f, .0f);
+	m_selectedLabel->limitLabelWidth(m_width / 2 - 60.f, .5f, .1f);
+	m_buttonMenu->addChild(m_selectedLabel);
+
+	auto decSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
+	decSpr->setScale(.3f);
+	decSpr->setFlipX(true);
+
+	auto decBtn = CCMenuItemSpriteExtra::create(
+		decSpr, this, menu_selector(StringSelectSettingNode::onChange)
+	);
+	decBtn->setTag(-1);
+	decBtn->setPosition(-m_width / 2 + 40.f, 0);
+	m_buttonMenu->addChild(decBtn);
+
+	auto incSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
+	incSpr->setScale(.3f);
+
+	auto incBtn = CCMenuItemSpriteExtra::create(
+		incSpr, this, menu_selector(StringSelectSettingNode::onChange)
+	);
+	incBtn->setTag(1);
+	incBtn->setPosition(0.f, 0);
+	m_buttonMenu->addChild(incBtn);
+
 	return true;
+}
+
+void StringSelectSettingNode::onChange(CCObject* pSender) {
+	m_setting->incrementIndexWrap(pSender->getTag());
+	m_selectedLabel->setString(m_setting->getValue().c_str());
+	m_selectedLabel->limitLabelWidth(m_width / 2 - 60.f, .5f, .1f);
 }
 
 // custom
@@ -255,6 +517,7 @@ bool CustomSettingPlaceHolderNode::init(CustomSettingPlaceHolder* setting, bool 
 
 	auto pad = m_height;
 	this->setContentSize({ m_width, m_height });
+	m_backgroundLayer->setContentSize(this->getContentSize());
 
 	// i'm using TextRenderer instead of TextArea because 
 	// i couldn't get TextArea to work for some reason 
@@ -291,6 +554,7 @@ bool CustomSettingPlaceHolderNode::init(CustomSettingPlaceHolder* setting, bool 
 	m_width = this->getContentSize().width;
 	m_width += pad * 2;
 	this->setContentSize({ m_width, m_height });
+	m_backgroundLayer->setContentSize(this->getContentSize());
 
 	for (auto& label : rendered) {
 		label.m_node->setPositionX(pad * 1.5f);
@@ -326,6 +590,119 @@ CustomSettingPlaceHolderNode* CustomSettingPlaceHolderNode::create(CustomSetting
 	}
 	CC_SAFE_DELETE(ret);
 	return nullptr;
+}
+
+void ColorPickPopup::setup(
+	ColorSettingNode* colorNode,
+	ColorAlphaSettingNode* alphaNode
+) {
+	m_noElasticity = true;
+	
+	m_colorNode = colorNode;
+	m_colorAlphaNode = alphaNode;
+
+	auto winSize = CCDirector::sharedDirector()->getWinSize();
+
+	auto picker = CCControlColourPicker::colourPicker();
+	picker->setColorValue(
+		colorNode ?
+			colorNode->m_setting->getValue() :
+			to3B(alphaNode->m_setting->getValue())
+	);
+	picker->setColorTarget(colorNode ? 
+		colorNode->m_colorSprite :
+		alphaNode->m_colorSprite
+	);
+	picker->setPosition(winSize.width / 2, winSize.height / 2 + (colorNode ? 0.f : 20.f));
+	picker->setDelegate(this);
+	m_mainLayer->addChild(picker);
+
+	if (alphaNode) {
+		m_alphaSlider = Slider::create(this, menu_selector(ColorPickPopup::onSlider), .75f);
+		m_alphaSlider->setPosition(winSize.width / 2, winSize.height / 2 - 90.f);
+		m_alphaSlider->setValue(alphaNode->m_setting->getValue().a / 255.f);
+		m_alphaSlider->updateBar();
+		m_mainLayer->addChild(m_alphaSlider);
+
+		auto bgSprite = CCScale9Sprite::create(
+			"square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+		);
+		bgSprite->setScale(.25f);
+		bgSprite->setColor({ 0, 0, 0 });
+		bgSprite->setOpacity(75);
+		bgSprite->setContentSize({ 200.f, 100.f });
+		bgSprite->setPosition(winSize.width / 2 + 115.f, winSize.height / 2 - 90.f);
+		m_mainLayer->addChild(bgSprite);
+
+		m_alphaInput = MenuInputNode::create(50.f, 25.f, "...", "bigFont.fnt");
+		m_alphaInput->setPosition(winSize.width / 2 + 115.f, winSize.height / 2 - 90.f);
+		m_alphaInput->getInput()->setDelegate(this);
+		m_alphaInput->getInput()->setAllowedChars("0123456789. ");
+		m_alphaInput->getInput()->setString(
+			toStringWithPrecision(alphaNode->m_setting->getValue().a / 255.f, 2, false)
+		);
+		m_alphaInput->setScale(.8f);
+		m_mainLayer->addChild(m_alphaInput);
+	}
+}
+
+void ColorPickPopup::onSlider(CCObject* pSender) {
+	if (m_colorAlphaNode) {
+		m_colorAlphaNode->m_setting->setValue(to4B(
+			to3B(m_colorAlphaNode->m_setting->getValue()),
+			static_cast<GLubyte>(as<SliderThumb*>(pSender)->getValue() * 255.f)
+		));
+		m_alphaInput->getInput()->setString(
+			toStringWithPrecision(as<SliderThumb*>(pSender)->getValue(), 2, false)
+		);
+		m_colorAlphaNode->m_colorSprite->updateOpacity(
+			m_colorAlphaNode->m_setting->getValue().a / 255.f
+		);
+	}
+}
+
+void ColorPickPopup::textChanged(CCTextInputNode* input) {
+	try {
+		m_colorAlphaNode->m_setting->setValue(to4B(
+			to3B(m_colorAlphaNode->m_setting->getValue()),
+			static_cast<GLubyte>(std::stof(input->getString()) * 255.f)
+		));
+		m_colorAlphaNode->m_colorSprite->updateOpacity(
+			m_colorAlphaNode->m_setting->getValue().a / 255.f
+		);
+		m_alphaSlider->setValue(std::stof(input->getString()));
+	} catch(...) {}
+}
+
+void ColorPickPopup::colorValueChanged(ccColor3B color) {
+	if (m_colorNode) {
+		m_colorNode->m_setting->setValue(color);
+	} else {
+		m_colorAlphaNode->m_setting->setValue(
+			to4B(color, m_colorAlphaNode->m_setting->getValue().a)
+		);
+	}
+}
+
+ColorPickPopup* ColorPickPopup::create(
+	ColorSettingNode* colorNode,
+	ColorAlphaSettingNode* colorAlphaNode
+) {
+	auto ret = new ColorPickPopup;
+	if (ret && ret->init(320.f, 250.f, colorNode, colorAlphaNode, "GJ_square02.png")) {
+		ret->autorelease();
+		return ret;
+	}
+	CC_SAFE_DELETE(ret);
+	return nullptr;
+}
+
+ColorPickPopup* ColorPickPopup::create(ColorSettingNode* colorNode) {
+	return ColorPickPopup::create(colorNode, nullptr);
+}
+
+ColorPickPopup* ColorPickPopup::create(ColorAlphaSettingNode* colorNode) {
+	return ColorPickPopup::create(nullptr, colorNode);
 }
 
 GEODE_GENERATE_SETTING_CREATE(BoolSetting, 30.f);
