@@ -143,7 +143,7 @@ void ModCell::loadFromMod(ModObject* modobj) {
 }
 
 void ModCell::onInfo(CCObject*) {
-    ModInfoLayer::create(this->m_mod)->show();
+    ModInfoLayer::create(m_mod, m_list)->show();
 }
 
 void ModCell::updateBGColor(int index) {
