@@ -5,7 +5,7 @@
 
 #include "MouseEvent.hpp"
 
-namespace geode::api {
+namespace geode {
 	using KeyboardEvent = cocos2d::enumKeyCodes;
 
 	enum class KeyModifiers : int {

@@ -1,30 +1,30 @@
-#include <nodes/Input.hpp>
+#include <nodes/InputNode.hpp>
 
 USE_GEODE_NAMESPACE();
 
-const char* Input::getString() {
+const char* InputNode::getString() {
     return m_input->getTextField()->getString();
 }
 
-void Input::setString(const char* _str) {
+void InputNode::setString(const char* _str) {
     m_input->getTextField()->setString(_str);
     m_input->refreshLabel();
 }
 
-CCTextInputNode* Input::getInputNode() const {
+CCTextInputNode* InputNode::getInputNode() const {
     return m_input;
 }
 
-CCScale9Sprite* Input::getBGSprite() const {
+CCScale9Sprite* InputNode::getBGSprite() const {
     return m_bgSprite;
 }
 
-void Input::setEnabled(bool enabled) {
+void InputNode::setEnabled(bool enabled) {
     m_input->setMouseEnabled(enabled);
     m_input->setTouchEnabled(enabled);
 }
 
-bool Input::init(float _w, float _h, const char* _phtxt, const char* _fnt, const std::string & _awc, int _cc) {
+bool InputNode::init(float _w, float _h, const char* _phtxt, const char* _fnt, const std::string & _awc, int _cc) {
     m_bgSprite = cocos2d::extension::CCScale9Sprite::create(
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
     );
@@ -52,12 +52,12 @@ bool Input::init(float _w, float _h, const char* _phtxt, const char* _fnt, const
     return true;
 }
 
-bool Input::init(float _w, const char* _phtxt, const char* _fnt, const std::string & _awc, int _cc) {
+bool InputNode::init(float _w, const char* _phtxt, const char* _fnt, const std::string & _awc, int _cc) {
     return init(_w, 30.0f, _phtxt, _fnt, _awc, _cc);
 }
 
-Input* Input::create(float _w, const char* _phtxt, const char* _fnt, const std::string & _awc, int _cc) {
-    auto pRet = new Input();
+InputNode* InputNode::create(float _w, const char* _phtxt, const char* _fnt, const std::string & _awc, int _cc) {
+    auto pRet = new InputNode();
 
     if (pRet && pRet->init(_w, _phtxt, _fnt, _awc, _cc)) {
         pRet->autorelease();
@@ -68,18 +68,18 @@ Input* Input::create(float _w, const char* _phtxt, const char* _fnt, const std::
     return nullptr;
 }
 
-Input* Input::create(float _w, const char* _phtxt, const std::string & _awc) {
+InputNode* InputNode::create(float _w, const char* _phtxt, const std::string & _awc) {
     return create(_w, _phtxt, "bigFont.fnt", _awc, 69);
 }
 
-Input* Input::create(float _w, const char* _phtxt, const std::string & _awc, int _cc) {
+InputNode* InputNode::create(float _w, const char* _phtxt, const std::string & _awc, int _cc) {
     return create(_w, _phtxt, "bigFont.fnt", _awc, _cc);
 }
 
-Input* Input::create(float _w, const char* _phtxt, const char* _fnt) {
+InputNode* InputNode::create(float _w, const char* _phtxt, const char* _fnt) {
     return create(_w, _phtxt, _fnt, "", 69);
 }
 
-Input* Input::create(float _w, const char* _phtxt) {
+InputNode* InputNode::create(float _w, const char* _phtxt) {
     return create(_w, _phtxt, "bigFont.fnt");
 }

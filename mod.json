@@ -32,6 +32,9 @@
                 "size": 80
             }
         },
+        "files": [
+            "resources/images/*.png"
+        ],
         "spritesheets": {
             "LogoSheet": [
                 "resources/logos/*.png"

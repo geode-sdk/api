@@ -2,7 +2,7 @@
 
 #include <Geode.hpp>
 
-namespace geode::api {
+namespace geode {
 	enum class MouseEvent {
 	    Left,
 	    Right,

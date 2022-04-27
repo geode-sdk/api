@@ -4,7 +4,7 @@
 #include "../APIMacros.hpp"
 
 namespace geode {
-    class GEODE_API_DLL Input : public cocos2d::CCNode {
+    class GEODE_API_DLL InputNode : public cocos2d::CCNode {
     protected:
         cocos2d::extension::CCScale9Sprite* m_bgSprite;
         CCTextInputNode* m_input;
@@ -13,30 +13,30 @@ namespace geode {
         bool init(float, const char*, const char*, std::string const&, int);
 
     public:
-        static Input* create(
+        static InputNode* create(
             float width,
             const char* placeholder,
             const char* fontFile,
             std::string const& filter,
             int limit
         );
-        static Input* create(
+        static InputNode* create(
             float width,
             const char* placeholder,
             std::string const& filter,
             int limit
         );
-        static Input* create(
+        static InputNode* create(
             float width,
             const char* placeholder,
             std::string const& filter
         );
-        static Input* create(
+        static InputNode* create(
             float width,
             const char* placeholder,
             const char* fontFile
         );
-        static Input* create(
+        static InputNode* create(
             float width,
             const char* placeholder
         );

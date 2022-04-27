@@ -4,7 +4,7 @@
 #include "Shortcut.hpp"
 #include <string>
 
-namespace geode::api {
+namespace geode {
 	struct ShortcutActionSettings {
 		Shortcut binding;
 		float rapidDelay;
@@ -67,6 +67,9 @@ namespace geode::api {
 	 		ret.m_currentSettings = ret.m_defaultSettings;
 	 		return ret;
 	 	}
+
+		inline std::string const& getSelector() { return m_selector; }
+		inline std::string const& getSceneTypeID() { return m_sceneTypeID; }
 
 	 	inline ShortcutActionSettings& getSettings() {return m_currentSettings;}
 
