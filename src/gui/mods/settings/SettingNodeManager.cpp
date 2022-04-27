@@ -34,7 +34,7 @@ TableViewCell* SettingNodeManager::generateNode(Mod* mod, Setting* setting, floa
                 return this->m_customSettingNodes[mod][setting->getKey()](setting, width);
             }
             return CustomSettingPlaceHolderNode::create(
-                dynamic_cast<CustomSettingPlaceHolder*>(setting), width
+                dynamic_cast<CustomSettingPlaceHolder*>(setting), mod->isLoaded(), width
             ); 
         }
 	}

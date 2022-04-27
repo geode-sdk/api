@@ -49,7 +49,7 @@ namespace geode {
      * static rich text -area though this can prove 
      * useful. Used in MDTextArea.
      */
-    class TextRenderer : public cocos2d::CCObject {
+    class GEODE_API_DLL TextRenderer : public cocos2d::CCObject {
     public:
         /**
          * Represents a label. As CCLabelBMFont and 
@@ -166,9 +166,17 @@ namespace geode {
          * Finish rendering and clean up renderer
          * @param fitToContent Resize the target's content 
          * size to match the rendered content
+         * @param horizontalAlign Horizontal alignment of 
+         * the rendered text
+         * @param verticalAlign Vertical alignment of 
+         * the rendered text
          * @returns Target that was rendered onto
          */
-        cocos2d::CCNode* end(bool fitToContent = true);
+        cocos2d::CCNode* end(
+            bool fitToContent = true,
+            TextAlignment horizontalAlign = TextAlignment::Begin,
+            TextAlignment verticalAlign = TextAlignment::Begin
+        );
 
         /**
          * Render a string with specific settings, bypassing 

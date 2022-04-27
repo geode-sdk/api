@@ -10,8 +10,8 @@ class ModSettingsLayer : public FLAlertLayer {
 
 		bool init(Mod* mod);
 
-		void keyDown(cocos2d::enumKeyCodes) override;
-		void onClose(cocos2d::CCObject*);
+		void keyDown(enumKeyCodes) override;
+		void onClose(CCObject*);
 		
     public:
         static ModSettingsLayer* create(Mod* Mod);

@@ -2,26 +2,14 @@
 
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
-        // KeybindManager::get()->registerKeyPress(key, down);
-        // if (!KeybindManager::keyIsModifier(key)) {
-        //     if (KeybindManager::get()->handleKeyEvent(
-        //         KB_GLOBAL_CATEGORY,
-        //         Keybind(key),
-        //         CCDirector::sharedDirector()->getRunningScene(),
-        //         down
-        //     )) return true;
-        // }
-
-
-        geode::api::ShortcutManager::get()->dispatchEvent(key, down);
+        ShortcutManager::get()->dispatchEvent(key, down);
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down);
     }
 };
 
 class $modify(CCScheduler) {
     void update(float dt) {
-        // KeybindManager::get()->handleRepeats(dt);
-        geode::api::ShortcutManager::get()->update(dt);
+        ShortcutManager::get()->update(dt);
         return CCScheduler::update(dt);
     }
 };

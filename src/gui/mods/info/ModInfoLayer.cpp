@@ -4,10 +4,14 @@
 #include "ModSettingsLayer.hpp"
 #include <nodes/BasedButton.hpp>
 #include <nodes/MDTextArea.hpp>
+#include <fmt/include/fmt/format.h>
+#include <APIInternal.hpp>
+#include "../list/ModListView.hpp"
 
-bool ModInfoLayer::init(Mod* mod) {
+bool ModInfoLayer::init(Mod* mod, ModListView* list) {
     m_noElasticity = true;
     m_mod = mod;
+    m_list = list;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 	CCSize size { 440.f, 290.f };
@@ -82,6 +86,16 @@ bool ModInfoLayer::init(Mod* mod) {
     this->m_mainLayer->addChild(details);
 
 
+    auto infoSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    infoSpr->setScale(.85f);
+
+    auto infoBtn = CCMenuItemSpriteExtra::create(
+        infoSpr, this, menu_selector(ModInfoLayer::onInfo)
+    );
+    infoBtn->setPosition(size.width / 2 - 25.f, size.height / 2 - 25.f);
+    m_buttonMenu->addChild(infoBtn);
+
+
     auto settingsSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
     settingsSpr->setScale(.65f);
 
@@ -90,6 +104,45 @@ bool ModInfoLayer::init(Mod* mod) {
     );
     settingsBtn->setPosition(-size.width / 2 + 25.f, -size.height / 2 + 25.f);
     m_buttonMenu->addChild(settingsBtn);
+
+    if (!mod->getSettings().size()) {
+        settingsSpr->setColor({ 150, 150, 150 });
+        settingsBtn->setTarget(this, menu_selector(ModInfoLayer::onNoSettings));
+    }
+
+
+    auto devSpr = ButtonSprite::create("Dev Options", "bigFont.fnt", "GJ_button_05.png", .6f);
+    devSpr->setScale(.5f);
+
+    auto devBtn = CCMenuItemSpriteExtra::create(
+        devSpr, this, menu_selector(ModInfoLayer::onDev)
+    );
+    devBtn->setPosition(size.width / 2 - 50.f, -size.height / 2 + 25.f);
+    m_buttonMenu->addChild(devBtn);
+
+
+    auto enableBtnSpr = ButtonSprite::create(
+        "Enable", "bigFont.fnt", "GJ_button_01.png", .6f
+    );
+    enableBtnSpr->setScale(.5f);
+
+    auto disableBtnSpr = ButtonSprite::create(
+        "Disable", "bigFont.fnt", "GJ_button_06.png", .6f
+    );
+    disableBtnSpr->setScale(.5f);
+
+    auto enableBtn = CCMenuItemToggler::create(
+        disableBtnSpr, enableBtnSpr, this, menu_selector(ModInfoLayer::onEnableMod)
+    );
+    enableBtn->setPosition(-155.f, 78.f);
+    enableBtn->toggle(!m_mod->isEnabled());
+    m_buttonMenu->addChild(enableBtn);
+
+    if (!mod->supportsDisabling()) {
+        enableBtn->setTarget(this, menu_selector(ModInfoLayer::onDisablingNotSupported));
+        enableBtnSpr->setColor({ 150, 150, 150 });
+        disableBtnSpr->setColor({ 150, 150, 150 });
+    }
 
     
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
@@ -107,8 +160,56 @@ bool ModInfoLayer::init(Mod* mod) {
     return true;
 }
 
+void ModInfoLayer::onEnableMod(CCObject* pSender) {
+    if (!APIInternal::get()->m_shownEnableWarning) {
+        APIInternal::get()->m_shownEnableWarning = true;
+        FLAlertLayer::create(
+            "Notice",
+            "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
+            "calls its user-defined disable function if one exists. You may "
+            "still see some effects of the mod left however, and you may "
+            "need to <cg>restart</c> the game to have it fully unloaded.",
+            "OK"
+        )->show();
+        if (m_list) m_list->updateAllStates(nullptr);
+        return;
+    }
+    if (as<CCMenuItemToggler*>(pSender)->isToggled()) {
+        auto res = m_mod->enable();
+        if (!res) {
+            FLAlertLayer::create(
+                nullptr,
+                "Error Enabling Mod",
+                res.error(),
+                "OK", nullptr
+            )->show();
+        }
+    } else {
+        auto res = m_mod->disable();
+        if (!res) {
+            FLAlertLayer::create(
+                nullptr,
+                "Error Disabling Mod",
+                res.error(),
+                "OK", nullptr
+            )->show();
+        }
+    }
+    if (m_list) m_list->updateAllStates(nullptr);
+    as<CCMenuItemToggler*>(pSender)->toggle(m_mod->isEnabled());
+}
+
+void ModInfoLayer::onDisablingNotSupported(CCObject* pSender) {
+    FLAlertLayer::create(
+        "Unsupported",
+        "<cr>Disabling</c> is not supported for this mod.",
+        "OK"
+    )->show();
+    as<CCMenuItemToggler*>(pSender)->toggle(m_mod->isEnabled());
+}
+
 void ModInfoLayer::onDev(CCObject*) {
-    auto layer = DevSettingsLayer::create(this->m_mod);
+    auto layer = DevSettingsLayer::create(m_mod);
     this->addChild(layer);
     layer->showLayer(false);
 }
@@ -121,6 +222,32 @@ void ModInfoLayer::onHooks(CCObject*) {
 
 void ModInfoLayer::onSettings(CCObject*) {
     ModSettingsLayer::create(this->m_mod)->show();
+}
+
+void ModInfoLayer::onNoSettings(CCObject*) {
+    FLAlertLayer::create(
+        "No Settings Found",
+        "This mod has no customizable settings.",
+        "OK"
+    )->show();
+}
+
+void ModInfoLayer::onInfo(CCObject*) {
+    FLAlertLayer::create(
+        nullptr,
+        ("About " + m_mod->getName()).c_str(),
+        fmt::format(
+            "<cr>ID: {}</c>\n"
+            "<cg>Version: {}</c>\n"
+            "<cp>Developer: {}</c>\n"
+            "<cb>Path: {}</c>",
+            m_mod->getID(),
+            m_mod->getVersion().toString(),
+            m_mod->getDeveloper(),
+            m_mod->getPath()
+        ),
+        "OK", nullptr, 400.f
+    )->show();
 }
 
 void ModInfoLayer::keyDown(enumKeyCodes key) {
@@ -137,9 +264,9 @@ void ModInfoLayer::onClose(CCObject* pSender) {
     this->removeFromParentAndCleanup(true);
 };
 
-ModInfoLayer* ModInfoLayer::create(Mod* mod) {
+ModInfoLayer* ModInfoLayer::create(Mod* mod, ModListView* list) {
     auto ret = new ModInfoLayer;
-    if (ret && ret->init(mod)) {
+    if (ret && ret->init(mod, list)) {
         ret->autorelease();
         return ret;
     }

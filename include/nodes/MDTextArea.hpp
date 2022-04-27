@@ -38,7 +38,7 @@ namespace geode {
         cocos2d::CCSize m_size;
         cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
         cocos2d::CCMenu* m_content = nullptr;
-        ScrollLayer* m_scrollLayer = nullptr;
+        CCScrollLayerExt* m_scrollLayer = nullptr;
         TextRenderer* m_renderer = nullptr;
 
         bool init(

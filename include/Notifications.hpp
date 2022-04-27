@@ -4,7 +4,7 @@
 
 USE_GEODE_NAMESPACE();
 
-namespace geode::api::notifications {
+namespace geode::notifications {
 
 	template <size_t T>
 	inline constexpr ConstNotifInfo<ghc::filesystem::path> dragDrop(char const a[T]) {

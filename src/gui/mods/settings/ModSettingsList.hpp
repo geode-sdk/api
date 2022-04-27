@@ -1,21 +1,19 @@
 #pragma once
 
 #include <Geode.hpp>
+#include <nodes/ScrollLayer.hpp>
 
 USE_GEODE_NAMESPACE();
 
-class ModSettingsListView : public CCScrollLayerExt {
+class ModSettingsList : public CCLayer {
 protected:
     Mod* m_mod;
+    ScrollLayer* m_scrollLayer;
 
     bool init(Mod* mod, float width, float height);
 
-    ModSettingsListView(CCRect const& rect);
-
-    void scrollWheel(float y, float x) override;
-
 public:
-    static ModSettingsListView* create(
+    static ModSettingsList* create(
         Mod* Mod, float width, float height
     );
 };

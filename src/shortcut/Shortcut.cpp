@@ -1,7 +1,6 @@
 #include <Shortcut.hpp>
 
 USE_GEODE_NAMESPACE();
-using namespace api;
 
 std::string mouseBtnToString(MouseEvent btn) {
     switch (btn) {
@@ -83,9 +82,9 @@ std::string Shortcut::toString() const {
 		out += " + ";
 
 	if (input.index() == 0) {
-		out += keyToString(std::get<api::KeyboardEvent>(input));
+		out += keyToString(std::get<KeyboardEvent>(input));
 	} else if (input.index() == 1) {
-		out += mouseBtnToString(std::get<api::MouseEvent>(input));
+		out += mouseBtnToString(std::get<MouseEvent>(input));
 	}
 
 	return out;
