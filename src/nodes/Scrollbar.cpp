@@ -3,8 +3,6 @@
 USE_GEODE_NAMESPACE();
 
 bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {
-    std::cout << "Scrollbar::mouseDownExt\n";
-    
     if (!m_target) return false;
 
     ExtMouseManager::get()->captureMouse(this);
@@ -47,7 +45,7 @@ bool Scrollbar::mouseUpExt(MouseEvent, cocos2d::CCPoint const&) {
 }
 
 void Scrollbar::mouseMoveExt(cocos2d::CCPoint const& mpos) {
-    if (!m_target) return;
+    if (!m_target || !ExtMouseManager::get()->isCapturing(this)) return;
 
     if (this->m_extMouseDown.size()) {
         auto pos = this->convertToNodeSpace(mpos);

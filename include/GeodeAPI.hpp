@@ -7,7 +7,7 @@
 
 
 #define EXPORT_NAME GeodeAPI
-#include <API.hpp>
+#include <loader/API.hpp>
 
 namespace geode {
     class GEODE_API_DLL GeodeAPI : public ModAPI {

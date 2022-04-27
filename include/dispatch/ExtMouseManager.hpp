@@ -13,6 +13,7 @@ namespace geode {
         cocos2d::CCRect m_extMouseHitArea = cocos2d::CCRectZero;
         bool m_extMouseHovered = false;
         std::unordered_set<MouseEvent> m_extMouseDown = {};
+        int m_targetPriority;
 
         ExtMouseDelegate();
         virtual ~ExtMouseDelegate();
@@ -43,6 +44,7 @@ namespace geode {
 
         bool init();
         bool delegateIsHovered(ExtMouseDelegate* delegate, cocos2d::CCPoint const& pos);
+        int maxTargetPrio() const;
 
         ExtMouseManager();
         ~ExtMouseManager();
@@ -55,6 +57,7 @@ namespace geode {
 
         void captureMouse(ExtMouseDelegate* delegate);
         void releaseCapture(ExtMouseDelegate* delegate);
+        bool isCapturing(ExtMouseDelegate* delegate) const;
 
         bool dispatchClickEvent(MouseEvent button, bool down, cocos2d::CCPoint const& pos);
         void dispatchMoveEvent(cocos2d::CCPoint const& pos);

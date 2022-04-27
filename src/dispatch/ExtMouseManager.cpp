@@ -54,6 +54,7 @@ ExtMouseManager* ExtMouseManager::get() {
 }
 
 void ExtMouseManager::pushDelegate(ExtMouseDelegate* delegate) {
+    delegate->m_targetPriority = CCDirector::sharedDirector()->getTouchDispatcher()->getTargetPrio();
     m_delegates.insert(m_delegates.begin(), delegate);
 }
 
@@ -88,6 +89,42 @@ bool ExtMouseManager::delegateIsHovered(ExtMouseDelegate* delegate, CCPoint cons
     return rect.containsPoint(mpos);
 }
 
+class BypassCCTouchDispatcher : public CCTouchDispatcher {
+public:
+    CCArray* getStandardHandlers() const {
+        return m_pStandardHandlers;
+    }
+    CCArray* getTargetedHandlers() const {
+        return m_pTargetedHandlers;
+    }
+};
+
+int ExtMouseManager::maxTargetPrio() const {
+    // this is very odd code...
+    // all i wanted to do was make sure that 
+    // if some layer on top doesn't pass touches 
+    // through normally then this wouldn't 
+    // pass mouse stuff aswell
+    // however CCTouchDispatcher is very weird
+    // i should probably just hook it and update 
+    // this through that
+    auto d = as<BypassCCTouchDispatcher*>(
+        CCDirector::sharedDirector()->getTouchDispatcher()
+    );
+    int prio = 0;
+    CCARRAY_FOREACH_B_TYPE(d->getTargetedHandlers(), handler, CCTouchHandler) {
+        if (handler->getPriority() < prio) {
+            prio = handler->getPriority();
+        }
+    }
+    CCARRAY_FOREACH_B_TYPE(d->getStandardHandlers(), handler, CCTouchHandler) {
+        if (handler->getPriority() < prio) {
+            prio = handler->getPriority();
+        }
+    }
+    return prio;
+}
+
 bool ExtMouseManager::dispatchClickEvent(MouseEvent btn, bool down, CCPoint const& pos) {
     if (down) {
         this->m_pressedButtons.insert(btn);
@@ -103,7 +140,9 @@ bool ExtMouseManager::dispatchClickEvent(MouseEvent btn, bool down, CCPoint cons
             return m_capturing->mouseUpExt(btn, pos);
         }
     }
+    auto prio = maxTargetPrio();
     for (auto const& d : m_delegates) {
+        if (d->m_targetPriority != prio) continue;
         if (!down) d->m_extMouseDown.clear();
         if (delegateIsHovered(d, pos)) {
             if (down) {
@@ -123,7 +162,9 @@ bool ExtMouseManager::dispatchScrollEvent(float y, float x, CCPoint const& pos) 
     if (m_capturing) {
         return m_capturing->mouseScrollExt(y, x);
     }
+    auto prio = maxTargetPrio();
     for (auto const& d : m_delegates) {
+        if (d->m_targetPriority != prio) continue;
         if (delegateIsHovered(d, pos)) {
             if (d->mouseScrollExt(y, x))
                 return true;
@@ -138,8 +179,10 @@ void ExtMouseManager::dispatchMoveEvent(CCPoint const& pos) {
         this->m_lastPosition = pos;
         return m_capturing->mouseMoveExt(pos);
     }
+    auto prio = maxTargetPrio();
     if (this->m_lastPosition != pos) {
         for (auto const& d : m_delegates) {
+            if (d->m_targetPriority != prio) continue;
             auto hover = this->delegateIsHovered(d, pos);
             if (d->m_extMouseHovered != hover) {
                 d->m_extMouseHovered = hover;
@@ -170,6 +213,10 @@ void ExtMouseManager::releaseCapture(ExtMouseDelegate* delegate) {
     if (!delegate || m_capturing == delegate) {
         m_capturing = nullptr;
     }
+}
+
+bool ExtMouseManager::isCapturing(ExtMouseDelegate* delegate) const {
+    return m_capturing == delegate;
 }
 
 bool ExtMouseManager::isMouseDown(MouseEvent btn) const {

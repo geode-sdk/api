@@ -1,6 +1,8 @@
 #include "hook.hpp"
 #include <dispatch/ExtMouseManager.hpp>
+#include <shortcuts/ShortcutManager.hpp>
 
+#ifdef GEODE_IS_DESKTOP
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
         ShortcutManager::get()->dispatchEvent(key, down);
@@ -26,10 +28,50 @@ class $modify(CCScheduler) {
         return CCScheduler::update(dt);
     }
 };
+#endif
+
+#ifdef GEODE_IS_MOBILE
+class $modify(CCTouchDispatcher) {
+    void touches(cocos2d::CCSet* touches, cocos2d::CCEvent* event, unsigned int touchType) {
+        auto touch = touches->anyObject();
+        if (touch) {
+            switch (touchType) {
+                case CCTOUCHBEGAN: {
+                    if (ExtMouseManager::get()->dispatchClickEvent(
+                        MouseEvent::Left, true, as<CCTouch*>(touch)->getLocation()
+                    )) return;
+                } break;
+
+                case CCTOUCHENDED: case CCTOUCHCANCELLED: {
+                    if (ExtMouseManager::get()->dispatchClickEvent(
+                        MouseEvent::Left, false, as<CCTouch*>(touch)->getLocation()
+                    )) return;
+                } break;
+
+                case CCTOUCHMOVED: {
+                    ExtMouseManager::get()->dispatchMoveEvent(
+                        as<CCTouch*>(touch)->getLocation()
+                    );
+                } break;
+
+                default: break;
+            }
+        }
+        return CCTouchDispatcher::touches(touches, event, touchType);
+    }
+};
+#endif
 
 #ifdef GEODE_IS_WINDOWS
-
 class $modify(CCEGLView) {
+    void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods) {
+        if (ExtMouseManager::get()->dispatchClickEvent(
+            static_cast<MouseEvent>(button), action,
+            ExtMouseManager::getMousePosition()
+        )) return;
+        return CCEGLView::onGLFWMouseCallBack(window, button, action, mods);
+    }
+    
     void pollEvents() {
         // MSG msg;
 		// while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -65,31 +107,5 @@ class $modify(CCEGLView) {
         // }
         CCEGLView::pollEvents();
     }
-
-    void toggleFullScreen(bool fullscreen) {
-        return CCEGLView::toggleFullScreen(fullscreen);
-    }
-
-    void onGLFWError(int code, const char* description) {
-        return CCEGLView::onGLFWError(code, description);
-    }
-    
-    void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-        return CCEGLView::onGLFWKeyCallback(window, key, scancode, action, mods);
-    }
-    
-	void updateWindow(int width, int height) {
-        return CCEGLView::updateWindow(width, height);
-    }
-    
-    void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods) {
-        std::cout << "clickety cluck clack\n";
-        if (ExtMouseManager::get()->dispatchClickEvent(
-            static_cast<MouseEvent>(button), action,
-            ExtMouseManager::getMousePosition()
-        )) return;
-        return CCEGLView::onGLFWMouseCallBack(window, button, action, mods);
-    }
 };
-
 #endif
