@@ -175,3 +175,18 @@ void ExtMouseManager::releaseCapture(ExtMouseDelegate* delegate) {
 bool ExtMouseManager::isMouseDown(MouseEvent btn) const {
     return this->m_pressedButtons.count(btn);
 }
+
+CCPoint ExtMouseManager::getMousePosition() {
+    static auto cachedMousePos = CCPointZero;
+    auto mpos = CCDirector::sharedDirector()->getOpenGLView()->getMousePosition();
+    if (mpos == cachedMousePos) return cachedMousePos;
+    
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
+    auto winSizePx = CCDirector::sharedDirector()->getOpenGLView()->getViewPortRect();
+    auto ratio_w = winSize.width / winSizePx.size.width;
+    auto ratio_h = winSize.height / winSizePx.size.height;
+    mpos.y = winSizePx.size.height - mpos.y;
+    mpos.x *= ratio_w;
+    mpos.y *= ratio_h;
+    return mpos;
+}

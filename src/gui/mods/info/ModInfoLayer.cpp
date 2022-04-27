@@ -7,6 +7,7 @@
 #include <fmt/include/fmt/format.h>
 #include <APIInternal.hpp>
 #include "../list/ModListView.hpp"
+#include <nodes/Scrollbar.hpp>
 
 bool ModInfoLayer::init(Mod* mod, ModListView* list) {
     m_noElasticity = true;
@@ -83,7 +84,14 @@ bool ModInfoLayer::init(Mod* mod, ModListView* list) {
         winSize.width / 2 - details->getScaledContentSize().width / 2,
         winSize.height / 2 - details->getScaledContentSize().height / 2 - 20.f
     );
-    this->m_mainLayer->addChild(details);
+    m_mainLayer->addChild(details);
+
+    auto detailsBar = Scrollbar::create(details->getScrollLayer());
+    detailsBar->setPosition(
+        winSize.width / 2 + details->getScaledContentSize().width / 2 + 20.f,
+        winSize.height / 2 - 20.f
+    );
+    m_mainLayer->addChild(detailsBar);
 
 
     auto infoSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");

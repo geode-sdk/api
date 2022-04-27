@@ -3,33 +3,36 @@
 USE_GEODE_NAMESPACE();
 
 bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {
-    if (!m_list) return false;
+    std::cout << "Scrollbar::mouseDownExt\n";
+    
+    if (!m_target) return false;
 
     ExtMouseManager::get()->captureMouse(this);
 
     auto pos = this->convertToNodeSpace(mpos);
 
-    auto h = m_list->m_tableView->m_contentLayer->getScaledContentSize().height
-        - m_list->m_height + m_list->m_tableView->m_scrollLimitTop;
-    auto p = m_list->m_height /
-        m_list->m_tableView->m_contentLayer->getScaledContentSize().height;
+    auto contentHeight = m_target->m_contentLayer->getScaledContentSize().height;
+    auto targetHeight = m_target->getScaledContentSize().height;
 
-    auto trackHeight = std::min(p, 1.0f) * m_list->m_height / .4f;
+    auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
+    auto p = targetHeight / contentHeight;
+
+    auto trackHeight = std::min(p, 1.0f) * targetHeight / .4f;
 
     auto posY = h * (
-        (-pos.y - m_list->m_height / 2 + trackHeight / 4 - 5) /
-        (m_list->m_height - trackHeight / 2 + 10)
+        (-pos.y - targetHeight / 2 + trackHeight / 4 - 5) /
+        (targetHeight - trackHeight / 2 + 10)
     );
 
     if (posY > 0.0f) posY = 0.0f;
     if (posY < -h) posY = -h;
     
-    auto offsetY = m_list->m_tableView->m_contentLayer->getPositionY() - posY;
+    auto offsetY = m_target->m_contentLayer->getPositionY() - posY;
 
     if (fabsf(offsetY) < trackHeight) {
         m_extMouseHitArea.origin = CCPoint {
             pos.x,
-            m_list->m_tableView->m_contentLayer->getPositionY() - posY
+            m_target->m_contentLayer->getPositionY() - posY
         };
     } else {
         m_extMouseHitArea.origin = CCPointZero;
@@ -44,21 +47,22 @@ bool Scrollbar::mouseUpExt(MouseEvent, cocos2d::CCPoint const&) {
 }
 
 void Scrollbar::mouseMoveExt(cocos2d::CCPoint const& mpos) {
-    if (!m_list) return;
+    if (!m_target) return;
 
     if (this->m_extMouseDown.size()) {
         auto pos = this->convertToNodeSpace(mpos);
 
-        auto h = m_list->m_tableView->m_contentLayer->getScaledContentSize().height
-            - m_list->m_height + m_list->m_tableView->m_scrollLimitTop;
-        auto p = m_list->m_height /
-            m_list->m_tableView->m_contentLayer->getScaledContentSize().height;
+        auto contentHeight = m_target->m_contentLayer->getScaledContentSize().height;
+        auto targetHeight = m_target->getScaledContentSize().height;
+        
+        auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
+        auto p = targetHeight / contentHeight;
 
-        auto trackHeight = std::min(p, 1.0f) * m_list->m_height / .4f;
+        auto trackHeight = std::min(p, 1.0f) * targetHeight / .4f;
 
         auto posY = h * (
-            (-pos.y - m_list->m_height / 2 + trackHeight / 4 - 5) /
-            (m_list->m_height - trackHeight / 2 + 10)
+            (-pos.y - targetHeight / 2 + trackHeight / 4 - 5) /
+            (targetHeight - trackHeight / 2 + 10)
         );
 
         posY += m_extMouseHitArea.origin.y;
@@ -66,24 +70,27 @@ void Scrollbar::mouseMoveExt(cocos2d::CCPoint const& mpos) {
         if (posY > 0.0f) posY = 0.0f;
         if (posY < -h) posY = -h;
 
-        m_list->m_tableView->m_contentLayer->setPositionY(posY);
+        m_target->m_contentLayer->setPositionY(posY);
     }
 }
 
 bool Scrollbar::mouseScrollExt(float y, float x) {
-    if (!m_list)
+    if (!m_target)
         return false;
-    m_list->scrollWheel(x, y);
+    m_target->scrollWheel(x, y);
     return true;
 }
 
 void Scrollbar::draw() {
     CCLayer::draw();
 
-    if (!m_list) return;
+    if (!m_target) return;
 
+    auto contentHeight = m_target->m_contentLayer->getScaledContentSize().height;
+    auto targetHeight = m_target->getScaledContentSize().height;
+    
     m_bg->setContentSize({
-        m_width, m_list->m_height
+        m_width, targetHeight
     });
     m_bg->setScale(1.0f);
     m_bg->setColor({ 0, 0, 0 });
@@ -91,15 +98,13 @@ void Scrollbar::draw() {
     m_bg->setPosition(0.0f, 0.0f);
 
     m_extMouseHitArea.size = CCSize {
-        m_width, m_list->m_height
+        m_width, targetHeight
     };
 
-    auto h = m_list->m_tableView->m_contentLayer->getScaledContentSize().height
-        - m_list->m_height + m_list->m_tableView->m_scrollLimitTop;
-    auto p = m_list->m_height /
-        m_list->m_tableView->m_contentLayer->getScaledContentSize().height;
+    auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
+    auto p = targetHeight / contentHeight;
 
-    auto trackHeight = std::min(p, 1.0f) * m_list->m_height / .4f;
+    auto trackHeight = std::min(p, 1.0f) * targetHeight / .4f;
     auto trackPosY = m_track->getPositionY();
 
     GLubyte o = 100;
@@ -115,16 +120,16 @@ void Scrollbar::draw() {
     m_track->setColor({ o, o, o });
 
 
-    auto y = m_list->m_tableView->m_contentLayer->getPositionY();
+    auto y = m_target->m_contentLayer->getPositionY();
 
-    trackPosY = - m_list->m_height / 2 + trackHeight / 4 - 5.0f + 
-        ((-y) / h) * (m_list->m_height - trackHeight / 2 + 10.0f);
+    trackPosY = - targetHeight / 2 + trackHeight / 4 - 5.0f + 
+        ((-y) / h) * (targetHeight - trackHeight / 2 + 10.0f);
 
     auto fHeightTop = [&]() -> float {
-        return trackPosY - m_list->m_height / 2 + trackHeight * .4f / 2 + 3.0f;
+        return trackPosY - targetHeight / 2 + trackHeight * .4f / 2 + 3.0f;
     };
     auto fHeightBottom = [&]() -> float {
-        return trackPosY + m_list->m_height / 2 - trackHeight * .4f / 2 - 3.0f;
+        return trackPosY + targetHeight / 2 - trackHeight * .4f / 2 - 3.0f;
     };
     
     if (fHeightTop() > 0.0f) {
@@ -144,15 +149,15 @@ void Scrollbar::draw() {
     });
 }
 
-void Scrollbar::setList(BoomListView* list) {
-    m_list = list;
+void Scrollbar::setTarget(CCScrollLayerExt* target) {
+    m_target = target;
 }
 
-bool Scrollbar::init(BoomListView* list) {
+bool Scrollbar::init(CCScrollLayerExt* target) {
     if (!this->CCLayer::init())
         return false;
     
-    this->setList(list);
+    m_target = target;
     m_width = 8.0f;
 
     m_bg = CCScale9Sprite::create("scrollbar.png"_spr);
@@ -179,10 +184,10 @@ bool Scrollbar::init(BoomListView* list) {
     return true;
 }
 
-Scrollbar* Scrollbar::create(BoomListView* list) {
+Scrollbar* Scrollbar::create(CCScrollLayerExt* target) {
     auto ret = new Scrollbar;
 
-    if (ret && ret->init(list)) {
+    if (ret && ret->init(target)) {
         ret->autorelease();
         return ret;
     }

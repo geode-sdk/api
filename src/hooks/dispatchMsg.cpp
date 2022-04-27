@@ -1,4 +1,5 @@
 #include "hook.hpp"
+#include <dispatch/ExtMouseManager.hpp>
 
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
@@ -7,8 +8,20 @@ class $modify(CCKeyboardDispatcher) {
     }
 };
 
+class $modify(CCMouseDispatcher) {
+    bool dispatchScrollMSG(float x, float y) {
+        ExtMouseManager::get()->dispatchScrollEvent(
+            y, x, ExtMouseManager::getMousePosition()
+        );
+        return CCMouseDispatcher::dispatchScrollMSG(x, y);
+    }
+};
+
 class $modify(CCScheduler) {
     void update(float dt) {
+        ExtMouseManager::get()->dispatchMoveEvent(
+            ExtMouseManager::getMousePosition()
+        );
         ShortcutManager::get()->update(dt);
         return CCScheduler::update(dt);
     }
@@ -17,13 +30,6 @@ class $modify(CCScheduler) {
 #ifdef GEODE_IS_WINDOWS
 
 class $modify(CCEGLView) {
-    void onGLFWMouseCallBack(GLFWwindow* wnd, int btn, int pressed, int z) {
-        // KeybindManager::get()->registerMousePress(
-        //     static_cast<MouseButton>(btn), pressed
-        // );
-        return CCEGLView::onGLFWMouseCallBack(wnd, btn, pressed, z);
-    }
-
     void pollEvents() {
         // MSG msg;
 		// while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -58,6 +64,31 @@ class $modify(CCEGLView) {
         //     DispatchMessage(&msg);
         // }
         CCEGLView::pollEvents();
+    }
+
+    void toggleFullScreen(bool fullscreen) {
+        return CCEGLView::toggleFullScreen(fullscreen);
+    }
+
+    void onGLFWError(int code, const char* description) {
+        return CCEGLView::onGLFWError(code, description);
+    }
+    
+    void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+        return CCEGLView::onGLFWKeyCallback(window, key, scancode, action, mods);
+    }
+    
+	void updateWindow(int width, int height) {
+        return CCEGLView::updateWindow(width, height);
+    }
+    
+    void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods) {
+        std::cout << "clickety cluck clack\n";
+        if (ExtMouseManager::get()->dispatchClickEvent(
+            static_cast<MouseEvent>(button), action,
+            ExtMouseManager::getMousePosition()
+        )) return;
+        return CCEGLView::onGLFWMouseCallBack(window, button, action, mods);
     }
 };
 

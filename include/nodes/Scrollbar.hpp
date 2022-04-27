@@ -10,7 +10,7 @@ namespace geode {
         public ExtMouseDelegate
     {
     protected:
-        BoomListView* m_list = nullptr;
+        CCScrollLayerExt* m_target = nullptr;
         cocos2d::extension::CCScale9Sprite* m_bg;
         cocos2d::extension::CCScale9Sprite* m_track;
         cocos2d::CCPoint m_clickOffset;
@@ -23,11 +23,11 @@ namespace geode {
     
         void draw() override;
 
-        bool init(BoomListView*);
+        bool init(CCScrollLayerExt*);
 
     public:
-        void setList(BoomListView* list);
+        void setTarget(CCScrollLayerExt* list);
 
-        static Scrollbar* create(BoomListView* list);
+        static Scrollbar* create(CCScrollLayerExt* list);
     };
 }

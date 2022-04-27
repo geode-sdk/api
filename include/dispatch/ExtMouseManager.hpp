@@ -61,5 +61,7 @@ namespace geode {
         bool dispatchScrollEvent(float y, float x, cocos2d::CCPoint const& pos);
 
         bool isMouseDown(MouseEvent btn) const;
+
+        static cocos2d::CCPoint getMousePosition();
     };
 }

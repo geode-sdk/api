@@ -601,6 +601,10 @@ void MDTextArea::updateLabel() {
     m_scrollLayer->moveToTop();
 }
 
+CCScrollLayerExt* MDTextArea::getScrollLayer() const {
+    return m_scrollLayer;
+}
+
 void MDTextArea::setString(const char* text) {
     this->m_text = text;
     this->updateLabel();

@@ -75,5 +75,7 @@ namespace geode {
 
         void setString(const char* text) override;
         const char* getString() override;
+
+        CCScrollLayerExt* getScrollLayer() const;
     };
 }
