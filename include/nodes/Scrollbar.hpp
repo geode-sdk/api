@@ -11,10 +11,13 @@ namespace geode {
     {
     protected:
         CCScrollLayerExt* m_target = nullptr;
-        cocos2d::extension::CCScale9Sprite* m_bg;
         cocos2d::extension::CCScale9Sprite* m_track;
+        cocos2d::extension::CCScale9Sprite* m_thumb;
         cocos2d::CCPoint m_clickOffset;
         float m_width;
+        bool m_resizeThumb;
+        bool m_trackIsRotated;
+        bool m_hoverHighlight;
 
         bool mouseDownExt(MouseEvent, cocos2d::CCPoint const&) override;
         bool mouseUpExt(MouseEvent, cocos2d::CCPoint const&) override;
