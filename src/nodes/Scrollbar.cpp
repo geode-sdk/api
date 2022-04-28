@@ -15,11 +15,11 @@ bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {
     auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
     auto p = targetHeight / contentHeight;
 
-    auto trackHeight = std::min(p, 1.0f) * targetHeight / .4f;
+    auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
 
     auto posY = h * (
-        (-pos.y - targetHeight / 2 + trackHeight / 4 - 5) /
-        (targetHeight - trackHeight / 2 + 10)
+        (-pos.y - targetHeight / 2 + thumbHeight / 4 - 5) /
+        (targetHeight - thumbHeight / 2 + 10)
     );
 
     if (posY > 0.0f) posY = 0.0f;
@@ -27,7 +27,7 @@ bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {
     
     auto offsetY = m_target->m_contentLayer->getPositionY() - posY;
 
-    if (fabsf(offsetY) < trackHeight) {
+    if (fabsf(offsetY) < thumbHeight) {
         m_extMouseHitArea.origin = CCPoint {
             pos.x,
             m_target->m_contentLayer->getPositionY() - posY
@@ -56,11 +56,11 @@ void Scrollbar::mouseMoveExt(cocos2d::CCPoint const& mpos) {
         auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
         auto p = targetHeight / contentHeight;
 
-        auto trackHeight = std::min(p, 1.0f) * targetHeight / .4f;
+        auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
 
         auto posY = h * (
-            (-pos.y - targetHeight / 2 + trackHeight / 4 - 5) /
-            (targetHeight - trackHeight / 2 + 10)
+            (-pos.y - targetHeight / 2 + thumbHeight / 4 - 5) /
+            (targetHeight - thumbHeight / 2 + 10)
         );
 
         posY += m_extMouseHitArea.origin.y;
@@ -87,64 +87,70 @@ void Scrollbar::draw() {
     auto contentHeight = m_target->m_contentLayer->getScaledContentSize().height;
     auto targetHeight = m_target->getScaledContentSize().height;
     
-    m_bg->setContentSize({
-        m_width, targetHeight
-    });
-    m_bg->setScale(1.0f);
-    m_bg->setColor({ 0, 0, 0 });
-    m_bg->setOpacity(150);
-    m_bg->setPosition(0.0f, 0.0f);
+    if (m_trackIsRotated) {
+        m_track->setContentSize({
+            targetHeight / m_track->getScale(),
+            m_width / m_track->getScale()
+        });
+    } else {
+        m_track->setContentSize({
+            m_width / m_track->getScale(),
+            targetHeight / m_track->getScale()
+        });
+    }
+    m_track->setPosition(.0f, .0f);
 
-    m_extMouseHitArea.size = CCSize {
-        m_width, targetHeight
-    };
+    m_extMouseHitArea.size = CCSize { m_width, targetHeight };
 
     auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
     auto p = targetHeight / contentHeight;
 
-    auto trackHeight = std::min(p, 1.0f) * targetHeight / .4f;
-    auto trackPosY = m_track->getPositionY();
+    auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
+    auto trackPosY = m_thumb->getPositionY();
 
-    GLubyte o = 100;
-
-    if (m_extMouseHovered) {
-        o = 160;
-    }
-    if (m_extMouseDown.size()) {
+    GLubyte o;
+    if (m_hoverHighlight) {
+        o = 100;
+        if (m_extMouseHovered) {
+            o = 160;
+        }
+        if (m_extMouseDown.size()) {
+            o = 255;
+        }
+    } else {
         o = 255;
+        if (m_extMouseDown.size()) {
+            o = 125;
+        }
     }
-
-    m_track->setScale(.4f);
-    m_track->setColor({ o, o, o });
-
+    m_thumb->setColor({ o, o, o });
 
     auto y = m_target->m_contentLayer->getPositionY();
 
-    trackPosY = - targetHeight / 2 + trackHeight / 4 - 5.0f + 
-        ((-y) / h) * (targetHeight - trackHeight / 2 + 10.0f);
+    trackPosY = - targetHeight / 2 + thumbHeight / 4 - 5.0f + 
+        ((-y) / h) * (targetHeight - thumbHeight / 2 + 10.0f);
 
     auto fHeightTop = [&]() -> float {
-        return trackPosY - targetHeight / 2 + trackHeight * .4f / 2 + 3.0f;
+        return trackPosY - targetHeight / 2 + thumbHeight * .4f / 2 + 3.0f;
     };
     auto fHeightBottom = [&]() -> float {
-        return trackPosY + targetHeight / 2 - trackHeight * .4f / 2 - 3.0f;
+        return trackPosY + targetHeight / 2 - thumbHeight * .4f / 2 - 3.0f;
     };
     
     if (fHeightTop() > 0.0f) {
-        trackHeight -= fHeightTop();
+        thumbHeight -= fHeightTop();
         trackPosY -= fHeightTop();
     }
     
-    if (fHeightBottom() < 0.0f) {
-        trackHeight += fHeightBottom();
+    if (fHeightBottom() < 0.f) {
+        thumbHeight += fHeightBottom();
         trackPosY -= fHeightBottom();
     }
 
-    m_track->setPosition(0.0f, trackPosY);
-
-    m_track->setContentSize({
-        m_width, trackHeight
-    });
+    m_thumb->setPosition(0.f, trackPosY);
+    if (m_resizeThumb) {
+        m_thumb->setContentSize({ m_width, thumbHeight });
+    }
 }
 
 void Scrollbar::setTarget(CCScrollLayerExt* target) {
@@ -156,28 +162,35 @@ bool Scrollbar::init(CCScrollLayerExt* target) {
         return false;
     
     m_target = target;
-    m_width = 8.0f;
 
-    m_bg = CCScale9Sprite::create("scrollbar.png"_spr);
-    m_track = CCScale9Sprite::create("scrollbar.png"_spr);
-    // if (BGDInternal::isFileInSearchPaths("BGD_scrollbar.png")) {
-    //     m_bg = CCScale9Sprite::create(
-    //         "BGD_scrollbar.png"
-    //     );
-    //     m_track = CCScale9Sprite::create(
-    //         "BGD_scrollbar.png"
-    //     );
-    // } else {
-    //     m_bg = CCScale9Sprite::create(
-    //         "square02_small.png", { 0.0f, 0.0f, 40.0f, 40.0f }
-    //     );
-    //     m_track = CCScale9Sprite::create(
-    //         "square02_small.png", { 0.0f, 0.0f, 40.0f, 40.0f }
-    //     );
-    // }
+    if (cocos::fileExistsInSearchPaths("scrollbar.png"_spr)) {
+        m_track = CCScale9Sprite::create("scrollbar.png"_spr);
+        m_track->setColor({ 0, 0, 0 });
+        m_track->setOpacity(150);
 
-    this->addChild(m_bg);
+        m_thumb = CCScale9Sprite::create("scrollbar.png"_spr);
+        m_thumb->setScale(.4f);
+
+        m_width = 8.f;
+        m_resizeThumb = true;
+        m_trackIsRotated = false;
+        m_hoverHighlight = true;
+    } else {
+        m_track = CCScale9Sprite::create("slidergroove.png");
+        m_track->setRotation(90);
+        m_track->setScale(.8f);
+        
+        m_thumb = CCScale9Sprite::create("sliderthumb.png");
+        m_thumb->setScale(.6f);
+
+        m_width = 12.f;
+        m_resizeThumb = false;
+        m_trackIsRotated = true;
+        m_hoverHighlight = false;
+    }
+
     this->addChild(m_track);
+    this->addChild(m_thumb);
 
     return true;
 }
