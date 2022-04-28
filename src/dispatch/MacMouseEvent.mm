@@ -1,5 +1,8 @@
 #include <dispatch/MacMouseEvent.hmm>
 #include <dispatch/ExtMouseManager.hpp>
+
+#ifdef GEODE_IS_MACOS
+
 #include <CCEventDispatcher.h>
 
 USE_GEODE_NAMESPACE();
@@ -55,3 +58,5 @@ CCPoint ExtMouseManager::getMousePosition() {
     mpos.y *= ratio_h;
     return mpos;
 }
+
+#endif
