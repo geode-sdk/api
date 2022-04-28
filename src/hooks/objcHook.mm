@@ -4,6 +4,8 @@
 #if defined(GEODE_IS_MACOS)
 
 #import <Cocoa/Cocoa.h>
+#include <dispatch/MacMouseEvent.hmm>
+
 
 // Code taken from https://cocoawithlove.com/2008/03/supersequent-implementation.html
 /*

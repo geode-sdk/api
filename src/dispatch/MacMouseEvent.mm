@@ -4,38 +4,67 @@
 #ifdef GEODE_IS_MACOS
 
 #include <CCEventDispatcher.h>
+#import <Foundation/Foundation.h>
+
 
 USE_GEODE_NAMESPACE();
 
 static MacMouseEvent* s_sharedEvent = nil;
-
+using EventType = void(*)(id, SEL, NSEvent*);
+static EventType s_originalMouseMoved;
 
 @implementation MacMouseEvent
+
+// i just want to get this working
+- (void)mouseMovedHook:(NSEvent*)event {
+	s_originalMouseMoved(self, @selector(mouseMoved:), event);
+    [[MacMouseEvent sharedEvent] mouseMoved:event];
+}
+
++ (void)load {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        Class class_ = NSClassFromString(@"EAGLView");
+
+        SEL originalSelector = @selector(mouseMoved:);
+        SEL swizzledSelector = @selector(mouseMovedHook:);
+
+        Method originalMethod = class_getInstanceMethod(class_, originalSelector);
+        Method swizzledMethod = class_getInstanceMethod([self class], swizzledSelector);
+
+
+        Log::get() << (void*) originalMethod << "  sdfdfsfsd " << (void*) swizzledMethod;
+        s_originalMouseMoved = (EventType)method_getImplementation(originalMethod);
+        // When swizzling a class method, use the following:
+        // Method originalMethod = class_getClassMethod(class, originalSelector);
+        // Method swizzledMethod = class_getClassMethod(class, swizzledSelector);
+
+        method_exchangeImplementations(originalMethod, swizzledMethod);
+
+    });
+}
 
 +(MacMouseEvent*) sharedEvent {
 	@synchronized(self) {
 		if (s_sharedEvent == nil) {
             s_sharedEvent = [[self alloc] init]; // assignment not done here
-            [[CCEventDispatcher sharedDispatcher] addMouseDelegate: s_sharedEvent priority: 1000];
         }
 	}
     
 	return s_sharedEvent;
 }
 
--(BOOL) ccMouseMoved:(NSEvent*)event {
+-(void) mouseMoved:(NSEvent*)event {
     NSPoint event_location = [event locationInWindow];
-	NSPoint local_point = [[EAGLView sharedEGLView] convertPoint:event_location fromView:nil];
+	NSPoint local_point = [[NSClassFromString(@"EAGLView") sharedEGLView] convertPoint:event_location fromView:nil];
 	
 	float x = local_point.x;
-	float y = [[EAGLView sharedEGLView] getHeight] - local_point.y;
-	
-    // int ids[1] = {0};
-    
-	// ids[0] = [event eventNumber];
-	m_xPosition = x / [[EAGLView sharedEGLView] frameZoomFactor];
-	m_yPosition = y / [[EAGLView sharedEGLView] frameZoomFactor];
-    return FALSE;
+	float y = [[NSClassFromString(@"EAGLView") sharedEGLView] getHeight] - local_point.y;
+
+	m_xPosition = x / [[NSClassFromString(@"EAGLView") sharedEGLView] frameZoomFactor];
+	m_yPosition = y / [[NSClassFromString(@"EAGLView") sharedEGLView] frameZoomFactor];
+
+	Log::get() << m_xPosition << " " << m_yPosition;
 }
 
 -(cocos2d::CCPoint) getMousePosition {
