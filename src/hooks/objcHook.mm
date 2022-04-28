@@ -112,6 +112,8 @@
 
 __attribute__((constructor)) void nswindowHook() {
     [NSApp.mainWindow registerForDraggedTypes:[NSArray arrayWithObjects: NSFilenamesPboardType, nil]];
+    // idk
+    // [NSApp.mainWindow setAcceptsMouseMovedEvents:YES];
 }
 
 #endif

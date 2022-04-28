@@ -223,6 +223,8 @@ bool ExtMouseManager::isMouseDown(MouseEvent btn) const {
     return this->m_pressedButtons.count(btn);
 }
 
+#ifdef GEODE_IS_WINDOWS
+
 CCPoint ExtMouseManager::getMousePosition() {
     static auto cachedMousePos = CCPointZero;
     auto mpos = CCDirector::sharedDirector()->getOpenGLView()->getMousePosition();
@@ -237,3 +239,5 @@ CCPoint ExtMouseManager::getMousePosition() {
     mpos.y *= ratio_h;
     return mpos;
 }
+
+#endif
