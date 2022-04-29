@@ -3,6 +3,7 @@
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
 #include "TextRenderer.hpp"
+#include "ScrollLayer.hpp"
 
 struct MDParser;
 
@@ -72,9 +73,9 @@ namespace geode {
          */
         void updateLabel();
 
-        void scrollWheel(float y, float) override;
-
         void setString(const char* text) override;
         const char* getString() override;
+
+        CCScrollLayerExt* getScrollLayer() const;
     };
 }

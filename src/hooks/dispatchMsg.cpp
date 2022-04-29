@@ -1,41 +1,77 @@
 #include "hook.hpp"
+#include <dispatch/ExtMouseManager.hpp>
+#include <shortcuts/ShortcutManager.hpp>
 
+#ifdef GEODE_IS_DESKTOP
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
-        // KeybindManager::get()->registerKeyPress(key, down);
-        // if (!KeybindManager::keyIsModifier(key)) {
-        //     if (KeybindManager::get()->handleKeyEvent(
-        //         KB_GLOBAL_CATEGORY,
-        //         Keybind(key),
-        //         CCDirector::sharedDirector()->getRunningScene(),
-        //         down
-        //     )) return true;
-        // }
-
-
-        geode::api::ShortcutManager::get()->dispatchEvent(key, down);
+        ShortcutManager::get()->dispatchEvent(key, down);
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down);
+    }
+};
+
+class $modify(CCMouseDispatcher) {
+    bool dispatchScrollMSG(float x, float y) {
+        ExtMouseManager::get()->dispatchScrollEvent(
+            y, x, ExtMouseManager::getMousePosition()
+        );
+        return CCMouseDispatcher::dispatchScrollMSG(x, y);
     }
 };
 
 class $modify(CCScheduler) {
     void update(float dt) {
-        // KeybindManager::get()->handleRepeats(dt);
-        geode::api::ShortcutManager::get()->update(dt);
+        ExtMouseManager::get()->dispatchMoveEvent(
+            ExtMouseManager::getMousePosition()
+        );
+        ShortcutManager::get()->update(dt);
         return CCScheduler::update(dt);
     }
 };
+#endif
+
+#ifdef GEODE_IS_MOBILE
+class $modify(CCTouchDispatcher) {
+    void touches(cocos2d::CCSet* touches, cocos2d::CCEvent* event, unsigned int touchType) {
+        auto touch = touches->anyObject();
+        if (touch) {
+            switch (touchType) {
+                case CCTOUCHBEGAN: {
+                    if (ExtMouseManager::get()->dispatchClickEvent(
+                        MouseEvent::Left, true, as<CCTouch*>(touch)->getLocation()
+                    )) return;
+                } break;
+
+                case CCTOUCHENDED: case CCTOUCHCANCELLED: {
+                    if (ExtMouseManager::get()->dispatchClickEvent(
+                        MouseEvent::Left, false, as<CCTouch*>(touch)->getLocation()
+                    )) return;
+                } break;
+
+                case CCTOUCHMOVED: {
+                    ExtMouseManager::get()->dispatchMoveEvent(
+                        as<CCTouch*>(touch)->getLocation()
+                    );
+                } break;
+
+                default: break;
+            }
+        }
+        return CCTouchDispatcher::touches(touches, event, touchType);
+    }
+};
+#endif
 
 #ifdef GEODE_IS_WINDOWS
-
 class $modify(CCEGLView) {
-    void onGLFWMouseCallBack(GLFWwindow* wnd, int btn, int pressed, int z) {
-        // KeybindManager::get()->registerMousePress(
-        //     static_cast<MouseButton>(btn), pressed
-        // );
-        return CCEGLView::onGLFWMouseCallBack(wnd, btn, pressed, z);
+    void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods) {
+        if (ExtMouseManager::get()->dispatchClickEvent(
+            static_cast<MouseEvent>(button), action,
+            ExtMouseManager::getMousePosition()
+        )) return;
+        return CCEGLView::onGLFWMouseCallBack(window, button, action, mods);
     }
-
+    
     void pollEvents() {
         // MSG msg;
 		// while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -72,5 +108,4 @@ class $modify(CCEGLView) {
         CCEGLView::pollEvents();
     }
 };
-
 #endif

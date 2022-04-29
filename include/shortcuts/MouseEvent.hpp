@@ -2,14 +2,18 @@
 
 #include <Geode.hpp>
 
-namespace geode::api {
+namespace geode {
+	/**
+	 * Do NOT change order! 
+	 * These are same as GLFW
+	 */
 	enum class MouseEvent {
-	    Left,
-	    Right,
-	    Middle,
-	    Prev,
-	    Next,
-	    DoubleClick,
+	    Left = 0,
+	    Right = 1,
+	    Middle = 2,
+	    Prev = 3,
+	    Next = 4,
+	    DoubleClick = 8,
 	    ScrollUp,
 	    ScrollDown,
 	};

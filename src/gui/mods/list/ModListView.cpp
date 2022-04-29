@@ -143,7 +143,7 @@ void ModCell::loadFromMod(ModObject* modobj) {
 }
 
 void ModCell::onInfo(CCObject*) {
-    ModInfoLayer::create(this->m_mod)->show();
+    ModInfoLayer::create(m_mod, m_list)->show();
 }
 
 void ModCell::updateBGColor(int index) {
@@ -242,16 +242,25 @@ void ModListView::updateAllStates(ModCell* toggled) {
 }
 
 void ModListView::setupList() {
-    this->m_itemSeparation = 40.0f;
+    m_itemSeparation = 40.0f;
 
-    if (!this->m_entries->count()) return;
+    if (!m_entries->count()) return;
 
-    this->m_tableView->reloadData();
+    m_tableView->reloadData();
 
-    if (this->m_entries->count() == 1)
-        this->m_tableView->moveToTopWithOffset(this->m_itemSeparation);
-    else
-        this->m_tableView->moveToTop();
+    // fix content layer content size so the 
+    // list is properly aligned to the top
+    auto coverage = calculateChildCoverage(m_tableView->m_contentLayer);
+    m_tableView->m_contentLayer->setContentSize({
+        -coverage.origin.x + coverage.size.width,
+        -coverage.origin.y + coverage.size.height
+    });
+
+    if (m_entries->count() == 1) {
+        m_tableView->moveToTopWithOffset(m_itemSeparation);
+    } else {
+        m_tableView->moveToTop();
+    }
 }
 
 TableViewCell* ModListView::getListCell(const char* key) {

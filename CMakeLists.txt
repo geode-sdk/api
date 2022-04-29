@@ -14,6 +14,7 @@ set(GEODE_BUILD_CODEGEN On)
 set(SOURCE_FILES 
 	${CORE_SOURCES}
 	src/hooks/objcHook.mm
+    src/dispatch/MacMouseEvent.mm
 )
 set(INCLUDE_DIRECTORIES
 	"include"

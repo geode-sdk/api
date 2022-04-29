@@ -123,26 +123,16 @@ bool MDTextArea::init(
     m_bgSprite->setPosition(size / 2);
     this->addChild(m_bgSprite);
 
-    m_scrollLayer = CCScrollLayerExt::create({ 0, 0, m_size.width, m_size.height }, true);
+    m_scrollLayer = ScrollLayer::create({ 0, 0, m_size.width, m_size.height }, true);
 
     m_content = CCMenu::create();
     m_content->setZOrder(2);
-
-    m_scrollLayer->m_contentLayer->removeFromParent();
-    m_scrollLayer->m_contentLayer = MDContentLayer::create(m_content, m_size.width, m_size.height);
-    m_scrollLayer->m_contentLayer->setAnchorPoint({ 0, 0 });
     m_scrollLayer->m_contentLayer->addChild(m_content);
-    m_scrollLayer->addChild(m_scrollLayer->m_contentLayer);
 
-    this->addChild(m_scrollLayer);
-    
     CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
     m_scrollLayer->registerWithTouchDispatcher();
 
-    m_scrollLayer->setMouseEnabled(true);
-    m_scrollLayer->setTouchEnabled(true);
-
-    this->setMouseEnabled(true);
+    this->addChild(m_scrollLayer);
 
     this->updateLabel();
 
@@ -151,10 +141,6 @@ bool MDTextArea::init(
 
 MDTextArea::~MDTextArea() {
     CC_SAFE_RELEASE(m_renderer);
-}
-
-void MDTextArea::scrollWheel(float y, float) {
-    m_scrollLayer->scrollLayer(y);
 }
 
 class BreakLine : public CCNode {
@@ -187,7 +173,8 @@ void MDTextArea::onLink(CCObject* pSender) {
         "Hold Up!",
         "Links are spooky! Are you sure you want to go to <cy>" +
         std::string(href->getCString()) + "</c>?",
-        "Cancel", "Yes"
+        "Cancel", "Yes",
+        360.f
     );
     layer->setUserObject(href);
     layer->show();
@@ -314,6 +301,10 @@ struct MDParser {
                     renderer->renderString(text);
                 }
             } break;
+
+            default: {
+                Log::get() << Severity::Warning << "Unhandled text type " << type;
+            } break;
         }
         return 0;
     }
@@ -322,6 +313,8 @@ struct MDParser {
         auto textarea = reinterpret_cast<MDTextArea*>(mdtextarea);
         auto renderer = textarea->m_renderer;
         switch (type) {
+            case MD_BLOCKTYPE::MD_BLOCK_DOC: {} break;
+
             case MD_BLOCKTYPE::MD_BLOCK_H: {
                 auto hdetail = reinterpret_cast<MD_BLOCK_H_DETAIL*>(detail);
                 renderer->pushStyleFlags(TextStyleBold);
@@ -338,6 +331,8 @@ struct MDParser {
                 //     case 3: renderer->pushCaps(TextCapitalization::AllUpper); break;
                 // }
             } break;
+            
+            case MD_BLOCKTYPE::MD_BLOCK_P: {} break;
             
             case MD_BLOCKTYPE::MD_BLOCK_UL:
             case MD_BLOCKTYPE::MD_BLOCK_OL: {
@@ -371,6 +366,10 @@ struct MDParser {
                 renderer->pushIndent(g_codeBlockIndent);
                 renderer->pushWrapOffset(g_codeBlockIndent);
             } break;
+
+            default: {
+                Log::get() << Severity::Warning << "Unhandled block enter type " << type;
+            } break;
         }
         return 0;
     }
@@ -379,6 +378,8 @@ struct MDParser {
         auto textarea = reinterpret_cast<MDTextArea*>(mdtextarea);
         auto renderer = textarea->m_renderer;
         switch (type) {
+            case MD_BLOCKTYPE::MD_BLOCK_DOC: {} break;
+
             case MD_BLOCKTYPE::MD_BLOCK_H: {
                 auto hdetail = reinterpret_cast<MD_BLOCK_H_DETAIL*>(detail);
                 renderer->breakLine();
@@ -443,6 +444,12 @@ struct MDParser {
 
                 renderer->breakLine();
             } break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_LI: {} break;
+
+            default: {
+                Log::get() << Severity::Warning << "Unhandled block leave type " << type;
+            } break;
         }
         return 0;
     }
@@ -480,6 +487,10 @@ struct MDParser {
                 s_isCodeBlock = false;
                 renderer->pushFont(g_mdMonoFont);
             } break;
+
+            default: {
+                Log::get() << Severity::Warning << "Unhandled span enter type " << type;
+            } break;
         }
         return 0;
     }
@@ -513,6 +524,10 @@ struct MDParser {
 
             case MD_SPANTYPE::MD_SPAN_CODE: {
                 renderer->popFont();
+            } break;
+
+            default: {
+                Log::get() << Severity::Warning << "Unhandled span leave type " << type;
             } break;
         }
         return 0;
@@ -584,6 +599,10 @@ void MDTextArea::updateLabel() {
 
     m_scrollLayer->m_contentLayer->setContentSize(m_content->getContentSize());
     m_scrollLayer->moveToTop();
+}
+
+CCScrollLayerExt* MDTextArea::getScrollLayer() const {
+    return m_scrollLayer;
 }
 
 void MDTextArea::setString(const char* text) {

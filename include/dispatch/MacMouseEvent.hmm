@@ -1,0 +1,25 @@
+#pragma once
+
+#include <Geode.hpp>
+
+#ifdef GEODE_IS_MACOS
+
+#include <CCEventDispatcher.h>
+#import <Cocoa/Cocoa.h>
+#import <EAGLView.h>
+#import <objc/runtime.h>
+
+@interface MacMouseEvent : NSObject {
+    float m_xPosition;
+    float m_yPosition;
+}   
+
+    +(MacMouseEvent*) sharedEvent;
+
+    -(void) mouseMoved:(NSEvent*)event;
+
+    -(cocos2d::CCPoint) getMousePosition;
+
+@end
+
+#endif

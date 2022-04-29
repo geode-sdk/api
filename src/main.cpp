@@ -4,8 +4,6 @@
 #include <Notifications.hpp>
 
 USE_GEODE_NAMESPACE();
-using namespace api;
-
 
 $observe("Test Keybind") {
     FLAlertLayer::create("Hey", "Keybinds work", "OK")->show();

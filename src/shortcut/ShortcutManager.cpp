@@ -1,7 +1,6 @@
 #include <ShortcutManager.hpp>
 
 USE_GEODE_NAMESPACE();
-using namespace api;
 
 ShortcutManager* ShortcutManager::shared = nullptr;
 
@@ -13,7 +12,7 @@ ShortcutManager* ShortcutManager::get() {
 
 Result<shortcut_action_id> ShortcutManager::registerShortcut(ShortcutAction&& sa) {
 	shortcut_action_id id = { sa.m_selector, sa.m_owner };
-	if (m_actions.count(id) > 0) {
+	if (m_actions.count(id)) {
 		return Err<>("Shortcut Action already exists");
 	} else {
 		auto actionPtr = new ShortcutAction(std::move(sa));
@@ -47,7 +46,7 @@ bool ShortcutManager::remapShortcut(shortcut_action_id const& id, Shortcut&& eve
 
 
 void ShortcutManager::dispatchEvent(ShortcutEvent const& sc, bool enabled) {
-	log << "event dispatched";
+	Log::get() << "event dispatched";
 
 	for (auto [id, action] : m_actions) {
 		auto settings = action->m_currentSettings;
@@ -64,7 +63,7 @@ void ShortcutManager::dispatchEvent(ShortcutEvent const& sc, bool enabled) {
 void ShortcutManager::update(float dt) {
 	for (auto& [id, state] : m_actionStates) {
 		if (state.eventActive) {
-			log << "shortcut caught";
+			Log::get() << "shortcut caught";
 
 			auto action = m_actions[id];
 			auto actionSettings = action->m_currentSettings;
@@ -88,7 +87,7 @@ void ShortcutManager::update(float dt) {
 					state.firstFire = false;
 
 					if (!actionSettings.rapidEnabled) {
-						log << "no more...";
+						Log::get() << "no more...";
 						state.eventActive = false;
 					}
 

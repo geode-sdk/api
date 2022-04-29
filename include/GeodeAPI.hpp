@@ -1,13 +1,13 @@
 #pragma once
 
 #include <Geode.hpp>
-#include "settings/CustomSettingNode.hpp"
+#include "settings/SettingNode.hpp"
 #include "nodes/BasedButtonSprite.hpp"
 #include "nodes/BasedButton.hpp"
 
 
 #define EXPORT_NAME GeodeAPI
-#include <API.hpp>
+#include <loader/API.hpp>
 
 namespace geode {
     class GEODE_API_DLL GeodeAPI : public ModAPI {

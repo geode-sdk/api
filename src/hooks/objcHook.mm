@@ -4,6 +4,8 @@
 #if defined(GEODE_IS_MACOS)
 
 #import <Cocoa/Cocoa.h>
+#include <dispatch/MacMouseEvent.hmm>
+
 
 // Code taken from https://cocoawithlove.com/2008/03/supersequent-implementation.html
 /*
@@ -112,6 +114,8 @@
 
 __attribute__((constructor)) void nswindowHook() {
     [NSApp.mainWindow registerForDraggedTypes:[NSArray arrayWithObjects: NSFilenamesPboardType, nil]];
+    // idk
+    // [NSApp.mainWindow setAcceptsMouseMovedEvents:YES];
 }
 
 #endif
