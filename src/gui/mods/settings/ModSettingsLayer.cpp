@@ -51,23 +51,23 @@ bool ModSettingsLayer::init(Mod* mod) {
     {
         auto topSprite = CCSprite::createWithSpriteFrameName("GJ_commentTop_001.png");
         topSprite->setPosition({ winSize.width / 2, winSize.height / 2 + listSize.height / 2 - 5.f });
-        this->addChild(topSprite);
+        m_mainLayer->addChild(topSprite);
 
         auto bottomSprite = CCSprite::createWithSpriteFrameName("GJ_commentTop_001.png");
         bottomSprite->setFlipY(true);
         bottomSprite->setPosition({ winSize.width / 2, winSize.height / 2 - listSize.height / 2 + 5.f });
-        this->addChild(bottomSprite);
+        m_mainLayer->addChild(bottomSprite);
 
         auto leftSprite = CCSprite::createWithSpriteFrameName("GJ_commentSide_001.png");
         leftSprite->setPosition({ winSize.width / 2 - listSize.width / 2 + 1.5f, winSize.height / 2 });
         leftSprite->setScaleY(5.7f);
-        this->addChild(leftSprite);
+        m_mainLayer->addChild(leftSprite);
 
         auto rightSprite = CCSprite::createWithSpriteFrameName("GJ_commentSide_001.png");
         rightSprite->setFlipX(true);
         rightSprite->setPosition({ winSize.width / 2 + listSize.width / 2 - 1.5f, winSize.height / 2 });
         rightSprite->setScaleY(5.7f);
-        this->addChild(rightSprite);
+        m_mainLayer->addChild(rightSprite);
     }
 
     m_applyBtnSpr = ButtonSprite::create("Apply", "goldFont.fnt", "GJ_button_01.png", .8f);
@@ -82,15 +82,15 @@ bool ModSettingsLayer::init(Mod* mod) {
     m_buttonMenu->addChild(applyBtn);
 
 
-    auto resetBtnSpr = ButtonSprite::create("Reset to Default", "goldFont.fnt", "GJ_button_05.png", .8f);
-    resetBtnSpr->setScale(.8f);
+    auto resetBtnSpr = ButtonSprite::create("Reset to\nDefault", "bigFont.fnt", "GJ_button_05.png", .8f);
+    resetBtnSpr->setScale(.4f);
 
     auto resetBtn = CCMenuItemSpriteExtra::create(
         resetBtnSpr,
         this,
         menu_selector(ModSettingsLayer::onResetAllToDefault)
     );
-    resetBtn->setPosition(size.width / 2 - 180.f, -size.height / 2 + 25.f);
+    resetBtn->setPosition(size.width / 2 - 150.f, -size.height / 2 + 25.f);
     m_buttonMenu->addChild(resetBtn);
 
 
@@ -123,14 +123,23 @@ void ModSettingsLayer::updateState() {
     }
 }
 
-void ModSettingsLayer::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
+void ModSettingsLayer::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     if (btn2) {
-        this->close();
+        switch (layer->getTag()) {
+            case 0: this->close(); break;
+            case 1: m_list->resetAllToDefault(); break;
+        }
     }
 }
 
 void ModSettingsLayer::onResetAllToDefault(CCObject*) {
-    m_list->resetAllToDefault();
+    auto layer = FLAlertLayer::create(
+        this, "Reset Settings",
+        "Are you sure you want to <co>reset</c> ALL settings?",
+        "Cancel", "Reset", 400.f
+    );
+    layer->setTag(1);
+    layer->show();
 }
 
 void ModSettingsLayer::onApply(CCObject*) {
@@ -155,14 +164,17 @@ void ModSettingsLayer::keyDown(enumKeyCodes key) {
 
 void ModSettingsLayer::onClose(CCObject*) {
     if (m_list->hasUnsavedModifiedSettings()) {
-        return FLAlertLayer::create(
+        auto layer = FLAlertLayer::create(
             this, "Unsaved Changes",
             "You have <cy>unsaved</c> settings! Are you sure "
             "you want to <cr>discard</c> your changes?",
             "Cancel", "Discard", 400.f
-        )->show();
+        );
+        layer->setTag(0);
+        layer->show();
+    } else {
+        this->close();
     }
-    this->close();
 };
 
 void ModSettingsLayer::close() {

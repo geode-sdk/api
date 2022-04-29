@@ -93,7 +93,15 @@ namespace geode {
 
 		void resetToDefault() override {
 			m_setting->resetToDefault();
+			if constexpr (std::is_same_v<SettingClass::value_type_t, size_t>) {
+				m_value = m_setting->getIndex();
+			} else {
+				m_value = m_setting->getValue();
+			}
+			this->updateState();
 		}
+
+		virtual void updateState() = 0;
 
 		~GeodeSettingNode() {
 			CCDirector::sharedDirector()->getTouchDispatcher()->decrementForcePrio(2);
@@ -104,9 +112,12 @@ namespace geode {
 
 	class BoolSettingNode : public GeodeSettingNode<BoolSetting> {
 	protected:
+		CCMenuItemToggler* m_toggle;
+
 		bool init(BoolSetting* setting);
 
 		void onToggle(CCObject*);
+		void updateState() override;
 
 		BoolSettingNode(float width, float height) : GeodeSettingNode<BoolSetting>(width, height) {}
 
@@ -126,6 +137,7 @@ namespace geode {
 		void onSlider(CCObject*);
 		void textInputClosed(CCTextInputNode* input) override;
 		void textChanged(CCTextInputNode* input) override;
+		void updateState() override;
 
 		IntSettingNode(float width, float height) : GeodeSettingNode<IntSetting>(width, height) {}
 
@@ -145,6 +157,7 @@ namespace geode {
 		void onSlider(CCObject*);
 		void textInputClosed(CCTextInputNode* input) override;
 		void textChanged(CCTextInputNode* input) override;
+		void updateState() override;
 
 		FloatSettingNode(float width, float height) : GeodeSettingNode<FloatSetting>(width, height) {}
 
@@ -158,9 +171,10 @@ namespace geode {
 
 		bool init(StringSetting* setting);
 		void textChanged(CCTextInputNode* input) override;
+		void updateState() override;
 
 		StringSettingNode(float width, float height) : GeodeSettingNode<StringSetting>(width, height) {}
-
+		
 	public:
 		static StringSettingNode* create(StringSetting* setting, float width);
 	};
@@ -171,6 +185,7 @@ namespace geode {
 
 		bool init(ColorSetting* setting);
 		void onPickColor(CCObject*);
+		void updateState() override;
 
 		ColorSettingNode(float width, float height) : GeodeSettingNode<ColorSetting>(width, height) {}
 
@@ -186,6 +201,7 @@ namespace geode {
 
 		bool init(ColorAlphaSetting* setting);
 		void onPickColor(CCObject*);
+		void updateState() override;
 		
 		ColorAlphaSettingNode(float width, float height) : GeodeSettingNode<ColorAlphaSetting>(width, height) {}
 
@@ -203,6 +219,7 @@ namespace geode {
 		bool init(PathSetting* setting);
 		void textChanged(CCTextInputNode* input) override;
 		void onSelectFile(CCObject*);
+		void updateState() override;
 
 		PathSettingNode(float width, float height) : GeodeSettingNode<PathSetting>(width, height) {}
 
@@ -216,6 +233,7 @@ namespace geode {
 
 		bool init(StringSelectSetting* setting);
 		void onChange(CCObject* pSender);
+		void updateState() override;
 
 		StringSelectSettingNode(float width, float height) : GeodeSettingNode<StringSelectSetting>(width, height) {}
 

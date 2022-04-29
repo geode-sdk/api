@@ -37,19 +37,23 @@ bool BoolSettingNode::init(BoolSetting* setting) {
 	if (!GeodeSettingNode<BoolSetting>::init(setting))
 		return false;
 
-	auto toggle = CCMenuItemToggler::createWithStandardSprites(
+	m_toggle = CCMenuItemToggler::createWithStandardSprites(
 		this, menu_selector(BoolSettingNode::onToggle), .65f
 	);
-	toggle->setPosition(-toggle->m_onButton->getScaledContentSize().width / 2, 0);
-	toggle->toggle(setting->getValue());
-	m_buttonMenu->addChild(toggle);
+	m_toggle->setPosition(-m_toggle->m_onButton->getScaledContentSize().width / 2, 0);
+	m_toggle->toggle(setting->getValue());
+	m_buttonMenu->addChild(m_toggle);
 
 	return true;
 }
 
 void BoolSettingNode::onToggle(CCObject* pSender) {
-	m_value = !as<CCMenuItemToggler*>(pSender)->isToggled();
+	m_value = !m_toggle->isToggled();
 	this->updateSettingsList();
+}
+
+void BoolSettingNode::updateState() {
+	m_toggle->toggle(m_value);
 }
 
 // int
@@ -191,6 +195,10 @@ void IntSettingNode::updateValue(bool updateInput) {
 		m_slider->updateBar();
 	}
 	this->updateSettingsList();
+}
+
+void IntSettingNode::updateState() {
+	this->updateValue();
 }
 
 // float
@@ -336,6 +344,10 @@ void FloatSettingNode::updateValue(bool updateInput) {
 	this->updateSettingsList();
 }
 
+void FloatSettingNode::updateState() {
+	this->updateValue();
+}
+
 // string
 
 bool StringSettingNode::init(StringSetting* setting) {
@@ -374,6 +386,10 @@ void StringSettingNode::textChanged(CCTextInputNode* input) {
 	this->updateSettingsList();
 }
 
+void StringSettingNode::updateState() {
+	m_input->getInput()->setString(m_value);
+}
+
 // color
 
 bool ColorSettingNode::init(ColorSetting* setting) {
@@ -395,6 +411,10 @@ bool ColorSettingNode::init(ColorSetting* setting) {
 
 void ColorSettingNode::onPickColor(CCObject*) {
 	ColorPickPopup::create(this)->show();
+}
+
+void ColorSettingNode::updateState() {
+	m_colorSprite->setColor(m_value);
 }
 
 // rgba
@@ -419,6 +439,10 @@ bool ColorAlphaSettingNode::init(ColorAlphaSetting* setting) {
 
 void ColorAlphaSettingNode::onPickColor(CCObject*) {
 	ColorPickPopup::create(this)->show();
+}
+
+void ColorAlphaSettingNode::updateState() {
+	m_colorSprite->setColor(to3B(m_value));
 }
 
 // path
@@ -472,6 +496,10 @@ void PathSettingNode::textChanged(CCTextInputNode* input) {
 	this->updateSettingsList();
 }
 
+void PathSettingNode::updateState() {
+	m_input->getInput()->setString(m_value.string());
+}
+
 // string[]
 
 bool StringSelectSettingNode::init(StringSelectSetting* setting) {
@@ -508,14 +536,20 @@ bool StringSelectSettingNode::init(StringSelectSetting* setting) {
 }
 
 void StringSelectSettingNode::onChange(CCObject* pSender) {
-	long newValue = m_value + pSender->getTag();
-	if (newValue < 0) m_value = m_setting->getOptions().size() - 1;
-	else if (newValue > static_cast<long>(m_setting->getOptions().size() - 1)) m_value = 0;
-	else m_value = newValue;
+	if (pSender) {
+		long newValue = m_value + pSender->getTag();
+		if (newValue < 0) m_value = m_setting->getOptions().size() - 1;
+		else if (newValue > static_cast<long>(m_setting->getOptions().size() - 1)) m_value = 0;
+		else m_value = newValue;
+	}
 
 	m_selectedLabel->setString(m_setting->getValueAt(m_value).c_str());
 	m_selectedLabel->limitLabelWidth(m_width / 2 - 60.f, .5f, .1f);
 	this->updateSettingsList();
+}
+
+void StringSelectSettingNode::updateState() {
+	this->onChange(nullptr);
 }
 
 // custom
