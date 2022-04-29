@@ -23,6 +23,7 @@ public:
     );
 
     void updateList();
+    void resetAllToDefault();
     bool hasUnsavedModifiedSettings() const;
     void applyChanges();
 };

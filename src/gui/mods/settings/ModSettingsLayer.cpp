@@ -70,16 +70,29 @@ bool ModSettingsLayer::init(Mod* mod) {
         this->addChild(rightSprite);
     }
 
-    m_applyButtonSpr = ButtonSprite::create("Apply", "goldFont.fnt", "GJ_button_01.png", .8f);
-    m_applyButtonSpr->setScale(.8f);
+    m_applyBtnSpr = ButtonSprite::create("Apply", "goldFont.fnt", "GJ_button_01.png", .8f);
+    m_applyBtnSpr->setScale(.8f);
 
     auto applyBtn = CCMenuItemSpriteExtra::create(
-        m_applyButtonSpr,
+        m_applyBtnSpr,
         this,
         menu_selector(ModSettingsLayer::onApply)
     );
     applyBtn->setPosition(size.width / 2 - 80.f, -size.height / 2 + 25.f);
     m_buttonMenu->addChild(applyBtn);
+
+
+    auto resetBtnSpr = ButtonSprite::create("Reset to Default", "goldFont.fnt", "GJ_button_05.png", .8f);
+    resetBtnSpr->setScale(.8f);
+
+    auto resetBtn = CCMenuItemSpriteExtra::create(
+        resetBtnSpr,
+        this,
+        menu_selector(ModSettingsLayer::onResetAllToDefault)
+    );
+    resetBtn->setPosition(size.width / 2 - 180.f, -size.height / 2 + 25.f);
+    m_buttonMenu->addChild(resetBtn);
+
 
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
     closeSpr->setScale(.8f);
@@ -102,11 +115,11 @@ bool ModSettingsLayer::init(Mod* mod) {
 
 void ModSettingsLayer::updateState() {
     if (m_list->hasUnsavedModifiedSettings()) {
-        m_applyButtonSpr->setOpacity(255);
-        m_applyButtonSpr->setColor({ 255, 255, 255 });
+        m_applyBtnSpr->setOpacity(255);
+        m_applyBtnSpr->setColor({ 255, 255, 255 });
     } else {
-        m_applyButtonSpr->setOpacity(155);
-        m_applyButtonSpr->setColor({ 155, 155, 155 });
+        m_applyBtnSpr->setOpacity(155);
+        m_applyBtnSpr->setColor({ 155, 155, 155 });
     }
 }
 
@@ -114,6 +127,10 @@ void ModSettingsLayer::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
     if (btn2) {
         this->close();
     }
+}
+
+void ModSettingsLayer::onResetAllToDefault(CCObject*) {
+    m_list->resetAllToDefault();
 }
 
 void ModSettingsLayer::onApply(CCObject*) {

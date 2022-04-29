@@ -18,6 +18,7 @@ namespace geode {
 	public:
 		virtual void commitChanges() = 0;
         virtual bool hasUnsavedChanges() const = 0;
+		virtual void resetToDefault() = 0;
 		void updateSettingsList();
 
 		SettingNode(float width, float height) : TableViewCell("steve", width, height) {}

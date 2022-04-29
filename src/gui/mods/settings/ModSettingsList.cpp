@@ -2,7 +2,7 @@
 #include <settings/SettingNodeManager.hpp>
 #include <settings/SettingNode.hpp>
 #include <WackyGeodeMacros.hpp>
-#include "../info/ModSettingsLayer.hpp"
+#include "ModSettingsLayer.hpp"
 
 bool ModSettingsList::init(Mod* mod, ModSettingsLayer* layer, float width, float height) {
 	m_mod = mod;
@@ -45,13 +45,13 @@ bool ModSettingsList::init(Mod* mod, ModSettingsLayer* layer, float width, float
 		gen.push_back(separator);
 
 		offset = -offset;
-		for (auto& node : gen) {
-			node->setPositionY(node->getPositionY() + offset);
-		}
 		// to avoid needing to do moveToTopWithOffset, 
 		// just set the content size to the viewport 
 		// size if its less
 		if (offset < height) offset = height;
+		for (auto& node : gen) {
+			node->setPositionY(node->getPositionY() + offset);
+		}
 		m_scrollLayer->m_contentLayer->setContentSize({ width, offset });
 		m_scrollLayer->moveToTop();
 	} else {
@@ -88,6 +88,12 @@ void ModSettingsList::applyChanges() {
 
 void ModSettingsList::updateList() {
 	m_settingsLayer->updateState();
+}
+
+void ModSettingsList::resetAllToDefault() {
+	for (auto& setting : m_settingNodes) {
+		setting->resetToDefault();
+	}
 }
 
 ModSettingsList* ModSettingsList::create(

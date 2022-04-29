@@ -91,6 +91,10 @@ namespace geode {
 			}
 		}
 
+		void resetToDefault() override {
+			m_setting->resetToDefault();
+		}
+
 		~GeodeSettingNode() {
 			CCDirector::sharedDirector()->getTouchDispatcher()->decrementForcePrio(2);
 		}
@@ -227,6 +231,7 @@ namespace geode {
 			return false;
 		}
 		void commitChanges() override {} 
+		void resetToDefault() override {}
 
 		CustomSettingPlaceHolderNode(float width, float height) : SettingNode(width, height) {}
 

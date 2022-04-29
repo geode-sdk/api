@@ -1,7 +1,7 @@
 #include "ModInfoLayer.hpp"
 #include "../dev/HookListLayer.hpp"
 #include "../dev/DevSettingsLayer.hpp"
-#include "ModSettingsLayer.hpp"
+#include "../settings/ModSettingsLayer.hpp"
 #include <nodes/BasedButton.hpp>
 #include <nodes/MDTextArea.hpp>
 #include <fmt/include/fmt/format.h>
