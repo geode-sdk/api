@@ -2,7 +2,7 @@
 
 if "%1"=="pull" (
 
-    git pull origin gui
+    git pull origin main
 
     cd sdk
     git pull origin main
@@ -39,6 +39,6 @@ if "%1"=="pull" (
 
     git add --all
     git commit -a
-    git push origin gui
+    git push origin main
 
 )
