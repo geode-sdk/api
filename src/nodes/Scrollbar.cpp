@@ -105,9 +105,6 @@ void Scrollbar::draw() {
     auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
     auto p = targetHeight / contentHeight;
 
-    auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
-    auto trackPosY = m_thumb->getPositionY();
-
     GLubyte o;
     if (m_hoverHighlight) {
         o = 100;
@@ -127,27 +124,28 @@ void Scrollbar::draw() {
 
     auto y = m_target->m_contentLayer->getPositionY();
 
-    trackPosY = - targetHeight / 2 + thumbHeight / 4 - 5.0f + 
-        ((-y) / h) * (targetHeight - thumbHeight / 2 + 10.0f);
+    auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
+    auto thumbPosY = - targetHeight / 2 + thumbHeight / 4 - 5.0f + 
+        (h ? (-y) / h : 1.f) * (targetHeight - thumbHeight / 2 + 10.0f);
 
     auto fHeightTop = [&]() -> float {
-        return trackPosY - targetHeight / 2 + thumbHeight * .4f / 2 + 3.0f;
+        return thumbPosY - targetHeight / 2 + thumbHeight * .4f / 2 + 3.0f;
     };
     auto fHeightBottom = [&]() -> float {
-        return trackPosY + targetHeight / 2 - thumbHeight * .4f / 2 - 3.0f;
+        return thumbPosY + targetHeight / 2 - thumbHeight * .4f / 2 - 3.0f;
     };
     
     if (fHeightTop() > 0.0f) {
         thumbHeight -= fHeightTop();
-        trackPosY -= fHeightTop();
+        thumbPosY -= fHeightTop();
     }
     
     if (fHeightBottom() < 0.f) {
         thumbHeight += fHeightBottom();
-        trackPosY -= fHeightBottom();
+        thumbPosY -= fHeightBottom();
     }
 
-    m_thumb->setPosition(0.f, trackPosY);
+    m_thumb->setPosition(0.f, thumbPosY);
     if (m_resizeThumb) {
         m_thumb->setContentSize({ m_width, thumbHeight });
     }
@@ -167,6 +165,7 @@ bool Scrollbar::init(CCScrollLayerExt* target) {
         m_track = CCScale9Sprite::create("scrollbar.png"_spr);
         m_track->setColor({ 0, 0, 0 });
         m_track->setOpacity(150);
+        m_track->setScale(.8f);
 
         m_thumb = CCScale9Sprite::create("scrollbar.png"_spr);
         m_thumb->setScale(.4f);
