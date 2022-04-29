@@ -8,39 +8,7 @@
     "repository": "https://github.com/geode-sdk/api",
 	"dependencies": null,
     "binary":       "GeodeAPI",
-    "settings": {
-        "integer-setting": {
-            "type": "int",
-            "name": "Integ er",
-            "description": "yeahhh",
-            "value": {
-                "default": 5,
-                "min": 4,
-                "max": 69
-            }
-        },
-        "string": {
-            "type": "string",
-            "name": "What is you name",
-            "value": {
-                "default": "Steve"
-            }
-        },
-        "morah": {
-            "type": "string[]",
-            "name": "ssss",
-            "value": {
-                "default": 2,
-                "options": [
-                    "Nummer ett",
-                    "Nummer två",
-                    "Nummer tre",
-                    "Nummer fyra",
-                    "Nummer fem"
-                ]
-            }
-        }
-    },
+    "settings": null,
     "resources": {
         "fonts": {
             "mdFont": {
