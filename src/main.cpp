@@ -9,6 +9,10 @@ $observe("Test Keybind") {
     FLAlertLayer::create("Hey", "Keybinds work", "OK")->show();
 }
 
+GEODE_API void GEODE_CALL geode_setting_updated(const char* key, Setting* setting) {
+    std::cout << key << " was just updated, pog!\n";
+}
+
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
 

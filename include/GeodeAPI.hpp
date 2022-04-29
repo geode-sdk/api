@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode.hpp>
-#include "settings/CustomSettingNode.hpp"
+#include "settings/SettingNode.hpp"
 #include "nodes/BasedButtonSprite.hpp"
 #include "nodes/BasedButton.hpp"
 

@@ -1,8 +1,12 @@
 #include "ModSettingsList.hpp"
-#include "SettingNodeManager.hpp"
+#include <settings/SettingNodeManager.hpp>
+#include <settings/SettingNode.hpp>
+#include <WackyGeodeMacros.hpp>
+#include "../info/ModSettingsLayer.hpp"
 
-bool ModSettingsList::init(Mod* mod, float width, float height) {
+bool ModSettingsList::init(Mod* mod, ModSettingsLayer* layer, float width, float height) {
 	m_mod = mod;
+	m_settingsLayer = layer;
 
 	m_scrollLayer = ScrollLayer::create({ width, height });
 	this->addChild(m_scrollLayer);
@@ -14,6 +18,8 @@ bool ModSettingsList::init(Mod* mod, float width, float height) {
 		for (auto const& sett : mod->getSettings()) {
 			auto node = SettingNodeManager::get()->generateNode(mod, sett, width);
 			if (node) {
+				m_settingNodes.push_back(node);
+				node->m_list = this;
 				if (coloredBG) {
 					node->m_backgroundLayer->setColor({ 0, 0, 0 });
 					node->m_backgroundLayer->setOpacity(50);
@@ -63,11 +69,32 @@ bool ModSettingsList::init(Mod* mod, float width, float height) {
 	return true;
 }
 
+bool ModSettingsList::hasUnsavedModifiedSettings() const {
+	for (auto& setting : m_settingNodes) {
+		if (setting->hasUnsavedChanges()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void ModSettingsList::applyChanges() {
+	for (auto& setting : m_settingNodes) {
+		if (setting->hasUnsavedChanges()) {
+			setting->commitChanges();
+		}
+	}
+}
+
+void ModSettingsList::updateList() {
+	m_settingsLayer->updateState();
+}
+
 ModSettingsList* ModSettingsList::create(
-	Mod* mod, float width, float height
+	Mod* mod, ModSettingsLayer* layer, float width, float height
 ) {
 	auto ret = new ModSettingsList();
-	if (ret && ret->init(mod, width, height)) {
+	if (ret && ret->init(mod, layer, width, height)) {
 		ret->autorelease();
 		return ret;
 	}

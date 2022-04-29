@@ -1,5 +1,5 @@
-#include "SettingNodeManager.hpp"
-#include "SettingNode.hpp"
+#include <settings/SettingNodeManager.hpp>
+#include "GeodeSettingNode.hpp"
 
 SettingNodeManager* SettingNodeManager::get() {
     static auto inst = new SettingNodeManager();
@@ -16,7 +16,7 @@ bool SettingNodeManager::registerCustomNode(
 #define GEODE_GENERATE_SETTING_SWITCH_CREATE(_node_) \
 	case SettingType::_node_: return _node_##SettingNode::create(dynamic_cast<_node_##Setting*>(setting), width);
 
-TableViewCell* SettingNodeManager::generateNode(Mod* mod, Setting* setting, float width) {
+SettingNode* SettingNodeManager::generateNode(Mod* mod, Setting* setting, float width) {
 	switch (setting->getType()) {
 		GEODE_GENERATE_SETTING_SWITCH_CREATE(Bool);
 		GEODE_GENERATE_SETTING_SWITCH_CREATE(Int);

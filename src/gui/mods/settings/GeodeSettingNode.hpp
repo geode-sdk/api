@@ -5,24 +5,32 @@
 #include <Geode.hpp>
 #include <nodes/MenuInputNode.hpp>
 #include <nodes/Popup.hpp>
+#include <settings/SettingNode.hpp>
 
 USE_GEODE_NAMESPACE();
+
 namespace geode {
 	class ColorPickPopup;
 
 	template<class SettingClass>
-	class GeodeSettingNode : public TableViewCell {
+	class GeodeSettingNode : public SettingNode {
 	protected:
 		SettingClass* m_setting;
 		CCMenu* m_buttonMenu;
 		CCLabelBMFont* m_nameLabel;
 		CCMenuItemSpriteExtra* m_descButton = nullptr;
+		typename SettingClass::value_type_t m_value;
 
 		bool init(SettingClass* setting) {
 			if (!CCNode::init())
 				return false;
 			
 			m_setting = setting;
+			if constexpr (std::is_same_v<SettingClass::value_type_t, size_t>) {
+				m_value = m_setting->getIndex();
+			} else {
+				m_value = m_setting->getValue();
+			}
 
 			this->setContentSize({ m_width, m_height });
 
@@ -67,11 +75,27 @@ namespace geode {
 			)->show();
 		}
 
+		bool hasUnsavedChanges() const override {
+			if constexpr (std::is_same_v<SettingClass::value_type_t, size_t>) {
+				return m_value != m_setting->getIndex();
+			} else {
+				return m_value != m_setting->getValue();
+			}
+		}
+
+		void commitChanges() override {
+			if constexpr (std::is_same_v<SettingClass::value_type_t, size_t>) {
+				m_setting->setIndex(m_value);
+			} else {
+				m_setting->setValue(m_value);
+			}
+		}
+
 		~GeodeSettingNode() {
 			CCDirector::sharedDirector()->getTouchDispatcher()->decrementForcePrio(2);
 		}
 
-		GeodeSettingNode(float width, float height) : TableViewCell("steve", width, height) {}
+		GeodeSettingNode(float width, float height) : SettingNode(width, height) {}
 	};
 
 	class BoolSettingNode : public GeodeSettingNode<BoolSetting> {
@@ -195,11 +219,16 @@ namespace geode {
 		static StringSelectSettingNode* create(StringSelectSetting* setting, float width);
 	};
 
-	class CustomSettingPlaceHolderNode : public TableViewCell {
+	class CustomSettingPlaceHolderNode : public SettingNode {
 	protected:
 		bool init(CustomSettingPlaceHolder* setting, bool isLoaded);
 
-		CustomSettingPlaceHolderNode(float width, float height) : TableViewCell("custom", width, height) {}
+		bool hasUnsavedChanges() const override {
+			return false;
+		}
+		void commitChanges() override {} 
+
+		CustomSettingPlaceHolderNode(float width, float height) : SettingNode(width, height) {}
 
 	public:
 		static CustomSettingPlaceHolderNode* create(CustomSettingPlaceHolder* setting, bool isLoaded, float width);
