@@ -79,12 +79,12 @@
 	- (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender {
         NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
         
-        if (NotificationCenter::get()->getObservers("dragdrop", nullptr).size() > 0)
+        if (EventCenter::get()->getObservers("dragdrop", nullptr).size() > 0)
             return YES;
 
         for (NSURL* dragItem in dragItems) {
             //DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
-            if (NotificationCenter::get()->getObservers(std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String, nullptr).size() > 0)
+            if (EventCenter::get()->getObservers(std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String, nullptr).size() > 0)
                 return YES;
         }
         return NO;
@@ -96,13 +96,13 @@
 	    for (NSURL* dragItem in dragItems) {
 	    	//DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
 
-            NotificationCenter::get()->broadcast(Notification(
+            EventCenter::get()->broadcast(Event(
                 "dragdrop",
                 ghc::filesystem::path(dragItem.path.UTF8String),
                 Interface::get()->mod()                
             ));
 
-            NotificationCenter::get()->broadcast(Notification(
+            EventCenter::get()->broadcast(Event(
                 std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String,
                 ghc::filesystem::path(dragItem.path.UTF8String),
                 Interface::get()->mod()                

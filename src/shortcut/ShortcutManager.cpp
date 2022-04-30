@@ -91,8 +91,8 @@ void ShortcutManager::update(float dt) {
 						state.eventActive = false;
 					}
 
-					NotificationCenter::get()->send(
-						Notification<bool>(
+					EventCenter::get()->send(
+						Event<bool>(
 							action->m_selector,
 							true,
 							Mod::get()
@@ -102,8 +102,8 @@ void ShortcutManager::update(float dt) {
 				}
 			} else {
 				if (!state.firstFire) {
-					NotificationCenter::get()->send(
-						Notification<bool>(
+					EventCenter::get()->send(
+						Event<bool>(
 							action->m_selector,
 							false,
 							Mod::get()

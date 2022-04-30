@@ -89,13 +89,13 @@ class $modify(CCEGLView) {
         //             fileExtension = fileExtension.substr(1);
         //         }
 
-        //         NotificationCenter::get()->broadcast(Notification(
+        //         EventCenter::get()->broadcast(Event(
         //             "dragdrop",
         //             p,
         //             Mod::get()
         //         ));
 
-        //         NotificationCenter::get()->broadcast(Notification(
+        //         EventCenter::get()->broadcast(Event(
         //             std::string("dragdrop.") + fileExtension,
         //             p,
         //             Mod::get()            
