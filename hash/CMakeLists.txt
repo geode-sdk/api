@@ -4,6 +4,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED On)
 
 project(GeodeChecksum VERSION 1.0)
 
-add_executable(${PROJECT_NAME} checksum.cpp)
+add_executable(${PROJECT_NAME} hash.cpp)
 
 message(STATUS "Building Checksum Exe")

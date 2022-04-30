@@ -14,7 +14,7 @@ struct IndexItem {
         std::unordered_set<PlatformID> m_platforms;
         std::string m_url;
         std::string m_filename;
-        uint32_t m_checksum;
+        std::string m_hash;
     } m_download;
     std::string m_installFailed;
 };
@@ -44,7 +44,7 @@ protected:
 public:
     static Index* get();
 
-    uint32_t calculateChecksum(ghc::filesystem::path const& path);
+    std::string calculateHash(ghc::filesystem::path const& path);
 
     std::vector<IndexItem> const& getItems() const;
     std::vector<IndexItem> getUninstalledItems() const;

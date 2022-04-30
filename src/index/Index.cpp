@@ -2,7 +2,7 @@
 #include <curl/curl.h>
 #include <thread>
 #include <json.hpp>
-#include <checksum.hpp>
+#include <hash.hpp>
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 
@@ -137,8 +137,8 @@ struct ModInstallUpdate : public CCObject {
 };
 
 
-uint32_t Index::calculateChecksum(ghc::filesystem::path const& path) {
-    return ::calculateChecksum(path.string());
+std::string Index::calculateHash(ghc::filesystem::path const& path) {
+    return ::calculateHash(path.string());
 }
 
 Index* Index::get() {
@@ -433,14 +433,14 @@ void Index::updateIndexFromLocalCache() {
                             << "[index.json].download.name is not a string, skipping";
                         continue;
                     }
-                    if (!download.contains("checksum") || !download["checksum"].is_number_unsigned()) {
+                    if (!download.contains("hash") || !download["hash"].is_string()) {
                         Log::get() << Severity::Warning
-                            << "[index.json].download.checksum is not an integer, skipping";
+                            << "[index.json].download.hash is not a string, skipping";
                         continue;
                     }
                     item.m_download.m_url = download["url"].get<std::string>();
                     item.m_download.m_filename = download["name"].get<std::string>();
-                    item.m_download.m_checksum = download["checksum"].get<uint32_t>();
+                    item.m_download.m_hash = download["hash"].get<std::string>();
                     for (auto& platform : download["platforms"]) {
                         if (!platform.is_string()) {
                             Log::get() << Severity::Warning
@@ -536,7 +536,7 @@ void Index::installItem(std::string const& id) {
                 "the Geode developers - this should not happen, ever."
             ));
         }
-        if (!item.m_download.m_checksum) {
+        if (!item.m_download.m_hash.size()) {
             return this->postMSG(callfuncO_selector(Index::modInstallFailed), new ModInstallUpdate(
                 &item, "Checksum not set! Report this bug to "
                 "the Geode developers - this should not happen, ever."
@@ -579,9 +579,9 @@ void Index::installItem(std::string const& id) {
         }
 
         POST_MI_PROG("Verifying", 100);
-        auto checksum = this->calculateChecksum(tempFile);
+        auto checksum = this->calculateHash(tempFile);
 
-        if (checksum != item.m_download.m_checksum) {
+        if (checksum != item.m_download.m_hash) {
             return this->postMSG(callfuncO_selector(Index::modInstallFailed), new ModInstallUpdate(
                 &item, "Checksum mismatch! (Downloaded file did not match what "
                 "was expected. Try again, and if the download fails another time, "

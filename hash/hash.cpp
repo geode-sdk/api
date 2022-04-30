@@ -1,11 +1,11 @@
 #include <iostream>
-#include "checksum.hpp"
+#include "hash.hpp"
 
 int main(int ac, char* av[]) {
     if (ac < 2) {
         std::cout << "Usage: \"checksum <file>\"\n";
         return 1;
     }
-    std::cout << "Checksum: " << calculateChecksum(av[1]) << "\n";
+    std::cout << calculateHash(av[1]) << std::hex;
     return 0;
 }
