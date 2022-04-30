@@ -13,7 +13,7 @@ namespace geode {
 		// part of api
 		ModSettingsList* m_list = nullptr;
 
-		friend class ModSettingsList;
+		friend class ::ModSettingsList;
 
 	public:
 		virtual void commitChanges() = 0;

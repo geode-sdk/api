@@ -132,6 +132,8 @@ void ModCell::loadFromObject(ModObject* modobj) {
         case ModObjectType::Index:
             info = modobj->m_index.m_info;
             break;
+        
+        default: return;
     }
 
     auto titleLabel = CCLabelBMFont::create(info.m_name.c_str(), "bigFont.fnt");

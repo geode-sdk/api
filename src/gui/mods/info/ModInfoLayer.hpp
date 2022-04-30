@@ -35,7 +35,7 @@ protected:
     void modInstallProgress(std::string const& info, uint8_t percentage) override;
     void modInstallFailed(std::string const& info) override;
     void modInstallFinished() override;
-    void FLAlert_Clicked(FLAlertLayer*, bool);
+    void FLAlert_Clicked(FLAlertLayer*, bool) override;
 
     bool init(ModObject* obj, ModListView* list);
 
