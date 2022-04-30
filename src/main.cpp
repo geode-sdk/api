@@ -15,7 +15,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
 
     if (!Index::get()->isIndexUpdated()) {
-        Index::get()->updateIndex();
+        Index::get()->updateIndex(); 
     }
 
     /*mod->with<GeodeAPI>()->addKeybindAction(TriggerableAction {
