@@ -2,15 +2,17 @@
 
 #include <Geode.hpp>
 #include "ModListView.hpp"
+#include <index/Index.hpp>
 
 USE_GEODE_NAMESPACE();
 
 class SearchFilterPopup;
 
-class ModListLayer : public CCLayer, public TextInputDelegate {
+class ModListLayer : public CCLayer, public TextInputDelegate, public IndexDelegate {
 protected:
 	GJListLayer* m_list = nullptr;
 	CCLabelBMFont* m_listLabel;
+	CCLabelBMFont* m_indexUpdateLabel;
 	CCMenu* m_menu;
 	CCMenu* m_topMenu;
 	CCMenuItemToggler* m_installedTabBtn;
@@ -20,6 +22,7 @@ protected:
 	CCMenuItemSpriteExtra* m_searchClearBtn;
 	CCNode* m_searchBG = nullptr;
 	CCTextInputNode* m_searchInput = nullptr;
+	LoadingCircle* m_loadingCircle = nullptr;
 	int m_searchFlags = ModListView::s_allFlags;
 
 	~ModListLayer() override;
@@ -33,13 +36,16 @@ protected:
 	void onTab(CCObject*);
 	void onSearchFilters(CCObject*);
 	void textChanged(CCTextInputNode*) override;
+	void indexUpdateProgress(std::string const& info) override;
+	void indexUpdateFailed(std::string const& info) override;
+	void indexUpdateFinished() override;
 	std::tuple<CCNode*, CCTextInputNode*> createSearchControl();
-
-	void reloadList();
 
 	friend class SearchFilterPopup;
 
 public:
 	static ModListLayer* create();
 	static ModListLayer* scene();
+
+	void reloadList();
 };

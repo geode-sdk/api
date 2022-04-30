@@ -17,6 +17,7 @@ set(SOURCE_FILES
     src/dispatch/MacMouseEvent.mm
 )
 set(INCLUDE_DIRECTORIES
+	"checksum"
 	"include"
 	"include/dragdrop"
 	"include/nodes"
@@ -51,3 +52,5 @@ target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADERS})
 add_subdirectory(md4c)
 
 target_link_libraries(${PROJECT_NAME} md4c)
+
+add_subdirectory(checksum)

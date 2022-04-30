@@ -21,8 +21,8 @@ bool ModListLayer::init() {
 
 	this->addChild(bg);
 
-	this->m_menu = CCMenu::create();
-	this->m_topMenu = CCMenu::create();
+	m_menu = CCMenu::create();
+	m_topMenu = CCMenu::create();
 
 
     auto backBtn = CCMenuItemSpriteExtra::create(
@@ -31,7 +31,7 @@ bool ModListLayer::init() {
 		menu_selector(ModListLayer::onExit)
 	);
 	backBtn->setPosition(-winSize.width / 2 + 25.0f, winSize.height / 2 - 25.0f);
-	this->m_menu->addChild(backBtn);
+	m_menu->addChild(backBtn);
 
 	auto reloadSpr = CCSprite::createWithSpriteFrameName("GJ_updateBtn_001.png");
 	reloadSpr->setScale(.8f);
@@ -39,38 +39,48 @@ bool ModListLayer::init() {
 		reloadSpr, this, menu_selector(ModListLayer::onReload)
 	);
 	reloadBtn->setPosition(-winSize.width / 2 + 30.0f, - winSize.height / 2 + 30.0f);
-	this->m_menu->addChild(reloadBtn);
+	m_menu->addChild(reloadBtn);
 
 	
-    this->m_listLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    m_listLabel = CCLabelBMFont::create("", "bigFont.fnt");
 
-    this->m_listLabel->setPosition(winSize / 2);
-    this->m_listLabel->setScale(.6f);
-    this->m_listLabel->setVisible(false);
-    this->m_listLabel->setZOrder(1001);
+    m_listLabel->setPosition(winSize / 2);
+    m_listLabel->setScale(.6f);
+    m_listLabel->setVisible(false);
+    m_listLabel->setZOrder(1001);
 
-    this->addChild(this->m_listLabel);
+    this->addChild(m_listLabel);
 
-	this->m_installedTabBtn = TabButton::create("Installed", this, menu_selector(ModListLayer::onTab));
-	this->m_installedTabBtn->setPosition(-95.f, 138.5f);
-	this->m_installedTabBtn->setTag(static_cast<int>(ModListType::Installed));
-	this->m_menu->addChild(this->m_installedTabBtn);
+	
+    m_indexUpdateLabel = CCLabelBMFont::create("", "goldFont.fnt");
 
-	this->m_downloadTabBtn = TabButton::create("Download", this, menu_selector(ModListLayer::onTab));
-	this->m_downloadTabBtn->setPosition(0.f, 138.5f);
-	this->m_downloadTabBtn->setTag(static_cast<int>(ModListType::Download));
-	this->m_menu->addChild(this->m_downloadTabBtn);
+    m_indexUpdateLabel->setPosition(winSize.width / 2, winSize.height / 2 - 80.f);
+    m_indexUpdateLabel->setScale(.5f);
+    m_indexUpdateLabel->setZOrder(1001);
 
-	this->m_featuredTabBtn = TabButton::create("Featured", this, menu_selector(ModListLayer::onTab));
-	this->m_featuredTabBtn->setPosition(95.f, 138.5f);
-	this->m_featuredTabBtn->setTag(static_cast<int>(ModListType::Featured));
-	this->m_menu->addChild(this->m_featuredTabBtn);
+    this->addChild(m_indexUpdateLabel);
+	
 
-	this->m_menu->setZOrder(0);
-	this->m_topMenu->setZOrder(10);
+	m_installedTabBtn = TabButton::create("Installed", this, menu_selector(ModListLayer::onTab));
+	m_installedTabBtn->setPosition(-95.f, 138.5f);
+	m_installedTabBtn->setTag(static_cast<int>(ModListType::Installed));
+	m_menu->addChild(m_installedTabBtn);
 
-	this->addChild(this->m_menu);
-	this->addChild(this->m_topMenu);
+	m_downloadTabBtn = TabButton::create("Download", this, menu_selector(ModListLayer::onTab));
+	m_downloadTabBtn->setPosition(0.f, 138.5f);
+	m_downloadTabBtn->setTag(static_cast<int>(ModListType::Download));
+	m_menu->addChild(m_downloadTabBtn);
+
+	m_featuredTabBtn = TabButton::create("Featured", this, menu_selector(ModListLayer::onTab));
+	m_featuredTabBtn->setPosition(95.f, 138.5f);
+	m_featuredTabBtn->setTag(static_cast<int>(ModListType::Featured));
+	m_menu->addChild(m_featuredTabBtn);
+
+	m_menu->setZOrder(0);
+	m_topMenu->setZOrder(10);
+
+	this->addChild(m_menu);
+	this->addChild(m_topMenu);
 
 	this->onTab(nullptr);
 
@@ -96,17 +106,17 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	auto searchSpr = CCSprite::createWithSpriteFrameName("gj_findBtn_001.png");
 	searchSpr->setScale(.7f);
 
-	this->m_searchBtn = CCMenuItemSpriteExtra::create(searchSpr, this, nullptr);
-	this->m_searchBtn->setPosition(-35.f, 0.f);
-	menu->addChild(this->m_searchBtn);
+	m_searchBtn = CCMenuItemSpriteExtra::create(searchSpr, this, nullptr);
+	m_searchBtn->setPosition(-35.f, 0.f);
+	menu->addChild(m_searchBtn);
 
 	auto searchClearSpr = CCSprite::createWithSpriteFrameName("gj_findBtnOff_001.png");
 	searchClearSpr->setScale(.7f);
 
-	this->m_searchClearBtn = CCMenuItemSpriteExtra::create(searchClearSpr, this, menu_selector(ModListLayer::onResetSearch));
-	this->m_searchClearBtn->setPosition(-35.f, 0.f);
-	this->m_searchClearBtn->setVisible(false);
-	menu->addChild(this->m_searchClearBtn);
+	m_searchClearBtn = CCMenuItemSpriteExtra::create(searchClearSpr, this, menu_selector(ModListLayer::onResetSearch));
+	m_searchClearBtn->setPosition(-35.f, 0.f);
+	m_searchClearBtn->setVisible(false);
+	menu->addChild(m_searchClearBtn);
 
 	auto inputBG = CCScale9Sprite::create(
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
@@ -129,57 +139,113 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	return { layer, input };
 }
 
+void ModListLayer::indexUpdateProgress(std::string const& info) {
+	if (g_tab == ModListType::Download) {
+		this->reloadList();
+		m_indexUpdateLabel->setVisible(true);
+		m_indexUpdateLabel->setString(info.c_str());
+	}
+}
+
+void ModListLayer::indexUpdateFailed(std::string const& info) {
+	if (g_tab == ModListType::Download) {
+		this->reloadList();
+		m_indexUpdateLabel->setString("");
+	}
+	FLAlertLayer::create(
+		"Error Updating Index",
+		info, "OK"
+	)->show();
+}
+
+void ModListLayer::indexUpdateFinished() {
+	if (g_tab == ModListType::Download) {
+		this->reloadList();
+		m_indexUpdateLabel->setString("");
+	}
+}
+
 void ModListLayer::reloadList() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    if (this->m_list) {
-		if (this->m_searchBG) this->m_searchBG->retain();
-        this->m_list->removeFromParent();
+    if (m_list) {
+		if (m_searchBG) m_searchBG->retain();
+        m_list->removeFromParent();
 	}
 
-	const char* filter = this->m_searchInput ? this->m_searchInput->getString() : nullptr;
-	auto list = ModListView::create(g_tab, 358.f, 190.f, filter, this->m_searchFlags);
+	const char* filter = m_searchInput ? m_searchInput->getString() : nullptr;
+	auto list = ModListView::create(g_tab, 358.f, 190.f, filter, m_searchFlags);
+	list->setLayer(this);
 
 	auto status = list->getStatusAsString();
 	if (status.size()) {
-		this->m_listLabel->setVisible(true);
-		this->m_listLabel->setString(status.c_str());
+		m_listLabel->setVisible(true);
+		m_listLabel->setString(status.c_str());
 	} else {
-		this->m_listLabel->setVisible(false);
+		m_listLabel->setVisible(false);
 	}
 
-    this->m_list = GJListLayer::create(
+	if (g_tab == ModListType::Download && !Index::get()->isIndexUpdated()) {
+		auto failMsg = Index::get()->indexUpdateFailed();
+		if (failMsg.size()) {
+			// todo: display whole fail message here
+			m_listLabel->setString("Updating index failed :(");
+			if (m_loadingCircle) {
+				m_loadingCircle->fadeAndRemove();
+				m_loadingCircle = nullptr;
+			}
+		} else {
+			m_listLabel->setString("Updating index...");
+			if (!m_loadingCircle) {
+				m_loadingCircle = LoadingCircle::create();
+
+				m_loadingCircle->setPosition(.0f, -40.f);
+				m_loadingCircle->setScale(.7f);
+				m_loadingCircle->setZOrder(1001);
+
+				m_loadingCircle->show();
+			}
+			Index::get()->updateIndex();
+		}
+	} else {
+		if (m_loadingCircle) {
+			m_loadingCircle->fadeAndRemove();
+			m_loadingCircle = nullptr;
+		}
+	}
+
+    m_list = GJListLayer::create(
         list, nullptr, { 0, 0, 0, 180 },
 		358.f, 220.f
     );
-	this->m_list->setZOrder(2);
-    this->m_list->setPosition(
-        winSize / 2 - this->m_list->getScaledContentSize() / 2
+	m_list->setZOrder(2);
+    m_list->setPosition(
+        winSize / 2 - m_list->getScaledContentSize() / 2
     );
-    this->addChild(this->m_list);
+    this->addChild(m_list);
 
-	if (!this->m_searchInput) {
+	if (!m_searchInput) {
 		auto search = this->createSearchControl();
 
-		this->m_searchBG = std::get<0>(search);
-		this->m_searchBG->setPosition(0.f, 190.f);
-		this->m_list->addChild(this->m_searchBG);
+		m_searchBG = std::get<0>(search);
+		m_searchBG->setPosition(0.f, 190.f);
+		m_list->addChild(m_searchBG);
 
-		this->m_searchInput = std::get<1>(search);
-		this->m_searchInput->setPosition(
+		m_searchInput = std::get<1>(search);
+		m_searchInput->setPosition(
 			winSize.width / 2 - 155.f,
 			winSize.height / 2 + 95.f
 		);
-		this->m_searchInput->setZOrder(60);
-		this->addChild(this->m_searchInput);
+		m_searchInput->setZOrder(60);
+		this->addChild(m_searchInput);
 	} else {
-		this->m_list->addChild(this->m_searchBG);
-		this->m_searchBG->release();
+		m_list->addChild(m_searchBG);
+		m_searchBG->release();
 	}
 
 	auto hasQuery = filter && strlen(filter);
-	this->m_searchBtn->setVisible(!hasQuery);
-	this->m_searchClearBtn->setVisible(hasQuery);
+	m_searchBtn->setVisible(!hasQuery);
+	m_searchClearBtn->setVisible(hasQuery);
 }
 
 void ModListLayer::textChanged(CCTextInputNode* input) {
@@ -198,7 +264,7 @@ void ModListLayer::onReload(CCObject*) {
 }
 
 void ModListLayer::onResetSearch(CCObject*) {
-	this->m_searchInput->setString("");
+	m_searchInput->setString("");
 }
 
 void ModListLayer::keyDown(enumKeyCodes key) {
@@ -215,7 +281,7 @@ void ModListLayer::onTab(CCObject* pSender) {
 
 	auto toggleTab = [this](CCMenuItemToggler* member) -> void {
 		auto isSelected = member->getTag() == static_cast<int>(g_tab);
-		auto targetMenu = isSelected ? this->m_topMenu : this->m_menu;
+		auto targetMenu = isSelected ? m_topMenu : m_menu;
 		member->toggle(isSelected);
 		if (member->getParent() != targetMenu) {
 			member->retain();
@@ -225,9 +291,9 @@ void ModListLayer::onTab(CCObject* pSender) {
 		}
 	};
 
-	toggleTab(this->m_downloadTabBtn);
-	toggleTab(this->m_installedTabBtn);
-	toggleTab(this->m_featuredTabBtn);
+	toggleTab(m_downloadTabBtn);
+	toggleTab(m_installedTabBtn);
+	toggleTab(m_featuredTabBtn);
 }
 
 void ModListLayer::onSearchFilters(CCObject*) {

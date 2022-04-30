@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode.hpp>
+#include <index/Index.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -13,24 +14,42 @@ enum class ModListType {
 	Featured,
 };
 
+enum class ModObjectType {
+    Mod,
+    Unloaded,
+    Index,
+};
+
+class ModListLayer;
+
 // Wrapper so you can pass Mods in a CCArray
 struct ModObject : public CCObject {
-    Mod* m_mod = nullptr;
+    ModObjectType m_type;
+    Mod* m_mod;
     Loader::UnloadedModInfo m_info;
-    inline ModObject(Mod* mod) : m_mod(mod) {
+    IndexItem m_index;
+
+    inline ModObject(Mod* mod)
+     : m_mod(mod), m_type(ModObjectType::Mod) {
         this->autorelease();
     };
-    inline ModObject(Loader::UnloadedModInfo info) : m_info(info) {
+    inline ModObject(Loader::UnloadedModInfo const& info)
+     : m_info(info), m_type(ModObjectType::Unloaded) {
+        this->autorelease();
+    };
+    inline ModObject(IndexItem const& index)
+     : m_index(index), m_type(ModObjectType::Index) {
         this->autorelease();
     };
 };
 
 class ModListView;
+
 class ModCell : public TableViewCell {
 protected:
     ModListView* m_list;
-    Mod* m_mod;
     ModObject* m_obj;
+    CCMenu* m_menu;
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCMenuItemSpriteExtra* m_unresolvedExMark;
 
@@ -42,12 +61,15 @@ protected:
     void onEnable(CCObject*);
     void onUnresolvedInfo(CCObject*);
 
+    void setupUnloaded();
+    void setupLoadedButtons();
+    void setupIndexButtons();
+
     bool init(ModListView* list);
 
 public:
     void updateBGColor(int index);
-    void loadFromMod(ModObject*);
-    void loadFromFailureInfo(Loader::UnloadedModInfo info);
+    void loadFromObject(ModObject*);
     void updateState(bool invert = false);
 
     static ModCell* create(ModListView* list, const char* key, CCSize size);
@@ -81,6 +103,7 @@ protected:
     };
 
     Status m_status = Status::OK;
+    ModListLayer* m_layer = nullptr;
 
     void setupList() override;
     TableViewCell* getListCell(const char* key) override;
@@ -94,7 +117,7 @@ protected:
         const char* searchFilter,
         int searchFlags
     );
-    bool filter(Mod* mod, const char* searchFilter, int searchFlags);
+    bool filter(ModInfo const& info, const char* searchFilter, int searchFlags);
 
 public:
     static ModListView* create(
@@ -114,6 +137,8 @@ public:
     );
 
     void updateAllStates(ModCell* toggled = nullptr);
+    void setLayer(ModListLayer* layer);
+    void refreshList();
 
     Status getStatus() const;
     std::string getStatusAsString() const;
