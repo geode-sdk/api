@@ -10,7 +10,7 @@ namespace geode {
 	class GEODE_API_DLL SettingNode : public TableViewCell {
 	private:
 		// private because this class is not 
-		// part of api
+		// part of public api
 		ModSettingsList* m_list = nullptr;
 
 		friend class ::ModSettingsList;
