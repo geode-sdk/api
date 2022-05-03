@@ -45,9 +45,9 @@ jobs:
     - name: Setup CLI
       shell: bash
       run: |
-        echo ${{ github.workspace }}/suite/${{ matrix.config.bin_folder }} >> $GITHUB_PATH
-        echo {\"install_path\":\"${{ github.workspace }}/build\"} >> ${{ github.workspace }}/suite/${{ matrix.config.bin_folder }}/config.json
-        chmod +x ${{ github.workspace }}/suite/${{ matrix.config.bin_folder }}/${{ matrix.config.cli_name }}
+        echo ./suite/${{ matrix.config.bin_folder }} >> $GITHUB_PATH
+        echo {\"install_path\":\"${{ github.workspace }}/build\"} >> ./suite/${{ matrix.config.bin_folder }}/config.json
+        chmod +x ./suite/${{ matrix.config.bin_folder }}/${{ matrix.config.cli_name }}
 
     - uses: ilammy/msvc-dev-cmd@v1
       with:
