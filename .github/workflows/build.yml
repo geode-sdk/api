@@ -39,6 +39,7 @@ jobs:
       with:
         submodules: recursive
         repository: geode-sdk/suite
+        ref: nightly
         path: ./suite
 
     - name: Setup CLI
