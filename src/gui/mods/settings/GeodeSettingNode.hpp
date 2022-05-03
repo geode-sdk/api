@@ -26,7 +26,7 @@ namespace geode {
 				return false;
 			
 			m_setting = setting;
-			if constexpr (std::is_same_v<SettingClass::value_type_t, size_t>) {
+			if constexpr (std::is_same_v<typename SettingClass::value_type_t, size_t>) {
 				m_value = m_setting->getIndex();
 			} else {
 				m_value = m_setting->getValue();
@@ -76,7 +76,7 @@ namespace geode {
 		}
 
 		bool hasUnsavedChanges() const override {
-			if constexpr (std::is_same_v<SettingClass::value_type_t, size_t>) {
+			if constexpr (std::is_same_v<typename SettingClass::value_type_t, size_t>) {
 				return m_value != m_setting->getIndex();
 			} else {
 				return m_value != m_setting->getValue();
@@ -84,7 +84,7 @@ namespace geode {
 		}
 
 		void commitChanges() override {
-			if constexpr (std::is_same_v<SettingClass::value_type_t, size_t>) {
+			if constexpr (std::is_same_v<typename SettingClass::value_type_t, size_t>) {
 				m_setting->setIndex(m_value);
 			} else {
 				m_setting->setValue(m_value);
@@ -93,7 +93,7 @@ namespace geode {
 
 		void resetToDefault() override {
 			m_setting->resetToDefault();
-			if constexpr (std::is_same_v<SettingClass::value_type_t, size_t>) {
+			if constexpr (std::is_same_v<typename SettingClass::value_type_t, size_t>) {
 				m_value = m_setting->getIndex();
 			} else {
 				m_value = m_setting->getValue();

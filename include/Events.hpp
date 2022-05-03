@@ -4,10 +4,10 @@
 
 USE_GEODE_NAMESPACE();
 
-namespace geode::notifications {
+namespace geode::events {
 
 	template <size_t T>
-	inline constexpr ConstNotifInfo<ghc::filesystem::path> dragDrop(char const a[T]) {
+	inline constexpr ConstEventInfo<ghc::filesystem::path> dragDrop(char const a[T]) {
 		char b[T + 9] = {"dragdrop."};
 
 		for (int i = 0; i < T; ++i) {
@@ -16,6 +16,6 @@ namespace geode::notifications {
 
 		b[T + 9] = '\0';
 
-		return ConstNotifInfo<ghc::filesystem::path>(b);
+		return ConstEventInfo<ghc::filesystem::path>(b);
 	}
 }

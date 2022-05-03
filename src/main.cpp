@@ -1,7 +1,7 @@
 #include <Geode.hpp>
 #include <GeodeAPI.hpp>
 #include "APIInternal.hpp"
-#include <Notifications.hpp>
+#include <Events.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -32,7 +32,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
         )
     ));
 
-    NotificationCenter::get()->registerObserver<ghc::filesystem::path>(
+    EventCenter::get()->registerObserver<ghc::filesystem::path>(
        "dragdrop.geode", [](auto const& data) {
             auto path = data.object();
             auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();

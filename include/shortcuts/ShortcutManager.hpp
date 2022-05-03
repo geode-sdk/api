@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../sdk/include/Geode.hpp"
+#include <Geode.hpp>
 #include <Shortcut.hpp>
 #include <ShortcutAction.hpp>
 #include <string>
