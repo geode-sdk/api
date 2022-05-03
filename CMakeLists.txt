@@ -58,4 +58,5 @@ set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEA
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADERS})
 
 add_subdirectory(md4c)
+
 target_link_libraries(${PROJECT_NAME} md4c)
