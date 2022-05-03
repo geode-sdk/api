@@ -45,18 +45,6 @@ bool ViewImpl::init() {
 	return true;
 }
 
-// virtual bool ViewImpl::initWithItems(cocos2d::CCDictionary*) {
-// 	//im too lazy
-// }
-
-// virtual bool ViewImpl::initWithItems(std::unordered_map<std::string, cocos2d::CCNode*> const& items) {
-// 	this->m_items = items;
-// 	for (auto& [key, value] : items) {
-// 		m_order.push_back(key);
-// 	}
-// 	this->format();
-// }
-
 void ViewImpl::addItem(std::string_view id, cocos2d::CCNode* node) {
 	auto item = ViewItem(id, node);
 	auto it = std::find(m_items.begin(), m_items.end(), item);
