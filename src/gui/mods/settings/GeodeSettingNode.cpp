@@ -1,4 +1,4 @@
-#pragma warning(disable: 4067)
+/*#pragma warning(disable: 4067)
 
 #include "GeodeSettingNode.hpp"
 #include <nodes/TextRenderer.hpp>
@@ -757,4 +757,4 @@ GEODE_GENERATE_SETTING_CREATE(StringSetting, 30.f);
 GEODE_GENERATE_SETTING_CREATE(ColorSetting, 30.f);
 GEODE_GENERATE_SETTING_CREATE(ColorAlphaSetting, 30.f);
 GEODE_GENERATE_SETTING_CREATE(PathSetting, 30.f);
-GEODE_GENERATE_SETTING_CREATE(StringSelectSetting, 30.f);
+GEODE_GENERATE_SETTING_CREATE(StringSelectSetting, 30.f);*/

@@ -1,4 +1,4 @@
-#include "ModSettingsLayer.hpp"
+/*#include "ModSettingsLayer.hpp"
 #include "../settings/ModSettingsList.hpp"
 
 bool ModSettingsLayer::init(Mod* mod) {
@@ -190,5 +190,5 @@ ModSettingsLayer* ModSettingsLayer::create(Mod* mod) {
     }
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
+}*/
 

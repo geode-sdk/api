@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Geode.hpp>
-#include "settings/SettingNode.hpp"
 #include "nodes/BasedButtonSprite.hpp"
 #include "nodes/BasedButton.hpp"
 
@@ -14,9 +13,5 @@ namespace geode {
     public:
         API_INIT("com.geode.api");
 
-        Result<> setCustomSettingNode(
-            std::string const& key,
-            CustomSettingNodeGenerator generator
-        ) API_DECL(&GeodeAPI::setCustomSettingNode, key, generator);
     };
 }

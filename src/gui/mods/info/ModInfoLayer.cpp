@@ -8,6 +8,7 @@
 #include <APIInternal.hpp>
 #include "../list/ModListView.hpp"
 #include <nodes/Scrollbar.hpp>
+#include <settings/Setting.hpp>
 
 bool ModInfoLayer::init(Mod* mod, ModListView* list) {
     m_noElasticity = true;
@@ -113,7 +114,7 @@ bool ModInfoLayer::init(Mod* mod, ModListView* list) {
     settingsBtn->setPosition(-size.width / 2 + 25.f, -size.height / 2 + 25.f);
     m_buttonMenu->addChild(settingsBtn);
 
-    if (!mod->getSettings().size()) {
+    if (!SettingManager::with(mod)->hasSettings()) {
         settingsSpr->setColor({ 150, 150, 150 });
         settingsBtn->setTarget(this, menu_selector(ModInfoLayer::onNoSettings));
     }
@@ -229,7 +230,8 @@ void ModInfoLayer::onHooks(CCObject*) {
 }
 
 void ModInfoLayer::onSettings(CCObject*) {
-    ModSettingsLayer::create(this->m_mod)->show();
+    //ModSettingsLayer::create(this->m_mod)->show();
+    #warning No settings yet
 }
 
 void ModInfoLayer::onNoSettings(CCObject*) {

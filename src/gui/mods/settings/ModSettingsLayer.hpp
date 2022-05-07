@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 
 #include <Geode.hpp>
 
@@ -28,3 +28,4 @@ class ModSettingsLayer : public FLAlertLayer, public FLAlertLayerProtocol {
         void updateState();
 };
 
+*/
