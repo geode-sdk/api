@@ -206,7 +206,7 @@ void ModListLayer::onReload(CCObject*) {
 }
 
 void ModListLayer::onOpenFolder(CCObject*) {
-	AppDelegate::get()->openURL(
+	CCApplication::sharedApplication()->openURL(
 		(
 			std::string("file://localhost/") +
 			ghc::filesystem::canonical(Loader::get()->getGeodeDirectory() / "mods").string()
