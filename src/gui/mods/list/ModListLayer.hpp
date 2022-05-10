@@ -28,6 +28,7 @@ protected:
 
 	void onExit(CCObject*);
 	void onReload(CCObject*);
+	void onOpenFolder(CCObject*);
 	void onResetSearch(CCObject*);
 	void keyDown(enumKeyCodes) override;
 	void onTab(CCObject*);

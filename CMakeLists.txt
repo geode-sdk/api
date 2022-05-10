@@ -51,7 +51,6 @@ find_path(GEODE_SDK_PATH
 )
 include(${GEODE_SDK_PATH}/Geode.cmake)
 setup_geode_mod(BUILD_CODEGEN OUTPUT "GeodeAPI")
-geode_link_bin()
 
 set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 

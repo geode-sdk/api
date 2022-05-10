@@ -41,6 +41,14 @@ bool ModListLayer::init() {
 	reloadBtn->setPosition(-winSize.width / 2 + 30.0f, - winSize.height / 2 + 30.0f);
 	this->m_menu->addChild(reloadBtn);
 
+	auto openSpr = CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png");
+	openSpr->setScale(.8f);
+    auto openBtn = CCMenuItemSpriteExtra::create(
+		openSpr, this, menu_selector(ModListLayer::onOpenFolder)
+	);
+	openBtn->setPosition(-winSize.width / 2 + 30.0f, - winSize.height / 2 + 80.0f);
+	this->m_menu->addChild(openBtn);
+
 	
     this->m_listLabel = CCLabelBMFont::create("", "bigFont.fnt");
 
@@ -195,6 +203,15 @@ void ModListLayer::onExit(CCObject*) {
 void ModListLayer::onReload(CCObject*) {
 	Loader::get()->refreshMods();
 	this->reloadList();
+}
+
+void ModListLayer::onOpenFolder(CCObject*) {
+	AppDelegate::get()->openURL(
+		(
+			std::string("file://localhost/") +
+			ghc::filesystem::canonical(Loader::get()->getGeodeDirectory() / "mods").string()
+		).c_str()
+	);
 }
 
 void ModListLayer::onResetSearch(CCObject*) {
