@@ -10,6 +10,10 @@
 #include <nodes/Scrollbar.hpp>
 #include <settings/Setting.hpp>
 
+// TODO: die
+#undef min
+#undef max
+
 bool ModInfoLayer::init(Mod* mod, ModListView* list) {
     m_noElasticity = true;
     m_mod = mod;
@@ -231,7 +235,7 @@ void ModInfoLayer::onHooks(CCObject*) {
 
 void ModInfoLayer::onSettings(CCObject*) {
     //ModSettingsLayer::create(this->m_mod)->show();
-    #warning No settings yet
+    // FIXME: No settings yet
 }
 
 void ModInfoLayer::onNoSettings(CCObject*) {

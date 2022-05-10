@@ -1,5 +1,9 @@
 #include <nodes/Scrollbar.hpp>
 
+// TODO: die
+#undef min
+#undef max
+
 USE_GEODE_NAMESPACE();
 
 bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {

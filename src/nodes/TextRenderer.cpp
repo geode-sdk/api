@@ -1,6 +1,10 @@
 #include <nodes/TextRenderer.hpp>
 #include <WackyGeodeMacros.hpp>
 
+// TODO: die
+#undef min
+#undef max
+
 USE_GEODE_NAMESPACE();
 using namespace std::string_literals;
 
