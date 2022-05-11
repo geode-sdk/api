@@ -4,15 +4,26 @@
 #include <nodes/BasedButtonSprite.hpp>
 #include <views/BasicViews.hpp>
 
+// class $modify(PlatformToolbox) {
+// 	bool isControllerConnected() {
+// 		return true;
+// 	}
+// };
+
 class $modify(CustomMenuLayer, MenuLayer) {
 
 	bool init() {
 		if (!MenuLayer::init())
 			return false;
 		
-		auto bottomMenu = getChild<CCMenu*>(this, 3);
-		Log::get() << "type of bottom menu: " << typeid(*bottomMenu).name();
-		Log::get() << "child count: " << bottomMenu->getChildren()->count();
+		CCMenu* bottomMenu = nullptr;
+		// this is why we need the view system
+		if (!GameManager::sharedState()->m_clickedGarage) {
+			bottomMenu = getChild<CCMenu*>(this, 4);
+		}
+		else {
+			bottomMenu = getChild<CCMenu*>(this, 3);
+		}
 
 		auto chest = getChild<>(bottomMenu, -1);
 		if (chest) {
