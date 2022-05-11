@@ -30,7 +30,7 @@ class $modify(CCScheduler) {
 };
 #endif
 
-#ifdef GEODE_IS_MOBILE
+#if defined(GEODE_IS_MOBILE)
 class $modify(CCTouchDispatcher) {
     void touches(cocos2d::CCSet* touches, cocos2d::CCEvent* event, unsigned int touchType) {
         auto touch = touches->anyObject();

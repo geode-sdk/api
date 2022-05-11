@@ -4,6 +4,7 @@
 
 #ifdef GEODE_IS_MACOS
 
+#include "../shortcuts/MouseEvent.hpp"
 #include <CCEventDispatcher.h>
 #import <Cocoa/Cocoa.h>
 #import <EAGLView.h>
@@ -16,7 +17,9 @@
 
     +(MacMouseEvent*) sharedEvent;
 
-    -(void) mouseMoved:(NSEvent*)event;
+    -(void) moved:(NSEvent*)event;
+    -(void) down:(NSEvent*)event type:(geode::MouseEvent)type;
+    -(void) up:(NSEvent*)event type:(geode::MouseEvent)type;
 
     -(cocos2d::CCPoint) getMousePosition;
 
