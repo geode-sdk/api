@@ -63,8 +63,6 @@ static EventType s_originalMouseMoved;
 
 	m_xPosition = x / [[NSClassFromString(@"EAGLView") sharedEGLView] frameZoomFactor];
 	m_yPosition = y / [[NSClassFromString(@"EAGLView") sharedEGLView] frameZoomFactor];
-
-	Log::get() << m_xPosition << " " << m_yPosition;
 }
 
 -(cocos2d::CCPoint) getMousePosition {

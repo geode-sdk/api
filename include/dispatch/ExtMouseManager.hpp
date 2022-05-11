@@ -36,6 +36,7 @@ namespace geode {
     };
 
     class GEODE_API_DLL ExtMouseManager {
+        API_INIT("com.geode.api");
     protected:
         std::vector<ExtMouseDelegate*> m_delegates;
         cocos2d::CCPoint m_lastPosition;
@@ -50,20 +51,20 @@ namespace geode {
         ~ExtMouseManager();
     
     public:
-        static ExtMouseManager* get();
+        static ExtMouseManager* get()
 
-        void pushDelegate(ExtMouseDelegate* delegate);
-        void popDelegate(ExtMouseDelegate* delegate);
+        void pushDelegate(ExtMouseDelegate* delegate)
+        void popDelegate(ExtMouseDelegate* delegate)
 
-        void captureMouse(ExtMouseDelegate* delegate);
-        void releaseCapture(ExtMouseDelegate* delegate);
-        bool isCapturing(ExtMouseDelegate* delegate) const;
+        void captureMouse(ExtMouseDelegate* delegate)
+        void releaseCapture(ExtMouseDelegate* delegate)
+        bool isCapturing(ExtMouseDelegate* delegate) const
 
-        bool dispatchClickEvent(MouseEvent button, bool down, cocos2d::CCPoint const& pos);
-        void dispatchMoveEvent(cocos2d::CCPoint const& pos);
-        bool dispatchScrollEvent(float y, float x, cocos2d::CCPoint const& pos);
+        bool dispatchClickEvent(MouseEvent button, bool down, cocos2d::CCPoint const& pos)
+        void dispatchMoveEvent(cocos2d::CCPoint const& pos)
+        bool dispatchScrollEvent(float y, float x, cocos2d::CCPoint const& pos)
 
-        bool isMouseDown(MouseEvent btn) const;
+        bool isMouseDown(MouseEvent btn) const
 
         static cocos2d::CCPoint getMousePosition();
     };
