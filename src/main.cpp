@@ -1,5 +1,4 @@
 #include <Geode.hpp>
-#include <GeodeAPI.hpp>
 #include "APIInternal.hpp"
 #include <Events.hpp>
 
