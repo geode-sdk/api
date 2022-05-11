@@ -19,11 +19,6 @@ SettingManager::SettingManager(Mod* m) {
 	auto root = this->m_mod->getDataStore()["settings"];
 
 	if (!root.is_object()) {
-		FLAlertLayer::create(
-			"Failed to load settings",
-			"JSON error: 'settings' key is not an object!",
-			"OK"
-		)->show();
 		return;
 	}
 
