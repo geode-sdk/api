@@ -1,11 +1,10 @@
-#pragma once
+/*#pragma once
 
 #pragma warning(disable: 4067)
 
 #include <Geode.hpp>
 #include <nodes/MenuInputNode.hpp>
 #include <nodes/Popup.hpp>
-#include <settings/SettingNode.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -280,4 +279,4 @@ namespace geode {
 	};
 }
 
-#pragma warning(default: 4067)
+#pragma warning(default: 4067)*/

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <GeodeAPI.hpp>
-
 USE_GEODE_NAMESPACE();
 
 struct APIInternal {

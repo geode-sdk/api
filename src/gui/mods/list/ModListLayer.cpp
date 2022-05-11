@@ -57,6 +57,17 @@ bool ModListLayer::init() {
 		m_menu->addChild(testBtn);
 	}
 
+	CCSprite* openSpr = CircleButtonSprite::createWithSpriteFrameName(
+		"gj_folderBtn_001.png", 0.7f,
+		CircleBaseColor::Green, CircleBaseSize::Small
+	);
+
+    auto openBtn = CCMenuItemSpriteExtra::create(
+		openSpr, this, menu_selector(ModListLayer::onOpenFolder)
+	);
+	openBtn->setPosition(-winSize.width / 2 + 30.0f, - winSize.height / 2 + 80.0f);
+	this->m_menu->addChild(openBtn);
+
 	
     m_listLabel = CCLabelBMFont::create("", "bigFont.fnt");
 
@@ -288,6 +299,12 @@ void ModListLayer::onExit(CCObject*) {
 void ModListLayer::onReload(CCObject*) {
 	Loader::get()->refreshMods();
 	this->reloadList();
+}
+
+void ModListLayer::onOpenFolder(CCObject*) {
+	dirs::openFolder(
+		ghc::filesystem::canonical(Loader::get()->getGeodeDirectory() / "mods")
+	);
 }
 
 void ModListLayer::onResetSearch(CCObject*) {

@@ -1,4 +1,4 @@
-#include "ModSettingsList.hpp"
+/*#include "ModSettingsList.hpp"
 #include <settings/SettingNodeManager.hpp>
 #include <settings/SettingNode.hpp>
 #include <WackyGeodeMacros.hpp>
@@ -106,4 +106,4 @@ ModSettingsList* ModSettingsList::create(
 	}
 	CC_SAFE_DELETE(ret);
 	return nullptr;
-}
+}*/

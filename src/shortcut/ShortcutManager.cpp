@@ -46,7 +46,6 @@ bool ShortcutManager::remapShortcut(shortcut_action_id const& id, Shortcut&& eve
 
 
 void ShortcutManager::dispatchEvent(ShortcutEvent const& sc, bool enabled) {
-	Log::get() << "event dispatched";
 
 	for (auto [id, action] : m_actions) {
 		auto settings = action->m_currentSettings;

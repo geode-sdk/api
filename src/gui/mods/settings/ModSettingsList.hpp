@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 
 #include <Geode.hpp>
 #include <nodes/ScrollLayer.hpp>
@@ -26,4 +26,4 @@ public:
     void resetAllToDefault();
     bool hasUnsavedModifiedSettings() const;
     void applyChanges();
-};
+};*/

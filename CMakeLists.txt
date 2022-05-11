@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 project(GeodeAPI VERSION 0.1.0 LANGUAGES C CXX)
 
+set(BUILD_SHARED_LIBS CACHE BOOL "enable shared library")
+set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-ferror-limit=99999")
+
 file(GLOB_RECURSE CORE_SOURCES
 	src/*.cpp
 )
@@ -9,14 +16,12 @@ file(GLOB_RECURSE HEADERS
 	include/*.hpp
 )
 
-set(GEODE_BUILD_CODEGEN On)
-
-set(SOURCE_FILES 
+add_library(${PROJECT_NAME} SHARED
 	${CORE_SOURCES}
 	src/hooks/objcHook.mm
     src/dispatch/MacMouseEvent.mm
 )
-set(INCLUDE_DIRECTORIES
+target_include_directories(${PROJECT_NAME} PUBLIC
 	"hash"
 	"include"
 	"include/dragdrop"
@@ -33,17 +38,22 @@ set(INCLUDE_DIRECTORIES
 	"src/gui/mods/list"
 	"src/gui/mods/settings"
 )
-set(LINK_DIRECTORIES)
-set(LINK_LIBRARIES)
-set(BINARY_NAME GeodeAPI)
 
 add_compile_definitions(EXPORTING_GEODE_API)
 
-if (APPLE) 
-	set (LINK_LIBRARIES ${LINK_LIBRARIES} "-framework Cocoa")
+if (APPLE)
+	target_link_libraries(${PROJECT_NAME} "-framework Cocoa")
 endif()
 
-include(sdk/Geode.cmake)
+find_path(GEODE_SDK_PATH
+  NAMES Geode.cmake
+  PATHS $ENV{GEODE_SUITE}/sdk /usr/local/geode/sdk ~/.geode/sdk
+  DOC "Geode SDK path."
+  REQUIRED
+)
+include(${GEODE_SDK_PATH}/Geode.cmake)
+setup_geode_mod(BUILD_CODEGEN OUTPUT "GeodeAPI")
+
 set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
 set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)

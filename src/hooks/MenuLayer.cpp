@@ -11,10 +11,15 @@ class $modify(CustomMenuLayer, MenuLayer) {
 			return false;
 		
 		auto bottomMenu = getChild<CCMenu*>(this, 3);
+		Log::get() << "type of bottom menu: " << typeid(*bottomMenu).name();
+		Log::get() << "child count: " << bottomMenu->getChildren()->count();
 
 		auto chest = getChild<>(bottomMenu, -1);
-		chest->retain();
-		chest->removeFromParent();
+		if (chest) {
+			chest->retain();
+			chest->removeFromParent();
+		}
+		
 
 		auto y = getChild<>(bottomMenu, 0)->getPositionY();
 
@@ -38,9 +43,11 @@ class $modify(CustomMenuLayer, MenuLayer) {
 			node->setPositionY(y);
 			row->addItem("", node);
 		}
-
-		bottomMenu->addChild(chest);
-		chest->release();
+		if (chest) {
+			bottomMenu->addChild(chest);
+			chest->release();
+		}
+		
 
 		auto failed = Loader::get()->getFailedMods();
 		if (failed.size()) {

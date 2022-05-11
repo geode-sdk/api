@@ -99,13 +99,13 @@
             EventCenter::get()->broadcast(Event(
                 "dragdrop",
                 ghc::filesystem::path(dragItem.path.UTF8String),
-                Interface::get()->mod()                
+                Mod::get()                
             ));
 
             EventCenter::get()->broadcast(Event(
                 std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String,
                 ghc::filesystem::path(dragItem.path.UTF8String),
-                Interface::get()->mod()                
+                Mod::get()                
             ));
 	    }
 	    return YES;
