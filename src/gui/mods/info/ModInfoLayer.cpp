@@ -4,7 +4,6 @@
 #include "../settings/ModSettingsLayer.hpp"
 #include <nodes/BasedButton.hpp>
 #include <nodes/MDTextArea.hpp>
-#include <fmt/include/fmt/format.h>
 #include <APIInternal.hpp>
 #include "../list/ModListView.hpp"
 #include <nodes/Scrollbar.hpp>
@@ -250,16 +249,11 @@ void ModInfoLayer::onInfo(CCObject*) {
     FLAlertLayer::create(
         nullptr,
         ("About " + m_mod->getName()).c_str(),
-        fmt::format(
-            "<cr>ID: {}</c>\n"
-            "<cg>Version: {}</c>\n"
-            "<cp>Developer: {}</c>\n"
-            "<cb>Path: {}</c>",
-            m_mod->getID(),
-            m_mod->getVersion().toString(),
-            m_mod->getDeveloper(),
-            m_mod->getPath()
-        ),
+        std::string("<cr>ID: ") + m_mod->getID() + "</c>\n" +
+        std::string("<cg>Version: ") + m_mod->getVersion().toString() + "</c>\n" +
+        std::string("<cp>Developer: ") + m_mod->getDeveloper() + "</c>\n" +
+        std::string("<cb>Path: ") + m_mod->getPath() + "</c>\n"
+        ,
         "OK", nullptr, 400.f
     )->show();
 }

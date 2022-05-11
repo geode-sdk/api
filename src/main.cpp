@@ -10,7 +10,6 @@ $observe("Test Keybind") {
 
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
-
     /*mod->with<GeodeAPI>()->addKeybindAction(TriggerableAction {
         "Keybind Test",
         "test_keybind",
