@@ -80,8 +80,8 @@ bool ExtMouseManager::delegateIsHovered(ExtMouseDelegate* delegate, CCPoint cons
     pos = pos + delegate->m_extMouseHitArea.origin;
 
     auto rect = CCRect {
-        pos.x - size.width / 2,
-        pos.y - size.height / 2,
+        pos.x - size.width * p->getAnchorPoint().x,
+        pos.y - size.height * p->getAnchorPoint().y,
         size.width,
         size.height
     };

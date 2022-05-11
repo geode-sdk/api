@@ -8,7 +8,21 @@
     "repository": "https://github.com/geode-sdk/api",
 	"dependencies": null,
     "binary":       "GeodeAPI",
-    "settings": null,
+    "settings": {
+        "my-setting": {
+            "type": "int",
+            "name": "My Awesome Setting",
+            "value": {
+                "default": 17,
+                "max": 500,
+                "min": 0,
+                "step": 10
+            },
+            "control": {
+                "step": 50
+            }
+        }
+    },
     "resources": {
         "fonts": {
             "mdFont": {

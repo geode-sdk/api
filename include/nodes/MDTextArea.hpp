@@ -2,7 +2,7 @@
 
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
-#include "TextRenderer.hpp"
+#include "../general/TextRenderer.hpp"
 #include "ScrollLayer.hpp"
 
 struct MDParser;

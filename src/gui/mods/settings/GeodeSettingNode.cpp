@@ -1,7 +1,7 @@
 #pragma warning(disable: 4067)
 
 #include "GeodeSettingNode.hpp"
-#include <nodes/TextRenderer.hpp>
+#include <general/TextRenderer.hpp>
 #include <random>
 #include <WackyGeodeMacros.hpp>
 

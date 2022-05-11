@@ -1,6 +1,7 @@
 #include "ModListLayer.hpp"
 #include <nodes/BasedButton.hpp>
 #include "SearchFilterPopup.hpp"
+#include <general/Notification.hpp>
 
 ModListType g_tab = ModListType::Installed;
 
@@ -40,6 +41,21 @@ bool ModListLayer::init() {
 	);
 	reloadBtn->setPosition(-winSize.width / 2 + 30.0f, - winSize.height / 2 + 30.0f);
 	m_menu->addChild(reloadBtn);
+
+
+	for (int i = 0; i <= static_cast<int>(NotificationLocation::BottomRight); i++) {
+		auto testSpr = CCLabelBMFont::create(std::to_string(i).c_str(), "bigFont.fnt");
+		testSpr->setScale(.8f);
+		auto testBtn = CCMenuItemSpriteExtra::create(
+			testSpr, this, menu_selector(ModListLayer::onTest)
+		);
+		testBtn->setPosition(
+			-winSize.width / 2 + 30.0f,
+			-winSize.height / 2 + 75.0f + 25 * i
+		);
+		testBtn->setTag(i);
+		m_menu->addChild(testBtn);
+	}
 
 	
     m_listLabel = CCLabelBMFont::create("", "bigFont.fnt");
@@ -163,6 +179,17 @@ void ModListLayer::indexUpdateFinished() {
 		this->reloadList();
 		m_indexUpdateLabel->setString("");
 	}
+}
+
+void ModListLayer::onTest(CCObject* sender) {
+	Notification::build()
+		.title("Gay sex")
+		.text("Have you ever like uhh and the uhhh yeah uhhhh like that yeah")
+		.button("feeh", this, nullptr)
+		.button("ga ga ga", this, nullptr)
+		.time(0)
+		.location(static_cast<NotificationLocation>(sender->getTag()))
+		.show();
 }
 
 void ModListLayer::reloadList() {

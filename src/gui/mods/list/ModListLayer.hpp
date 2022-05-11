@@ -29,6 +29,7 @@ protected:
 
 	bool init() override;
 
+	void onTest(CCObject*);
 	void onExit(CCObject*);
 	void onReload(CCObject*);
 	void onResetSearch(CCObject*);

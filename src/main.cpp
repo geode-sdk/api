@@ -4,19 +4,26 @@
 #include <Events.hpp>
 #include <shortcuts/ShortcutManager.hpp>
 #include <index/Index.hpp>
+#include <general/Notification.hpp>
 
 USE_GEODE_NAMESPACE();
 
-$observe("Test Keybind") {
-    FLAlertLayer::create("Hey", "Keybinds work", "OK")->show();
+$observe("test-keybind") {
+	Notification::build()
+		.title("Gay sex")
+		.text("Have you ever like uhh and the uhhh yeah uhhhh like that yeah")
+		.button("feeh", nullptr, nullptr)
+		.time(0)
+		.location(NotificationLocation::TopCenter)
+		.show();
 }
 
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
 
-    if (!Index::get()->isIndexUpdated()) {
-        Index::get()->updateIndex(); 
-    }
+    // if (!Index::get()->isIndexUpdated()) {
+    //     Index::get()->updateIndex(); 
+    // }
 
     /*mod->with<GeodeAPI>()->addKeybindAction(TriggerableAction {
         "Keybind Test",
@@ -31,7 +38,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
     }, {{ KEY_T, Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});*/
 
     ShortcutManager::get()->registerShortcut(ShortcutAction::globalShortcut(
-        "Test Keybind",
+        "test-keybind",
         Shortcut(
             KEY_T,
             KeyModifiers::Control
