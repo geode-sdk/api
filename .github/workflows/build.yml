@@ -41,7 +41,7 @@ jobs:
         submodules: recursive
         repository: geode-sdk/suite
         ref: nightly
-        path: $GEODE_SUITE
+        path: ${{ env.GEODE_SUITE }}
 
     - name: Setup CLI
       shell: bash
