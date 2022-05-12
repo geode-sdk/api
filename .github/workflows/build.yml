@@ -19,12 +19,14 @@ jobs:
         - name: "Windows"
           bin_folder: "windows"
           cli_name: "geode.exe"
+          cli_config_folder: "C:/Users/Windows/AppData/Local/Geode"
           os: windows-2019
           extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
           out_paths:  './build/Release/GeodeAPI.geode ./build/Release/GeodeAPI.lib'
         - name: "macOS"
           bin_folder: "macos"
           cli_name: "geode"
+          cli_config_folder: "/Users/Shared/Geode"
           os: macos-latest
           extra_flags: ""
           out_paths:  './build/GeodeAPI.geode ./build/GeodeAPI.dylib'
@@ -47,7 +49,7 @@ jobs:
       shell: bash
       run: |
         echo $GEODE_SUITE/${{ matrix.config.bin_folder }} >> $GITHUB_PATH
-        echo {\"install_path\":\"${{ github.workspace }}/build\"} >> $GEODE_SUITE/${{ matrix.config.bin_folder }}/config.json
+        echo {\"install_path\":\"${{ github.workspace }}/build\"} >> $GEODE_SUITE/${{ matrix.config.cli_config_folder }}/config.json
         chmod +x $GEODE_SUITE/${{ matrix.config.bin_folder }}/${{ matrix.config.cli_name }}
 
     - uses: ilammy/msvc-dev-cmd@v1
