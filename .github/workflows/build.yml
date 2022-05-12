@@ -41,14 +41,14 @@ jobs:
         submodules: recursive
         repository: geode-sdk/suite
         ref: nightly
-        path: ${{ github.workspace }}/suite
+        path: $GEODE_SUITE
 
     - name: Setup CLI
       shell: bash
       run: |
-        echo ./suite/${{ matrix.config.bin_folder }} >> $GITHUB_PATH
-        echo {\"install_path\":\"${{ github.workspace }}/build\"} >> ./suite/${{ matrix.config.bin_folder }}/config.json
-        chmod +x ./suite/${{ matrix.config.bin_folder }}/${{ matrix.config.cli_name }}
+        echo $GEODE_SUITE/${{ matrix.config.bin_folder }} >> $GITHUB_PATH
+        echo {\"install_path\":\"${{ github.workspace }}/build\"} >> $GEODE_SUITE/${{ matrix.config.bin_folder }}/config.json
+        chmod +x $GEODE_SUITE/${{ matrix.config.bin_folder }}/${{ matrix.config.cli_name }}
 
     - uses: ilammy/msvc-dev-cmd@v1
       with:
