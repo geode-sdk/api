@@ -46,6 +46,7 @@ jobs:
     - name: Setup CLI
       shell: bash
       run: |
+        ls $GEODE_SUITE
         echo $GEODE_SUITE/${{ matrix.config.bin_folder }} >> $GITHUB_PATH
         chmod +x $GEODE_SUITE/${{ matrix.config.bin_folder }}/${{ matrix.config.cli_name }}
 
