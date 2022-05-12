@@ -17,9 +17,13 @@ SceneManager* SceneManager::setup() {
     return this;
 }
 
+static SceneManager* s_sceneManager = nullptr;
 SceneManager* SceneManager::get() {
-    static auto inst = new SceneManager();
-    return inst->setup();
+	if (s_sceneManager) {
+		s_sceneManager = new SceneManager();
+		s_sceneManager->setup();
+	}
+    return s_sceneManager;
 }
 
 void SceneManager::keepAcrossScenes(CCNode* node) {
