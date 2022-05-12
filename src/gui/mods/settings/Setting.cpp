@@ -45,7 +45,8 @@ SettingManager::SettingManager(Mod* m) {
 
 		Setting* out = nullptr;
 		EventCenter::get()->broadcast(Event(
-			events::getSetting(id),
+			// events::getSetting(id),
+			id,
 			&out,
 			Mod::get()
 		));

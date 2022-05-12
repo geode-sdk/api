@@ -165,17 +165,17 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         settingsBtn->setPosition(-size.width / 2 + 25.f, -size.height / 2 + 25.f);
         m_buttonMenu->addChild(settingsBtn);
 
-<<<<<<< HEAD
-        if (!m_info.m_settings.size()) {
-            settingsSpr->setColor({ 150, 150, 150 });
-            settingsBtn->setTarget(this, menu_selector(ModInfoLayer::onNoSettings));
-        }
-=======
-    if (!SettingManager::with(mod)->hasSettings()) {
-        settingsSpr->setColor({ 150, 150, 150 });
-        settingsBtn->setTarget(this, menu_selector(ModInfoLayer::onNoSettings));
-    }
->>>>>>> 01d0771d3dd1ed0dac5705fd26deecca2581fdf7
+	// <<<<<<< HEAD
+	//         if (!m_info.m_settings.size()) {
+	//             settingsSpr->setColor({ 150, 150, 150 });
+	//             settingsBtn->setTarget(this, menu_selector(ModInfoLayer::onNoSettings));
+	//         }
+	// =======
+	    if (!SettingManager::with(m_mod)->hasSettings()) {
+	        settingsSpr->setColor({ 150, 150, 150 });
+	        settingsBtn->setTarget(this, menu_selector(ModInfoLayer::onNoSettings));
+	    }
+	// >>>>>>> 01d0771d3dd1ed0dac5705fd26deecca2581fdf7
 
 
         auto devSpr = ButtonSprite::create("Dev Options", "bigFont.fnt", "GJ_button_05.png", .6f);
@@ -514,26 +514,26 @@ void ModInfoLayer::onNoSettings(CCObject*) {
 void ModInfoLayer::onInfo(CCObject*) {
     FLAlertLayer::create(
         nullptr,
-<<<<<<< HEAD
-        ("About " + m_info.m_name).c_str(),
-        fmt::format(
-            "<cr>ID: {}</c>\n"
-            "<cg>Version: {}</c>\n"
-            "<cp>Developer: {}</c>\n"
-            "<cb>Path: {}</c>",
-            m_info.m_id,
-            m_info.m_version.toString(),
-            m_info.m_developer,
-            m_info.m_path.string()
-        ),
-=======
+// <<<<<<< HEAD
+//         ("About " + m_info.m_name).c_str(),
+//         fmt::format(
+//             "<cr>ID: {}</c>\n"
+//             "<cg>Version: {}</c>\n"
+//             "<cp>Developer: {}</c>\n"
+//             "<cb>Path: {}</c>",
+//             m_info.m_id,
+//             m_info.m_version.toString(),
+//             m_info.m_developer,
+//             m_info.m_path.string()
+//         ),
+// =======
         ("About " + m_mod->getName()).c_str(),
         std::string("<cr>ID: ") + m_mod->getID() + "</c>\n" +
         std::string("<cg>Version: ") + m_mod->getVersion().toString() + "</c>\n" +
         std::string("<cp>Developer: ") + m_mod->getDeveloper() + "</c>\n" +
         std::string("<cb>Path: ") + m_mod->getPath() + "</c>\n"
         ,
->>>>>>> 01d0771d3dd1ed0dac5705fd26deecca2581fdf7
+// >>>>>>> 01d0771d3dd1ed0dac5705fd26deecca2581fdf7
         "OK", nullptr, 400.f
     )->show();
 }

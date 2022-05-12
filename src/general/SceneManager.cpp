@@ -12,15 +12,14 @@ StayAcrossScenes::~StayAcrossScenes() {
 }
 
 SceneManager* SceneManager::setup() {
-    if (!this) return nullptr;
     m_persistedNodes = CCArray::create();
     m_persistedNodes->retain();
     return this;
 }
 
 SceneManager* SceneManager::get() {
-    static auto inst = (new SceneManager())->setup();
-    return inst;
+    static auto inst = new SceneManager();
+    return inst->setup();
 }
 
 void SceneManager::keepAcrossScenes(CCNode* node) {
