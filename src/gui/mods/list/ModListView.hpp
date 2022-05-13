@@ -26,14 +26,14 @@ class ModListLayer;
 struct ModObject : public CCObject {
     ModObjectType m_type;
     Mod* m_mod;
-    Loader::UnloadedModInfo m_info;
+    Loader::FailedModInfo m_info;
     IndexItem m_index;
 
     inline ModObject(Mod* mod)
      : m_mod(mod), m_type(ModObjectType::Mod) {
         this->autorelease();
     };
-    inline ModObject(Loader::UnloadedModInfo const& info)
+    inline ModObject(Loader::FailedModInfo const& info)
      : m_info(info), m_type(ModObjectType::Unloaded) {
         this->autorelease();
     };

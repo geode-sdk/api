@@ -405,7 +405,7 @@ void Index::updateIndexFromLocalCache() {
                         << readModJson.error() << ", skipping";
                     continue;
                 }
-                auto info = Loader::get()->parseModJson(dir.path().string(), readModJson.value());
+                auto info = ModInfo::create(readModJson.value());
                 if (!info) {
                     Log::get() << Severity::Warning
                         << info.error() << ", skipping";

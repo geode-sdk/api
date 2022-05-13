@@ -329,7 +329,6 @@ bool ModListView::filter(ModInfo const& info, const char* searchFilter, int sear
     if (check(SearchFlags::Name,        info.m_name)) return true;
     if (check(SearchFlags::ID,          info.m_id)) return true;
     if (check(SearchFlags::Developer,   info.m_developer)) return true;
-    if (check(SearchFlags::Credits,     info.m_creditsString)) return true;
     if (check(SearchFlags::Description, info.m_description)) return true;
     if (check(SearchFlags::Details,     info.m_details)) return true;
     return false;
@@ -354,7 +353,7 @@ bool ModListView::init(
                 if (this->filter(imod->getModInfo(), searchFilter, searchFlags)) {
                     mods->addObject(new ModObject(imod));
                 }
-                for (auto const& mod : Loader::get()->getLoadedMods()) {
+                for (auto const& mod : Loader::get()->getAllMods()) {
                     if (mod->isUninstalled() && !mod->isLoaded()) continue;
                     if (this->filter(mod->getModInfo(), searchFilter, searchFlags)) {
                         mods->addObject(new ModObject(mod));

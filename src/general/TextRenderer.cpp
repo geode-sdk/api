@@ -1,5 +1,7 @@
 #include <general/TextRenderer.hpp>
 #include <WackyGeodeMacros.hpp>
+#undef max
+#undef min
 
 USE_GEODE_NAMESPACE();
 using namespace std::string_literals;

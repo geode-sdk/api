@@ -46,10 +46,10 @@ if (APPLE)
 endif()
 
 find_path(GEODE_SDK_PATH
-  NAMES Geode.cmake
-  PATHS $ENV{GEODE_SUITE}/sdk /usr/local/geode/sdk ~/.geode/sdk
-  DOC "Geode SDK path."
-  REQUIRED
+	NAMES Geode.cmake
+	PATHS $ENV{GEODE_SUITE}/sdk /usr/local/geode/sdk ~/.geode/sdk
+	DOC "Geode SDK path."
+	REQUIRED
 )
 include(${GEODE_SDK_PATH}/Geode.cmake)
 setup_geode_mod(BUILD_CODEGEN OUTPUT "GeodeAPI")
