@@ -196,8 +196,6 @@ void ModListLayer::onTest(CCObject* sender) {
 	Notification::build()
 		.title("Gay sex")
 		.text("Have you ever like uhh and the uhhh yeah uhhhh like that yeah")
-		.button("feeh", this, nullptr)
-		.button("ga ga ga", this, nullptr)
 		.time(0)
 		.location(static_cast<NotificationLocation>(sender->getTag()))
 		.show();

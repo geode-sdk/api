@@ -4,6 +4,7 @@
 #include "../APIMacros.hpp"
 #include "../dispatch/ExtMouseManager.hpp"
 #include "SceneManager.hpp"
+#include <chrono>
 
 namespace geode {
     enum class NotificationLocation {
@@ -27,11 +28,6 @@ namespace geode {
     class NotificationManager;
 
     struct GEODE_API_DLL NotificationBuilder {
-        struct Button {
-            std::string m_text = "";
-            cocos2d::CCObject* m_sender = nullptr;
-            cocos2d::SEL_MenuHandler m_handler = nullptr;
-        };
         std::string m_title = "";
         std::string m_text = "";
         std::string m_icon = "GJ_infoIcon_001.png";
@@ -39,7 +35,6 @@ namespace geode {
         std::string m_bg = "GJ_square02.png";
         float m_time = g_defaultNotificationTime;
         NotificationLocation m_location = g_platformNotificationLocation;
-        std::vector<Button> m_buttons = {};
 
         inline NotificationBuilder& title(std::string const& title) {
             m_title = title;
@@ -74,30 +69,25 @@ namespace geode {
             m_time = time;
             return *this;
         }
-        inline NotificationBuilder& button(
-            std::string const& text,
-            cocos2d::CCObject* sender,
-            cocos2d::SEL_MenuHandler handler
-        ) {
-            m_buttons.push_back({ text, sender, handler });
-            return *this;
-        }
         Notification* show();
     };
 
     class GEODE_API_DLL Notification :
-        public cocos2d::CCNode
-        // public ExtMouseDelegate
+        public cocos2d::CCNode,
+        public ExtMouseDelegate
     {
     protected:
+        cocos2d::CCObject* m_target = nullptr;
+        cocos2d::SEL_MenuHandler m_selector = nullptr;
         cocos2d::extension::CCScale9Sprite* m_bg;
         cocos2d::CCNode* m_icon = nullptr;
         cocos2d::CCLabelBMFont* m_title = nullptr;
         cocos2d::CCArray* m_labels = nullptr;
-        CCMenuItemSpriteExtra* m_closeBtn = nullptr;
-        cocos2d::CCMenu* m_menu;
-        cocos2d::CCArray* m_buttons = nullptr;
+        cocos2d::CCPoint m_showDest;
         cocos2d::CCPoint m_hideDest;
+        cocos2d::CCPoint m_touchStart;
+        cocos2d::CCPoint m_posAtTouchStart;
+        std::chrono::system_clock::time_point m_touchTime;
         NotificationLocation m_location;
         float m_time;
         bool m_hiding;
@@ -112,14 +102,17 @@ namespace geode {
         Notification();
         virtual ~Notification();
 
-        // void mouseEnterExt(cocos2d::CCPoint const& pos) override;
-        // void mouseLeaveExt(cocos2d::CCPoint const& pos) override;
-        // bool mouseUpExt(MouseEvent button, cocos2d::CCPoint const& pos) override;
+        void mouseEnterExt(cocos2d::CCPoint const& pos) override;
+        void mouseLeaveExt(cocos2d::CCPoint const& pos) override;
+        void mouseMoveExt(cocos2d::CCPoint const& pos) override;
+        bool mouseUpExt(MouseEvent button, cocos2d::CCPoint const& pos) override;
+        bool mouseDownExt(MouseEvent button, cocos2d::CCPoint const& pos) override;
 
         void clicked();
 
-        void onHide(CCObject*);
-        void hide();
+        void animateIn();
+        void animateOut();
+
         void hidden();
         void showForReal();
 
@@ -134,16 +127,11 @@ namespace geode {
         );
         static NotificationBuilder build();
 
-        void addButton(
-            std::string const& title,
-            cocos2d::CCObject* target,
-            cocos2d::SEL_MenuHandler handler
-        );
-
         void show(
             NotificationLocation = g_platformNotificationLocation,
             float time = g_defaultNotificationTime
         );
+        void hide();
     };
 
     class NotificationManager {

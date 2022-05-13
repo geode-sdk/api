@@ -4,6 +4,7 @@
 #include <shortcuts/ShortcutManager.hpp>
 #include <index/Index.hpp>
 #include <general/Notification.hpp>
+#include <thread>
 
 USE_GEODE_NAMESPACE();
 
@@ -11,7 +12,6 @@ $observe("test-keybind") {
 	Notification::build()
 		.title("Gay sex")
 		.text("Have you ever like uhh and the uhhh yeah uhhhh like that yeah")
-		.button("feeh", nullptr, nullptr)
 		.time(0)
 		.location(NotificationLocation::TopCenter)
 		.show();

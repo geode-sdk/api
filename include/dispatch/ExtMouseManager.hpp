@@ -19,6 +19,7 @@ namespace geode {
         virtual ~ExtMouseDelegate();
 
         void captureMouse();
+        void releaseCapture();
         bool isMouseDown(MouseEvent event) const;
 
         friend class ExtMouseManager;

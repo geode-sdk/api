@@ -21,8 +21,16 @@ ExtMouseDelegate::~ExtMouseDelegate() {
     ExtMouseManager::get()->popDelegate(this);
 }
 
+void ExtMouseDelegate::captureMouse() {
+    ExtMouseManager::get()->captureMouse(this);
+}
 
-void getTouchChildren(CCArray* arr, CCNode* node) {
+void ExtMouseDelegate::releaseCapture() {
+    ExtMouseManager::get()->releaseCapture(this);
+}
+
+
+static void getTouchChildren(CCArray* arr, CCNode* node) {
     if (!node) return;
     CCARRAY_FOREACH_B_TYPE(node->getChildren(), obj, CCNode) {
         if (dynamic_cast<CCTouchDelegate*>(obj)) {
