@@ -4,9 +4,14 @@
 
 USE_GEODE_NAMESPACE();
 
+Notification::Notification() {
+    SceneManager::get()->keepAcrossScenes(this);
+}
+
 Notification::~Notification() {
     CC_SAFE_RELEASE(m_labels);
     CC_SAFE_RELEASE(m_buttons);
+    SceneManager::get()->forget(this);
 }
 
 // void Notification::mouseEnterExt(CCPoint const&) {

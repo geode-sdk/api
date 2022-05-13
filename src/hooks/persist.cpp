@@ -1,9 +1,9 @@
 #include "hook.hpp"
 #include <general/SceneManager.hpp>
 
-class $modify(AppDelegate) {
+class $modify(AchievementNotifier) {
     void willSwitchToScene(CCScene* scene) {
-        AppDelegate::willSwitchToScene(scene);
+        AchievementNotifier::willSwitchToScene(scene);
         SceneManager::get()->willSwitchToScene(scene);
     }
 };

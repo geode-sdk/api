@@ -86,8 +86,7 @@ namespace geode {
     };
 
     class GEODE_API_DLL Notification :
-        public cocos2d::CCNode,
-        public StayAcrossScenes
+        public cocos2d::CCNode
         // public ExtMouseDelegate
     {
     protected:
@@ -110,6 +109,7 @@ namespace geode {
             const char* bg
         );
 
+        Notification();
         virtual ~Notification();
 
         // void mouseEnterExt(cocos2d::CCPoint const& pos) override;
