@@ -46,8 +46,8 @@ jobs:
     - name: Setup CLI
       shell: bash
       run: |
+        ls $GEODE_SUITE
         echo $GEODE_SUITE/${{ matrix.config.bin_folder }} >> $GITHUB_PATH
-        echo {\"install_path\":\"${{ github.workspace }}/build\"} >> $GEODE_SUITE/${{ matrix.config.bin_folder }}/config.json
         chmod +x $GEODE_SUITE/${{ matrix.config.bin_folder }}/${{ matrix.config.cli_name }}
 
     - uses: ilammy/msvc-dev-cmd@v1
@@ -57,7 +57,7 @@ jobs:
 
     - name: Configure CMake
       run: |
-        cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }}
+        cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }} -DGEODE_DONT_AUTO_INSTALL=On
     
     - name: Build
       run: |
