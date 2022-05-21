@@ -7,7 +7,6 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-ferror-limit=99999")
 
 file(GLOB_RECURSE CORE_SOURCES
 	src/*.cpp
@@ -54,9 +53,10 @@ find_path(GEODE_SDK_PATH
 include(${GEODE_SDK_PATH}/Geode.cmake)
 setup_geode_mod(BUILD_CODEGEN OUTPUT "GeodeAPI")
 
-set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+if (APPLE)
+	set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+endif()
 
-set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADERS})
 
 add_subdirectory(md4c)

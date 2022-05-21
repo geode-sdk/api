@@ -61,7 +61,7 @@ bool Notification::mouseDownExt(MouseEvent button, cocos2d::CCPoint const& pos) 
         m_touchStart = pos;
         m_posAtTouchStart = this->getPosition();
         m_touchTime = std::chrono::system_clock::now();
-        this->captureMouse();
+        this->attainCapture();
     }
     return false;
 }
@@ -109,6 +109,7 @@ bool Notification::mouseUpExt(MouseEvent button, CCPoint const& pos) {
                 this->animateIn();
             }
         } else {
+            this->animateIn();
             this->clicked();
         }
     }
@@ -258,11 +259,18 @@ void Notification::showForReal() {
     m_hideDest = CCPoint { xStart, yStart };
     m_showDest = CCPoint { xStart + xMovement, yStart + yMovement };
 
+    GameSoundManager::sharedManager()->playEffect(
+        "newNotif03.ogg"_spr, 1.f, 1.f, 1.f
+    );
+
     this->setPosition(xStart, yStart);
     this->animateIn();
 }
 
 void Notification::hide() {
+    GameSoundManager::sharedManager()->playEffect(
+        "byeNotif00.ogg"_spr, 1.f, 1.f, 1.f
+    );
     m_hiding = true;
     this->animateOut();
 }

@@ -2,7 +2,7 @@
 
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
-#include "../dispatch/ExtMouseManager.hpp"
+#include "../dispatch/ExtMouseDispatcher.hpp"
 
 namespace geode {
     class GEODE_API_DLL Scrollbar :

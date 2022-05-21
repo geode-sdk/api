@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Geode.hpp>
-#include <Shortcut.hpp>
-#include <ShortcutAction.hpp>
+#include "Shortcut.hpp"
+#include "ShortcutAction.hpp"
 #include <string>
 #include <map>
 #include <optional>

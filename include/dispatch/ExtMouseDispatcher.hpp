@@ -6,9 +6,14 @@
 #include "../shortcuts/MouseEvent.hpp"
 
 namespace geode {
-    class ExtMouseManager;
+    class ExtMouseDispatcher;
 
-    class GEODE_API_DLL ExtMouseDelegate {
+    static constexpr const unsigned int EXTMOUSEMOVED = 0x10;
+
+    class GEODE_API_DLL ExtMouseDelegate :
+        public cocos2d::CCTouchDelegate,
+        public cocos2d::CCMouseDelegate
+    {
     protected:
         cocos2d::CCRect m_extMouseHitArea = cocos2d::CCRectZero;
         bool m_extMouseHovered = false;
@@ -18,11 +23,11 @@ namespace geode {
         ExtMouseDelegate();
         virtual ~ExtMouseDelegate();
 
-        void captureMouse();
+        void attainCapture();
         void releaseCapture();
         bool isMouseDown(MouseEvent event) const;
 
-        friend class ExtMouseManager;
+        friend class ExtMouseDispatcher;
     
     public:
         virtual void mouseEnterExt(cocos2d::CCPoint const& pos);
@@ -36,36 +41,50 @@ namespace geode {
         virtual void mouseScrollOutsideExt(float y, float x);
     };
 
-    class GEODE_API_DLL ExtMouseManager {
+    class GEODE_API_DLL ExtMouseDispatcher :
+        public cocos2d::CCTouchDispatcher,
+        public cocos2d::CCMouseDispatcher
+    {
         API_INIT("com.geode.api");
     protected:
-        std::vector<ExtMouseDelegate*> m_delegates;
+        cocos2d::CCTouchDispatcher* m_oldTouchDispatcher = nullptr;
+        cocos2d::CCMouseDispatcher* m_oldMouseDispatcher = nullptr;
         cocos2d::CCPoint m_lastPosition;
         ExtMouseDelegate* m_capturing = nullptr;
         std::unordered_set<MouseEvent> m_pressedButtons;
+        MouseEvent m_lastPressed;
 
         bool init();
         bool delegateIsHovered(ExtMouseDelegate* delegate, cocos2d::CCPoint const& pos);
         int maxTargetPrio() const;
 
-        ExtMouseManager();
-        ~ExtMouseManager();
+        ExtMouseDispatcher();
+        ~ExtMouseDispatcher();
     
     public:
-        static ExtMouseManager* get();
+        static ExtMouseDispatcher* get();
+        void registerDispatcher();
+        void unregisterDispatcher();
 
         void pushDelegate(ExtMouseDelegate* delegate);
         void popDelegate(ExtMouseDelegate* delegate);
 
-        void captureMouse(ExtMouseDelegate* delegate);
+        void attainCapture(ExtMouseDelegate* delegate);
         void releaseCapture(ExtMouseDelegate* delegate);
         bool isCapturing(ExtMouseDelegate* delegate) const;
 
-        bool dispatchClickEvent(MouseEvent button, bool down, cocos2d::CCPoint const& pos);
-        void dispatchMoveEvent(cocos2d::CCPoint const& pos);
-        bool dispatchScrollEvent(float y, float x, cocos2d::CCPoint const& pos);
+        void update();
 
+        void mouseDown(MouseEvent btn);
+        void mouseUp(MouseEvent btn);
         bool isMouseDown(MouseEvent btn) const;
+
+        void touches(
+            cocos2d::CCSet* touches,
+            cocos2d::CCEvent* event,
+            unsigned int touchType
+        );
+        bool dispatchScrollMSG(float x, float y);
 
         static cocos2d::CCPoint getMousePosition();
     };

@@ -12,29 +12,19 @@ $observe("test-keybind") {
 	Notification::build()
 		.title("Gay sex")
 		.text("Have you ever like uhh and the uhhh yeah uhhhh like that yeah")
-		.time(0)
-		.location(NotificationLocation::TopCenter)
+		.time(1)
+		.location(static_cast<NotificationLocation>(rand() % 6))
 		.show();
 }
 
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
 
+    ExtMouseDispatcher::get()->registerDispatcher();
+
     // if (!Index::get()->isIndexUpdated()) {
     //     Index::get()->updateIndex(); 
     // }
-
-    /*mod->with<GeodeAPI>()->addKeybindAction(TriggerableAction {
-        "Keybind Test",
-        "test_keybind",
-        KB_GLOBAL_CATEGORY,
-        [](CCNode* node, bool down) -> bool {
-            if (down) {
-                FLAlertLayer::create("Hey", "Keybinds work", "OK")->show();
-            }
-            return false;
-        }
-    }, {{ KEY_T, Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});*/
 
     ShortcutManager::get()->registerShortcut(ShortcutAction::globalShortcut(
         "test-keybind",
@@ -59,6 +49,11 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
         }
     );
 
+    return true;
+}
+
+GEODE_API bool GEODE_CALL geode_unload() {
+    ExtMouseDispatcher::get()->unregisterDispatcher();
     return true;
 }
 
