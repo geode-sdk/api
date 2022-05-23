@@ -6,8 +6,6 @@
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 
-using std::operator""s;
-
 using FetchProgFunc = void(*)(double, double, void*);
 struct FetchProgInfo {
     FetchProgFunc m_func = nullptr;
@@ -39,12 +37,12 @@ Result<> fetchFile(
 ) {
     auto curl = curl_easy_init();
     
-    if (!curl) return Err("Curl not initialized!"s);
+    if (!curl) return Err("Curl not initialized!");
 
     std::ofstream file(into, std::ios::out | std::ios::binary);
 
     if (!file.is_open()) {
-        return Err("Unable to open output file"s);
+        return Err("Unable to open output file");
     }
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -61,7 +59,7 @@ Result<> fetchFile(
     auto res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         curl_easy_cleanup(curl);
-        return Err("Fetch failed"s);
+        return Err("Fetch failed");
     }
 
     char* ct;
@@ -77,7 +75,7 @@ Result<> fetchFile(
 Result<std::string> fetch(std::string const& url) {
     auto curl = curl_easy_init();
     
-    if (!curl) return Err("Curl not initialized!"s);
+    if (!curl) return Err("Curl not initialized!");
 
     std::string ret;
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -88,7 +86,7 @@ Result<std::string> fetch(std::string const& url) {
     auto res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         curl_easy_cleanup(curl);
-        return Err("Fetch failed"s);
+        return Err("Fetch failed");
     }
 
     char* ct;
@@ -107,7 +105,7 @@ Result<nlohmann::json> fetchJSON(std::string const& url) {
     try {
         return Ok(nlohmann::json::parse(res.value()));
     } catch(std::exception& e) {
-        return Err(std::string(e.what()));
+        return Err(e.what());
     }
 }
 
