@@ -4,6 +4,8 @@
 
 USE_GEODE_NAMESPACE();
 
+using std::operator""s;
+
 static constexpr float g_fontScale = .5f;
 static constexpr float g_paragraphPadding = 7.f;
 static constexpr float g_indent = 7.f;
@@ -73,12 +75,12 @@ Result<ccColor3B> colorForIdentifier(std::string const& tag) {
             auto hex = std::stoi(hexStr, nullptr, 16);
             return Ok(cc3x(hex));
         } catch(...) {
-            return Err("Invalid hex");
+            return Err("Invalid hex"s);
         }
     } else {
         auto colorText = tag.substr(1);
         if (!colorText.size()) {
-            return Err("No color specified");
+            return Err("No color specified"s);
         } else if (colorText.size() > 1) {
             return Err("Color tag " + tag + " unexpectedly long, either do <cx> or <c hex>");
         } else {
@@ -96,7 +98,7 @@ Result<ccColor3B> colorForIdentifier(std::string const& tag) {
             }
         }
     }
-    return Err("Unknown error");
+    return Err("Unknown error"s);
 }
 
 

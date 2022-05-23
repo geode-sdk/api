@@ -167,6 +167,9 @@ void ModCell::loadFromObject(ModObject* modobj) {
         case ModObjectType::Index:
             this->setupIndexButtons();
             break;
+
+        default: 
+        	break;
     }
     this->updateState();
 }
