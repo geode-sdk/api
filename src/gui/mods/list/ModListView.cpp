@@ -23,7 +23,7 @@ void ModCell::onFailedInfo(CCObject*) {
     )->show();
 }
 
-void ModCell::loadFromFailureInfo(Loader::UnloadedModInfo info) {
+void ModCell::loadFromFailureInfo(Loader::FailedModInfo info) {
     this->m_mainLayer->setVisible(true);
     
     auto menu = CCMenu::create();
@@ -290,7 +290,6 @@ bool ModListView::filter(Mod* mod, const char* searchFilter, int searchFlags) {
     if (check(SearchFlags::Name,        mod->getName())) return true;
     if (check(SearchFlags::ID,          mod->getID())) return true;
     if (check(SearchFlags::Developer,   mod->getDeveloper())) return true;
-    if (check(SearchFlags::Credits,     mod->getCredits())) return true;
     if (check(SearchFlags::Description, mod->getDescription())) return true;
     if (check(SearchFlags::Details,     mod->getDetails())) return true;
     return false;
@@ -315,7 +314,7 @@ bool ModListView::init(
                 if (this->filter(imod, searchFilter, searchFlags)) {
                     mods->addObject(new ModObject(imod));
                 }
-                for (auto const& mod : Loader::get()->getLoadedMods()) {
+                for (auto const& mod : Loader::get()->getAllMods()) {
                     if (this->filter(mod, searchFilter, searchFlags)) {
                         mods->addObject(new ModObject(mod));
                     }

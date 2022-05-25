@@ -16,11 +16,11 @@ enum class ModListType {
 // Wrapper so you can pass Mods in a CCArray
 struct ModObject : public CCObject {
     Mod* m_mod = nullptr;
-    Loader::UnloadedModInfo m_info;
+    Loader::FailedModInfo m_info;
     inline ModObject(Mod* mod) : m_mod(mod) {
         this->autorelease();
     };
-    inline ModObject(Loader::UnloadedModInfo info) : m_info(info) {
+    inline ModObject(Loader::FailedModInfo info) : m_info(info) {
         this->autorelease();
     };
 };
@@ -47,7 +47,7 @@ protected:
 public:
     void updateBGColor(int index);
     void loadFromMod(ModObject*);
-    void loadFromFailureInfo(Loader::UnloadedModInfo info);
+    void loadFromFailureInfo(Loader::FailedModInfo info);
     void updateState(bool invert = false);
 
     static ModCell* create(ModListView* list, const char* key, CCSize size);

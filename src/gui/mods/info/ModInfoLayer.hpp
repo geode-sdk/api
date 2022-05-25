@@ -12,7 +12,6 @@ protected:
     ModListView* m_list = nullptr;
 
     void onHooks(CCObject*);
-    void onDev(CCObject*);
     void onSettings(CCObject*);
     void onNoSettings(CCObject*);
     void onInfo(CCObject*);

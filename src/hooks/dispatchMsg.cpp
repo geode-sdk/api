@@ -1,11 +1,11 @@
 #include "hook.hpp"
 #include <dispatch/ExtMouseManager.hpp>
-#include <shortcuts/ShortcutManager.hpp>
 
 #ifdef GEODE_IS_DESKTOP
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
-        ShortcutManager::get()->dispatchEvent(key, down);
+        //ShortcutManager::get()->dispatchEvent(key, down);
+        #warning no shortcut
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down);
     }
 };
@@ -24,7 +24,8 @@ class $modify(CCScheduler) {
         ExtMouseManager::get()->dispatchMoveEvent(
             ExtMouseManager::getMousePosition()
         );
-        ShortcutManager::get()->update(dt);
+        //ShortcutManager::get()->update(dt);
+        #warning no shortcut
         return CCScheduler::update(dt);
     }
 };

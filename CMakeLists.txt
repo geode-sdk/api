@@ -21,12 +21,12 @@ add_library(${PROJECT_NAME} SHARED
 	src/hooks/objcHook.mm
     src/dispatch/MacMouseEvent.mm
 )
+
 target_include_directories(${PROJECT_NAME} PUBLIC
 	"include"
 	"include/dragdrop"
 	"include/nodes"
 	"include/settings"
-	"include/shortcuts"
 	"include/views"
 	"src"
 	"src/gui/loading"

@@ -8,7 +8,8 @@ class $modify(CustomLoadingLayer, LoadingLayer) {
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-        auto [count, unresolvedCount] = Loader::get()->getLoadedModCount();
+        auto count = Loader::get()->getAllMods().size();
+        auto unresolvedCount = Loader::get()->getFailedMods().size();
 
         // const char* text = "Loaded Geode";
         // commented out until someone figures out why this crashes

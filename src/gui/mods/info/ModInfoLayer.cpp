@@ -1,6 +1,5 @@
 #include "ModInfoLayer.hpp"
 #include "../dev/HookListLayer.hpp"
-#include "../dev/DevSettingsLayer.hpp"
 #include "../settings/ModSettingsLayer.hpp"
 #include <nodes/BasedButton.hpp>
 #include <nodes/MDTextArea.hpp>
@@ -122,17 +121,6 @@ bool ModInfoLayer::init(Mod* mod, ModListView* list) {
         settingsBtn->setTarget(this, menu_selector(ModInfoLayer::onNoSettings));
     }
 
-
-    auto devSpr = ButtonSprite::create("Dev Options", "bigFont.fnt", "GJ_button_05.png", .6f);
-    devSpr->setScale(.5f);
-
-    auto devBtn = CCMenuItemSpriteExtra::create(
-        devSpr, this, menu_selector(ModInfoLayer::onDev)
-    );
-    devBtn->setPosition(size.width / 2 - 50.f, -size.height / 2 + 25.f);
-    m_buttonMenu->addChild(devBtn);
-
-
     auto enableBtnSpr = ButtonSprite::create(
         "Enable", "bigFont.fnt", "GJ_button_01.png", .6f
     );
@@ -218,12 +206,6 @@ void ModInfoLayer::onDisablingNotSupported(CCObject* pSender) {
         "OK"
     )->show();
     as<CCMenuItemToggler*>(pSender)->toggle(m_mod->isEnabled());
-}
-
-void ModInfoLayer::onDev(CCObject*) {
-    auto layer = DevSettingsLayer::create(m_mod);
-    this->addChild(layer);
-    layer->showLayer(false);
 }
 
 void ModInfoLayer::onHooks(CCObject*) {

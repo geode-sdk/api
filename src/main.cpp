@@ -10,25 +10,16 @@ $observe("Test Keybind") {
 
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
-    /*mod->with<GeodeAPI>()->addKeybindAction(TriggerableAction {
-        "Keybind Test",
-        "test_keybind",
-        KB_GLOBAL_CATEGORY,
-        [](CCNode* node, bool down) -> bool {
-            if (down) {
-                FLAlertLayer::create("Hey", "Keybinds work", "OK")->show();
-            }
-            return false;
-        }
-    }, {{ KEY_T, Keybind::Modifiers::Control | Keybind::Modifiers::Alt }});*/
 
-    ShortcutManager::get()->registerShortcut(ShortcutAction::globalShortcut(
+    /*ShortcutManager::get()->registerShortcut(ShortcutAction::globalShortcut(
         "Test Keybind",
         Shortcut(
             KEY_T,
             KeyModifiers::Control
         )
-    ));
+    ));*/
+    //
+
 
     EventCenter::get()->registerObserver<ghc::filesystem::path>(
        "dragdrop.geode", [](auto const& data) {

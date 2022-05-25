@@ -5,7 +5,7 @@ bool HotReloadLayer::init(std::string const& name) {
 		return false;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-	
+
 	auto bg = CCSprite::create("GJ_gradientBG.png");
 	auto bgSize = bg->getTextureRect().size;
 
