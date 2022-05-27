@@ -7,7 +7,11 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-ferror-limit=99999")
+# only camila needs this, it also creates a billion warnings on msvc
+# because this is an invalid msvc option
+if (APPLE)
+	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-ferror-limit=99999")
+endif()
 
 file(GLOB_RECURSE CORE_SOURCES
 	src/*.cpp
