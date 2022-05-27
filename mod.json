@@ -1,12 +1,12 @@
 {
     "geode":        "v0.1.0",
-	"version":      "v1.0.0",
-	"id":           "com.geode.api",
+    "version":      "v1.0.0",
+    "id":           "com.geode.api",
     "name":         "Geode API",
     "developer":    "Geode Team",
     "description":  "Shared API utilities",
     "repository": "https://github.com/geode-sdk/api",
-	"dependencies": null,
+    "dependencies": null,
     "binary":       "GeodeAPI",
     "settings": null,
     "resources": {
