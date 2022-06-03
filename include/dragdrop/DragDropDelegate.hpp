@@ -2,7 +2,7 @@
 
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
-#include <fs/filesystem.hpp>
+#include <utils/fs/filesystem.hpp>
 
 namespace geode {
     class GEODE_API_DLL DragDropDelegate {

@@ -44,12 +44,12 @@ SettingManager::SettingManager(Mod* m) {
 		std::string control = ctrl;
 
 		Setting* out = nullptr;
-		EventCenter::get()->broadcast(Event(
-			// events::getSetting(id),
-			id,
-			&out,
-			Mod::get()
-		));
+		// EventCenter::get()->broadcast(Event(
+		// 	// events::getSetting(id),
+		// 	id,
+		// 	&out,
+		// 	Mod::get()
+		// ));
 
 		if (out == nullptr) {
 			FLAlertLayer::create(

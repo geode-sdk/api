@@ -1,5 +1,5 @@
 #include <dispatch/ExtMouseManager.hpp>
-#include <WackyGeodeMacros.hpp>
+#include <utils/WackyGeodeMacros.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -150,7 +150,7 @@ bool ExtMouseManager::dispatchClickEvent(MouseEvent btn, bool down, CCPoint cons
     }
     auto prio = maxTargetPrio();
     for (auto const& d : m_delegates) {
-        if (d->m_targetPriority != prio) continue;
+        // if (d->m_targetPriority != prio) continue;
         if (!down) d->m_extMouseDown.clear();
         if (delegateIsHovered(d, pos)) {
             if (down) {

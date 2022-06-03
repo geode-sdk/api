@@ -1,7 +1,7 @@
 /*#include "ModSettingsList.hpp"
 #include <settings/SettingNodeManager.hpp>
 #include <settings/SettingNode.hpp>
-#include <WackyGeodeMacros.hpp>
+#include <utils/WackyGeodeMacros.hpp>
 #include "ModSettingsLayer.hpp"
 
 bool ModSettingsList::init(Mod* mod, ModSettingsLayer* layer, float width, float height) {

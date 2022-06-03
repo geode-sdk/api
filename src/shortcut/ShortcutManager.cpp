@@ -90,25 +90,25 @@ void ShortcutManager::update(float dt) {
 						state.eventActive = false;
 					}
 
-					EventCenter::get()->send(
-						Event<bool>(
-							action->m_selector,
-							true,
-							Mod::get()
-						),
-						action->m_owner
-					);
+					// EventCenter::get()->send(
+					// 	Event<bool>(
+					// 		action->m_selector,
+					// 		true,
+					// 		Mod::get()
+					// 	),
+					// 	action->m_owner
+					// );
 				}
 			} else {
 				if (!state.firstFire) {
-					EventCenter::get()->send(
-						Event<bool>(
-							action->m_selector,
-							false,
-							Mod::get()
-						),
-						action->m_owner
-					);
+					// EventCenter::get()->send(
+					// 	Event<bool>(
+					// 		action->m_selector,
+					// 		false,
+					// 		Mod::get()
+					// 	),
+					// 	action->m_owner
+					// );
 				}
 				state.timeSinceRapid = 0;
 				state.eventActive = false;

@@ -3,7 +3,7 @@
 #include "GeodeSettingNode.hpp"
 #include <general/TextRenderer.hpp>
 #include <random>
-#include <WackyGeodeMacros.hpp>
+#include <utils/WackyGeodeMacros.hpp>
 
 USE_GEODE_NAMESPACE();
 

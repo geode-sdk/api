@@ -1,5 +1,5 @@
 #include <nodes/MDTextArea.hpp>
-#include <WackyGeodeMacros.hpp>
+#include <utils/WackyGeodeMacros.hpp>
 #include "../../md4c/src/md4c.h"
 
 USE_GEODE_NAMESPACE();

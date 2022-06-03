@@ -5,9 +5,9 @@
 #ifdef GEODE_IS_MACOS
 
 #include "../shortcuts/MouseEvent.hpp"
-#include <CCEventDispatcher.h>
+#include <platform/mac/CCEventDispatcher.h>
 #import <Cocoa/Cocoa.h>
-#import <EAGLView.h>
+#import <platform/mac/EAGLView.h>
 #import <objc/runtime.h>
 
 @interface MacMouseEvent : NSObject {

@@ -8,14 +8,14 @@
 
 USE_GEODE_NAMESPACE();
 
-$observe("test-keybind") {
-	Notification::build()
-		.title("Gay sex")
-		.text("Have you ever like uhh and the uhhh yeah uhhhh like that yeah")
-		.time(0)
-		.location(NotificationLocation::TopCenter)
-		.show();
-}
+// $observe("test-keybind") {
+// 	Notification::build()
+// 		.title("Gay sex")
+// 		.text("Have you ever like uhh and the uhhh yeah uhhhh like that yeah")
+// 		.time(0)
+// 		.location(NotificationLocation::TopCenter)
+// 		.show();
+// }
 
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
@@ -44,20 +44,20 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
         )
     ));
 
-    EventCenter::get()->registerObserver<ghc::filesystem::path>(
-       "dragdrop.geode", [](auto const& data) {
-            auto path = data.object();
-            auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
+    // EventCenter::get()->registerObserver<ghc::filesystem::path>(
+    //    "dragdrop.geode", [](auto const& data) {
+    //         auto path = data.object();
+    //         auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
 
-            if (to_file == path) {
-                FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> is already installed!", "OK")->show();
-            } else if (ghc::filesystem::copy_file(path, to_file, ghc::filesystem::copy_options::overwrite_existing)) {
-                FLAlertLayer::create("Success!", "<cg>" + path.stem().u8string() + "</c> successfully installed!", "OK")->show();
-            } else {
-                FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> couldn't be installed!", "OK")->show();
-            }
-        }
-    );
+    //         if (to_file == path) {
+    //             FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> is already installed!", "OK")->show();
+    //         } else if (ghc::filesystem::copy_file(path, to_file, ghc::filesystem::copy_options::overwrite_existing)) {
+    //             FLAlertLayer::create("Success!", "<cg>" + path.stem().u8string() + "</c> successfully installed!", "OK")->show();
+    //         } else {
+    //             FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> couldn't be installed!", "OK")->show();
+    //         }
+    //     }
+    // );
 
     return true;
 }

@@ -3,7 +3,7 @@
 
 #ifdef GEODE_IS_MACOS
 
-#include <CCEventDispatcher.h>
+#include <platform/mac/CCEventDispatcher.h>
 #import <Foundation/Foundation.h>
 
 

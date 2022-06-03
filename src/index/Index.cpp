@@ -1,7 +1,7 @@
 #include "Index.hpp"
 #include <curl/curl.h>
 #include <thread>
-#include <json.hpp>
+#include <utils/json.hpp>
 #include <hash.hpp>
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
