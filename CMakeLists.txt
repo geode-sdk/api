@@ -32,6 +32,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	"include/nodes"
 	"include/settings"
 	"include/views"
+	"include/events"
 	"src"
 	"src/gui/loading"
 	"src/gui"

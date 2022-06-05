@@ -5,6 +5,6 @@
 namespace geode {
     struct EventProtocol {
         virtual bool accepts(EventProtocol* evt);
-        virtual std::string eventID();
+        virtual std::string eventID() = 0;
     };
 } // namespace geode

@@ -14,7 +14,7 @@ namespace geode {
         static EventCenter* get();
 
         void broadcast(EventProtocol* evt);
-        EventAction registerAction(EventProtocol* evt, std::function<void(EventProtocol*)> f);
+        EventAction& registerAction(EventProtocol* evt, std::function<void(EventProtocol*)> f);
         void addAction(EventAction ea);
         void unregisterAction(EventAction ea);
     };
