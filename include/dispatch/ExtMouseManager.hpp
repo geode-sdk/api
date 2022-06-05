@@ -1,9 +1,8 @@
 #pragma once
 
-#include <Geode.hpp>
 #include "../APIMacros.hpp"
+#include <Geode.hpp>
 #include <unordered_set>
-
 
 namespace geode {
 
@@ -22,7 +21,7 @@ namespace geode {
     class ExtMouseManager;
 
     class GEODE_API_DLL ExtMouseDelegate {
-    protected:
+     protected:
         cocos2d::CCRect m_extMouseHitArea = cocos2d::CCRectZero;
         bool m_extMouseHovered = false;
         std::unordered_set<MouseEvent> m_extMouseDown = {};
@@ -35,8 +34,8 @@ namespace geode {
         bool isMouseDown(MouseEvent event) const;
 
         friend class ExtMouseManager;
-    
-    public:
+
+     public:
         virtual void mouseEnterExt(cocos2d::CCPoint const& pos);
         virtual void mouseLeaveExt(cocos2d::CCPoint const& pos);
         virtual bool mouseDownExt(MouseEvent button, cocos2d::CCPoint const& pos);
@@ -49,7 +48,7 @@ namespace geode {
     };
 
     class GEODE_API_DLL ExtMouseManager {
-    protected:
+     protected:
         std::vector<ExtMouseDelegate*> m_delegates;
         cocos2d::CCPoint m_lastPosition;
         ExtMouseDelegate* m_capturing = nullptr;
@@ -61,8 +60,8 @@ namespace geode {
 
         ExtMouseManager();
         ~ExtMouseManager();
-    
-    public:
+
+     public:
         static ExtMouseManager* get();
 
         void pushDelegate(ExtMouseDelegate* delegate);
@@ -80,4 +79,4 @@ namespace geode {
 
         static cocos2d::CCPoint getMousePosition();
     };
-}
+} // namespace geode

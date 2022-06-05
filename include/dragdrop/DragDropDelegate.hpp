@@ -1,20 +1,20 @@
 #pragma once
 
-#include <Geode.hpp>
 #include "../APIMacros.hpp"
+#include <Geode.hpp>
 #include <fs/filesystem.hpp>
 
 namespace geode {
     class GEODE_API_DLL DragDropDelegate {
-    public:
+     public:
         using Handler = std::function<bool(ghc::filesystem::path const&)>;
 
-    protected:
+     protected:
         Mod* m_owner;
         Handler m_handler;
 
-    public:
+     public:
         DragDropDelegate(Mod* owner, Handler handler);
         bool handleDrop(ghc::filesystem::path const& file);
     };
-}
+} // namespace geode
