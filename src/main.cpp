@@ -1,12 +1,7 @@
 #include <Geode.hpp>
 #include "APIInternal.hpp"
-#include <Events.hpp>
 
 USE_GEODE_NAMESPACE();
-
-$observe("Test Keybind") {
-    FLAlertLayer::create("Hey", "Keybinds work", "OK")->show();
-}
 
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
@@ -21,7 +16,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
     //
 
 
-    EventCenter::get()->registerObserver<ghc::filesystem::path>(
+    /*EventCenter::get()->registerObserver<ghc::filesystem::path>(
        "dragdrop.geode", [](auto const& data) {
             auto path = data.object();
             auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
@@ -34,7 +29,8 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
                 FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> couldn't be installed!", "OK")->show();
             }
         }
-    );
+    );*/
+    #warning Event
 
     return true;
 }

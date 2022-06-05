@@ -49,7 +49,6 @@ namespace geode {
     };
 
     class GEODE_API_DLL ExtMouseManager {
-        API_INIT("com.geode.api");
     protected:
         std::vector<ExtMouseDelegate*> m_delegates;
         cocos2d::CCPoint m_lastPosition;
