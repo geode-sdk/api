@@ -30,7 +30,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
             }
         }
     );*/
-    #warning Event
+    #pragma message("Event")
 
     return true;
 }

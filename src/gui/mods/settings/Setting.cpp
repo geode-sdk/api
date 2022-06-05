@@ -49,7 +49,7 @@ SettingManager::SettingManager(Mod* m) {
 			&out,
 			Mod::get()
 		));*/
-		#warning Event
+		#pragma message("Event")
 
 		if (out == nullptr) {
 			FLAlertLayer::create(
