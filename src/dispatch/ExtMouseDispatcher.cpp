@@ -10,15 +10,16 @@ bool ExtMouseDelegate::mouseUpExt(MouseEvent, CCPoint const&) { return false; }
 void ExtMouseDelegate::mouseMoveExt(CCPoint const&) {}
 void ExtMouseDelegate::mouseDownOutsideExt(MouseEvent, CCPoint const&) {}
 void ExtMouseDelegate::mouseUpOutsideExt(MouseEvent, CCPoint const&) {}
-bool ExtMouseDelegate::mouseScrollExt(float, float) { return false; }
-void ExtMouseDelegate::mouseScrollOutsideExt(float, float) {}
 
-ExtMouseDelegate::ExtMouseDelegate() {
-    ExtMouseDispatcher::get()->pushDelegate(this);
+ExtMouseDelegate::ExtMouseDelegate() : CCTouchDelegate(), CCMouseDelegate() {
 }
 
 ExtMouseDelegate::~ExtMouseDelegate() {
     ExtMouseDispatcher::get()->popDelegate(this);
+}
+
+void ExtMouseDelegate::registerWithMouseDispatcher() {
+    ExtMouseDispatcher::get()->pushDelegate(this);
 }
 
 void ExtMouseDelegate::attainCapture() {
@@ -76,7 +77,7 @@ struct CopyTouchDispatcher : public CCTouchDispatcher {
 struct CopyMouseDispatcher : public CCMouseDispatcher {
     void copyTo(CCMouseDispatcher* rawOther) {
         auto other = as<CopyMouseDispatcher*>(rawOther);
-        other->m_pDelegates->addObjectsFromArray(m_pDelegates);
+        other->m_pMouseHandlers->addObjectsFromArray(m_pMouseHandlers);
         other->m_bToAdd = m_bToAdd;
         other->m_bToRemove = m_bToRemove;
         ccCArrayAppendArrayWithResize(other->m_pHandlersToAdd, m_pHandlersToAdd);
@@ -112,11 +113,30 @@ void ExtMouseDispatcher::unregisterDispatcher() {
 }
 
 void ExtMouseDispatcher::pushDelegate(ExtMouseDelegate* delegate) {
-    this->addTargetedDelegate(delegate, m_nTargetPrio, true);
+    std::cout << __FUNCTION__ << "\n";
+    CCTouchDispatcher::addTargetedDelegate(delegate, m_nTargetPrio, true);
+    CCMouseDispatcher::addDelegate(delegate);
 }
 
 void ExtMouseDispatcher::popDelegate(ExtMouseDelegate* delegate) {
-    this->CCTouchDispatcher::removeDelegate(delegate);
+    std::cout << __FUNCTION__ << "\n";
+    this->lockPopDelegate(delegate);
+    CCTouchDispatcher::removeDelegate(delegate);
+    CCMouseDispatcher::removeDelegate(delegate);
+    this->unlockPopDelegate(delegate);
+}
+
+static std::set<ExtMouseDelegate*> g_locked;
+bool ExtMouseDispatcher::isPopLocked(ExtMouseDelegate* delegate) {
+    return g_locked.count(delegate);
+}
+
+void ExtMouseDispatcher::lockPopDelegate(ExtMouseDelegate* delegate) {
+    g_locked.insert(delegate);
+}
+
+void ExtMouseDispatcher::unlockPopDelegate(ExtMouseDelegate* delegate) {
+    g_locked.erase(delegate);
 }
 
 bool ExtMouseDispatcher::delegateIsHovered(ExtMouseDelegate* delegate, CCPoint const& mpos) {
@@ -134,6 +154,28 @@ bool ExtMouseDispatcher::delegateIsHovered(ExtMouseDelegate* delegate, CCPoint c
     
     pos = pos + delegate->m_extMouseHitArea.origin;
 
+    auto rect = CCRect {
+        pos.x - size.width * p->getAnchorPoint().x,
+        pos.y - size.height * p->getAnchorPoint().y,
+        size.width,
+        size.height
+    };
+
+    return rect.containsPoint(mpos);
+}
+
+bool ExtMouseDispatcher::delegateIsHovered(CCMouseDelegate* delegate, CCPoint const& mpos) {
+    auto p = dynamic_cast<CCNode*>(delegate);
+    if (!p) return false;
+
+    auto size = p->getScaledContentSize();
+    if (!cocos::nodeIsVisible(p)) return false;
+
+    auto pos = p ? p->getPosition() : CCPointZero;
+
+    if (p->getParent())
+        pos = p->getParent()->convertToWorldSpace(p->getPosition());
+    
     auto rect = CCRect {
         pos.x - size.width * p->getAnchorPoint().x,
         pos.y - size.height * p->getAnchorPoint().y,
@@ -339,6 +381,56 @@ void ExtMouseDispatcher::touches(
         m_bToQuit = false;
         this->forceRemoveAllDelegates();
     }
+}
+
+bool ExtMouseDispatcher::dispatchScrollMSG(float x, float y) {
+    CCMouseDispatcher::m_bLocked = true;
+    CCARRAY_FOREACH_B_TYPE(m_pMouseHandlers, handler, CCMouseHandler) {
+        if (!handler) break;
+
+        bool invoke;
+        bool noPropagate;
+
+        auto delegate = dynamic_cast<ExtMouseDelegate*>(handler->getDelegate());
+        if (delegate) {
+            if (delegate->m_targetedScroll) {
+                invoke = this->delegateIsHovered(handler->getDelegate(), this->getMousePosition());
+            } else {
+                invoke = true;
+            }
+            noPropagate = delegate->m_swallowScroll;
+        } else {
+            invoke = true;
+            noPropagate = false;
+        }
+
+        if (invoke) {
+            handler->getDelegate()->scrollWheel(x, y);
+            if (noPropagate) break;
+        }
+    }
+    CCMouseDispatcher::m_bLocked = false;
+
+    if (CCMouseDispatcher::m_bToRemove) {
+        CCMouseDispatcher::m_bToRemove = false;
+        for (unsigned int i = 0; i < CCMouseDispatcher::m_pHandlersToRemove->num; i++) {
+            CCMouseDispatcher::forceRemoveDelegate(as<CCMouseDelegate*>(
+                CCMouseDispatcher::m_pHandlersToRemove->arr[i]
+            ));
+        }
+        ccCArrayRemoveAllValues(CCMouseDispatcher::m_pHandlersToRemove);
+    }
+
+    if (CCMouseDispatcher::m_bToAdd) {
+        CCMouseDispatcher::m_bToAdd = false;
+        for (unsigned int i = 0; i < CCMouseDispatcher::m_pHandlersToAdd->num; i++) {
+            CCMouseDispatcher::forceAddDelegate(as<CCMouseDelegate*>(
+                CCMouseDispatcher::m_pHandlersToAdd->arr[i]
+            ));
+        }
+        ccCArrayRemoveAllValues(CCMouseDispatcher::m_pHandlersToAdd);
+    }
+    return true;
 }
 
 #ifdef GEODE_IS_WINDOWS

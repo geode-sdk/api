@@ -76,11 +76,9 @@ void Scrollbar::mouseMoveExt(cocos2d::CCPoint const& mpos) {
     }
 }
 
-bool Scrollbar::mouseScrollExt(float y, float x) {
-    if (!m_target)
-        return false;
+void Scrollbar::scrollWheel(float y, float x) {
+    if (!m_target) return;
     m_target->scrollWheel(x, y);
-    return true;
 }
 
 void Scrollbar::draw() {
@@ -194,6 +192,8 @@ bool Scrollbar::init(CCScrollLayerExt* target) {
 
     this->addChild(m_track);
     this->addChild(m_thumb);
+
+    this->registerWithMouseDispatcher();
 
     return true;
 }

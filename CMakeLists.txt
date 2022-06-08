@@ -8,8 +8,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(CURL REQUIRED) 
-
 file(GLOB_RECURSE CORE_SOURCES
 	src/*.cpp
 )
@@ -38,13 +36,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	"src/gui/mods/info"
 	"src/gui/mods/list"
 	"src/gui/mods/settings"
-	${CURL_INCLUDE_DIR}
 )
 
 add_compile_definitions(EXPORTING_GEODE_API)
 
 if (APPLE)
+	find_package(CURL REQUIRED) 
+
 	target_link_libraries(${PROJECT_NAME} "-framework Cocoa" ${CURL_LIBRARIES})
+	target_include_directories(${PROJECT_NAME} ${CURL_INCLUDE_DIR})
 endif()
 
 find_path(GEODE_SDK_PATH

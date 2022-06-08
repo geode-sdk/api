@@ -185,6 +185,8 @@ bool Notification::init(
 
     this->setAnchorPoint({ .0f, .0f });
     this->setVisible(false);
+    
+    this->registerWithMouseDispatcher();
 
     return true;
 }
