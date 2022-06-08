@@ -76,46 +76,44 @@
 		return NSDragOperationEvery;
 	}
 
-	- (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender {
-        NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
+	// - (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender {
+ //        NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
         
-        if (EventCenter::get()->getObservers("dragdrop", nullptr).size() > 0)
-            return YES;
+ //        if (EventCenter::get()->getObservers("dragdrop", nullptr).size() > 0)
+ //            return YES;
 
-        for (NSURL* dragItem in dragItems) {
-            //DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
-            if (EventCenter::get()->getObservers(std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String, nullptr).size() > 0)
-                return YES;
-        }
-        return NO;
-	}
+ //        for (NSURL* dragItem in dragItems) {
+ //            //DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
+ //            if (EventCenter::get()->getObservers(std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String, nullptr).size() > 0)
+ //                return YES;
+ //        }
+ //        return NO;
+	// }
 
-	-(BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
-	    NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
+	// -(BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
+	//     NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
 	    
-	    for (NSURL* dragItem in dragItems) {
-	    	//DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
+	//     for (NSURL* dragItem in dragItems) {
+	//     	//DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
 
-            EventCenter::get()->broadcast(Event(
-                "dragdrop",
-                ghc::filesystem::path(dragItem.path.UTF8String),
-                Mod::get()                
-            ));
+ //            EventCenter::get()->broadcast(Event(
+ //                "dragdrop",
+ //                ghc::filesystem::path(dragItem.path.UTF8String),
+ //                Mod::get()                
+ //            ));
 
-            EventCenter::get()->broadcast(Event(
-                std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String,
-                ghc::filesystem::path(dragItem.path.UTF8String),
-                Mod::get()                
-            ));
-	    }
-	    return YES;
-	}
+ //            EventCenter::get()->broadcast(Event(
+ //                std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String,
+ //                ghc::filesystem::path(dragItem.path.UTF8String),
+ //                Mod::get()                
+ //            ));
+	//     }
+	//     return YES;
+	// }
 @end
 
 __attribute__((constructor)) void nswindowHook() {
-    [NSApp.mainWindow registerForDraggedTypes:[NSArray arrayWithObjects: NSFilenamesPboardType, nil]];
-    // idk
-    // [NSApp.mainWindow setAcceptsMouseMovedEvents:YES];
+    // [NSApp.mainWindow registerForDraggedTypes:[NSArray arrayWithObjects: NSFilenamesPboardType, nil]];
 }
 
 #endif

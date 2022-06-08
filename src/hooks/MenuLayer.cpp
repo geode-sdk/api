@@ -1,6 +1,6 @@
 #include "hook.hpp"
 #include <mods/list/ModListLayer.hpp>
-#include <WackyGeodeMacros.hpp>
+#include <utils/WackyGeodeMacros.hpp>
 #include <nodes/BasedButtonSprite.hpp>
 #include <views/BasicViews.hpp>
 

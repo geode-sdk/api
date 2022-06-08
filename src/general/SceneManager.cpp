@@ -1,5 +1,5 @@
 #include <general/SceneManager.hpp>
-#include <WackyGeodeMacros.hpp>
+#include <utils/WackyGeodeMacros.hpp>
 
 USE_GEODE_NAMESPACE();
 

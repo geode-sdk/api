@@ -7,7 +7,7 @@
 #include <APIInternal.hpp>
 #include "../list/ModListView.hpp"
 #include <nodes/Scrollbar.hpp>
-#include <WackyGeodeMacros.hpp>
+#include <utils/WackyGeodeMacros.hpp>
 #include <settings/Setting.hpp>
 
 // TODO: die

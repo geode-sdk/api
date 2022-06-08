@@ -42,7 +42,9 @@ add_compile_definitions(EXPORTING_GEODE_API)
 
 if (APPLE)
 	find_package(CURL REQUIRED) 
-
+	target_include_directories(${PROJECT_NAME} PUBLIC
+		${CURL_INCLUDE_DIR}
+	)
 	target_link_libraries(${PROJECT_NAME} "-framework Cocoa" ${CURL_LIBRARIES})
 	target_include_directories(${PROJECT_NAME} ${CURL_INCLUDE_DIR})
 endif()
