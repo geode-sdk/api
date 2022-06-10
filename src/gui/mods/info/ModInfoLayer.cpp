@@ -249,7 +249,6 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         m_mainLayer->addChild(m_loadingLabel);
     }
 
-    
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
     closeSpr->setScale(.8f);
 

@@ -31,15 +31,6 @@ bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {
     
     auto offsetY = m_target->m_contentLayer->getPositionY() - posY;
 
-    if (fabsf(offsetY) < thumbHeight) {
-        m_extMouseHitArea.origin = CCPoint {
-            pos.x,
-            m_target->m_contentLayer->getPositionY() - posY
-        };
-    } else {
-        m_extMouseHitArea.origin = CCPointZero;
-    }
-    
     return true;
 }
 
@@ -67,8 +58,6 @@ void Scrollbar::mouseMoveExt(cocos2d::CCPoint const& mpos) {
             (targetHeight - thumbHeight / 2 + 10)
         );
 
-        posY += m_extMouseHitArea.origin.y;
-
         if (posY > 0.0f) posY = 0.0f;
         if (posY < -h) posY = -h;
 
@@ -76,7 +65,7 @@ void Scrollbar::mouseMoveExt(cocos2d::CCPoint const& mpos) {
     }
 }
 
-void Scrollbar::scrollWheel(float y, float x) {
+void Scrollbar::scrollWheel(float x, float y) {
     if (!m_target) return;
     m_target->scrollWheel(x, y);
 }
@@ -102,7 +91,7 @@ void Scrollbar::draw() {
     }
     m_track->setPosition(.0f, .0f);
 
-    m_extMouseHitArea.size = CCSize { m_width, targetHeight };
+    this->setContentSize({ m_width, targetHeight });
 
     auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
     auto p = targetHeight / contentHeight;

@@ -15,12 +15,10 @@ namespace geode {
         public cocos2d::CCMouseDelegate
     {
     protected:
-        cocos2d::CCRect m_extMouseHitArea = cocos2d::CCRectZero;
         bool m_extMouseHovered = false;
         bool m_targetedScroll = true;
         bool m_swallowScroll = true;
         std::unordered_set<MouseEvent> m_extMouseDown = {};
-        int m_targetPriority;
 
         ExtMouseDelegate();
         virtual ~ExtMouseDelegate();
@@ -54,30 +52,59 @@ namespace geode {
         cocos2d::CCPoint m_lastPosition;
         ExtMouseDelegate* m_capturing = nullptr;
         std::unordered_set<MouseEvent> m_pressedButtons;
-        MouseEvent m_lastPressed;
 
         bool init();
         bool delegateIsHovered(ExtMouseDelegate* delegate, cocos2d::CCPoint const& pos);
-        bool delegateIsHovered(cocos2d::CCMouseDelegate* delegate, cocos2d::CCPoint const& pos);
-        int maxTargetPrio() const;
-
-        void lockPopDelegate(ExtMouseDelegate* delegate);
-        void unlockPopDelegate(ExtMouseDelegate* delegate);
+        void handleTouchDelegates();
 
         ExtMouseDispatcher();
-        ~ExtMouseDispatcher();
     
     public:
+        /**
+         * Get the shared ExtMouseDispatcher state
+         */
         static ExtMouseDispatcher* get();
+        /**
+         * Replace CCTouchDispatcher & CCMouseDispatcher 
+         * with ExtMouseDispatcher
+         */
         void registerDispatcher();
+        /**
+         * Restore the original CCTouchDispatcher & 
+         * CCMouseDispatcher 
+         */
         void unregisterDispatcher();
 
+        /**
+         * Add a delegate
+         * @param delegate Delegate to add
+         */
         void pushDelegate(ExtMouseDelegate* delegate);
+        /**
+         * Remove a delegate
+         * @param delegate Delegate to remove
+         */
         void popDelegate(ExtMouseDelegate* delegate);
-        bool isPopLocked(ExtMouseDelegate* delegate);
 
+        /**
+         * Get mouse capture for delegate (all mouse 
+         * events will be sent to the delegate until
+         * it releases capture)
+         * @param delegate Delegate to attain capture for
+         */
         void attainCapture(ExtMouseDelegate* delegate);
+        /**
+         * Release mouse capture from delegate
+         * @param delegate Delegate to release capture from
+         */
         void releaseCapture(ExtMouseDelegate* delegate);
+        /**
+         * Check if the given delegate is capturing 
+         * the mouse
+         * @param delegate Delegate to check
+         * @returns True if the delegate has capture, 
+         * false if not
+         */
         bool isCapturing(ExtMouseDelegate* delegate) const;
 
         void update();
@@ -91,6 +118,9 @@ namespace geode {
             cocos2d::CCEvent* event,
             unsigned int touchType
         );
+        // will not dispatch touch events - call touches manually 
+        // if this returns false
+        bool dispatchMouseEvent(MouseEvent event, bool down, cocos2d::CCPoint const& mousePos);
         bool dispatchScrollMSG(float x, float y);
 
         static cocos2d::CCPoint getMousePosition();

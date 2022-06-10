@@ -3,6 +3,31 @@
 
 USE_GEODE_NAMESPACE();
 
+struct CopyTouchDispatcher : public CCTouchDispatcher {
+    void copyTo(CCTouchDispatcher* rawOther) {
+        auto other = as<CopyTouchDispatcher*>(rawOther);
+        other->m_pStandardHandlers->addObjectsFromArray(m_pStandardHandlers);
+        other->m_pTargetedHandlers->addObjectsFromArray(m_pTargetedHandlers);
+        other->m_bToAdd = m_bToAdd;
+        other->m_bToRemove = m_bToRemove;
+        other->m_pHandlersToAdd->addObjectsFromArray(m_pHandlersToAdd);
+        ccCArrayAppendArrayWithResize(other->m_pHandlersToRemove, m_pHandlersToRemove);
+    }
+};
+
+struct CopyMouseDispatcher : public CCMouseDispatcher {
+    void copyTo(CCMouseDispatcher* rawOther) {
+        auto other = as<CopyMouseDispatcher*>(rawOther);
+        other->m_pMouseHandlers->addObjectsFromArray(m_pMouseHandlers);
+        other->m_bToAdd = m_bToAdd;
+        other->m_bToRemove = m_bToRemove;
+        ccCArrayAppendArrayWithResize(other->m_pHandlersToAdd, m_pHandlersToAdd);
+        ccCArrayAppendArrayWithResize(other->m_pHandlersToRemove, m_pHandlersToRemove);
+    }
+};
+
+// ExtMouseDelegate
+
 void ExtMouseDelegate::mouseEnterExt(CCPoint const&) {}
 void ExtMouseDelegate::mouseLeaveExt(CCPoint const&) {}
 bool ExtMouseDelegate::mouseDownExt(MouseEvent, CCPoint const&) { return false; }
@@ -30,18 +55,7 @@ void ExtMouseDelegate::releaseCapture() {
     ExtMouseDispatcher::get()->releaseCapture(this);
 }
 
-
-static void getTouchChildren(CCArray* arr, CCNode* node) {
-    if (!node) return;
-    CCARRAY_FOREACH_B_TYPE(node->getChildren(), obj, CCNode) {
-        if (dynamic_cast<CCTouchDelegate*>(obj)) {
-            arr->addObject(obj);
-        } else if (obj->getChildrenCount()) {
-            getTouchChildren(arr, obj);
-        }
-    }
-}
-
+// ExtMouseDispatcher
 
 bool ExtMouseDispatcher::init() {
     if (!CCTouchDispatcher::init()) {
@@ -54,36 +68,10 @@ ExtMouseDispatcher::ExtMouseDispatcher() : CCTouchDispatcher(), CCMouseDispatche
     this->init();
 }
 
-ExtMouseDispatcher::~ExtMouseDispatcher() {
-}
-
 ExtMouseDispatcher* ExtMouseDispatcher::get() {
     static auto g_manager = new ExtMouseDispatcher;
     return g_manager;
 }
-
-struct CopyTouchDispatcher : public CCTouchDispatcher {
-    void copyTo(CCTouchDispatcher* rawOther) {
-        auto other = as<CopyTouchDispatcher*>(rawOther);
-        other->m_pStandardHandlers->addObjectsFromArray(m_pStandardHandlers);
-        other->m_pTargetedHandlers->addObjectsFromArray(m_pTargetedHandlers);
-        other->m_bToAdd = m_bToAdd;
-        other->m_bToRemove = m_bToRemove;
-        other->m_pHandlersToAdd->addObjectsFromArray(m_pHandlersToAdd);
-        ccCArrayAppendArrayWithResize(other->m_pHandlersToRemove, m_pHandlersToRemove);
-    }
-};
-
-struct CopyMouseDispatcher : public CCMouseDispatcher {
-    void copyTo(CCMouseDispatcher* rawOther) {
-        auto other = as<CopyMouseDispatcher*>(rawOther);
-        other->m_pMouseHandlers->addObjectsFromArray(m_pMouseHandlers);
-        other->m_bToAdd = m_bToAdd;
-        other->m_bToRemove = m_bToRemove;
-        ccCArrayAppendArrayWithResize(other->m_pHandlersToAdd, m_pHandlersToAdd);
-        ccCArrayAppendArrayWithResize(other->m_pHandlersToRemove, m_pHandlersToRemove);
-    }
-};
 
 void ExtMouseDispatcher::registerDispatcher() {
     // sharedDirector will call init if it hasn't
@@ -113,58 +101,16 @@ void ExtMouseDispatcher::unregisterDispatcher() {
 }
 
 void ExtMouseDispatcher::pushDelegate(ExtMouseDelegate* delegate) {
-    std::cout << __FUNCTION__ << "\n";
     CCTouchDispatcher::addTargetedDelegate(delegate, m_nTargetPrio, true);
     CCMouseDispatcher::addDelegate(delegate);
 }
 
 void ExtMouseDispatcher::popDelegate(ExtMouseDelegate* delegate) {
-    std::cout << __FUNCTION__ << "\n";
-    this->lockPopDelegate(delegate);
     CCTouchDispatcher::removeDelegate(delegate);
     CCMouseDispatcher::removeDelegate(delegate);
-    this->unlockPopDelegate(delegate);
-}
-
-static std::set<ExtMouseDelegate*> g_locked;
-bool ExtMouseDispatcher::isPopLocked(ExtMouseDelegate* delegate) {
-    return g_locked.count(delegate);
-}
-
-void ExtMouseDispatcher::lockPopDelegate(ExtMouseDelegate* delegate) {
-    g_locked.insert(delegate);
-}
-
-void ExtMouseDispatcher::unlockPopDelegate(ExtMouseDelegate* delegate) {
-    g_locked.erase(delegate);
 }
 
 bool ExtMouseDispatcher::delegateIsHovered(ExtMouseDelegate* delegate, CCPoint const& mpos) {
-    auto size = delegate->m_extMouseHitArea.size;
-
-    auto p = dynamic_cast<CCNode*>(delegate);
-
-    if (p && size == CCSizeZero) size = p->getScaledContentSize();
-    if (p && !cocos::nodeIsVisible(p)) return false;
-
-    auto pos = p ? p->getPosition() : CCPointZero;
-
-    if (p && p->getParent())
-        pos = p->getParent()->convertToWorldSpace(p->getPosition());
-    
-    pos = pos + delegate->m_extMouseHitArea.origin;
-
-    auto rect = CCRect {
-        pos.x - size.width * p->getAnchorPoint().x,
-        pos.y - size.height * p->getAnchorPoint().y,
-        size.width,
-        size.height
-    };
-
-    return rect.containsPoint(mpos);
-}
-
-bool ExtMouseDispatcher::delegateIsHovered(CCMouseDelegate* delegate, CCPoint const& mpos) {
     auto p = dynamic_cast<CCNode*>(delegate);
     if (!p) return false;
 
@@ -186,42 +132,6 @@ bool ExtMouseDispatcher::delegateIsHovered(CCMouseDelegate* delegate, CCPoint co
     return rect.containsPoint(mpos);
 }
 
-class BypassCCTouchDispatcher : public CCTouchDispatcher {
-public:
-    CCArray* getStandardHandlers() const {
-        return m_pStandardHandlers;
-    }
-    CCArray* getTargetedHandlers() const {
-        return m_pTargetedHandlers;
-    }
-};
-
-int ExtMouseDispatcher::maxTargetPrio() const {
-    // this is very odd code...
-    // all i wanted to do was make sure that 
-    // if some layer on top doesn't pass touches 
-    // through normally then this wouldn't 
-    // pass mouse stuff aswell
-    // however CCTouchDispatcher is very weird
-    // i should probably just hook it and update 
-    // this through that
-    auto d = as<BypassCCTouchDispatcher*>(
-        CCDirector::sharedDirector()->getTouchDispatcher()
-    );
-    int prio = 0;
-    CCARRAY_FOREACH_B_TYPE(d->getTargetedHandlers(), handler, CCTouchHandler) {
-        if (handler->getPriority() < prio) {
-            prio = handler->getPriority();
-        }
-    }
-    CCARRAY_FOREACH_B_TYPE(d->getStandardHandlers(), handler, CCTouchHandler) {
-        if (handler->getPriority() < prio) {
-            prio = handler->getPriority();
-        }
-    }
-    return prio;
-}
-
 void ExtMouseDispatcher::attainCapture(ExtMouseDelegate* delegate) {
     if (!m_capturing) {
         m_capturing = delegate;
@@ -240,120 +150,17 @@ bool ExtMouseDispatcher::isCapturing(ExtMouseDelegate* delegate) const {
 
 void ExtMouseDispatcher::mouseDown(MouseEvent btn) {
     m_pressedButtons.insert(btn);
-    m_lastPressed = btn;
 }
 
 void ExtMouseDispatcher::mouseUp(MouseEvent btn) {
     m_pressedButtons.erase(btn);
-    m_lastPressed = btn;
 }
 
 bool ExtMouseDispatcher::isMouseDown(MouseEvent btn) const {
     return m_pressedButtons.count(btn);
 }
 
-void ExtMouseDispatcher::update() {}
-
-void ExtMouseDispatcher::touches(
-    cocos2d::CCSet* touches,
-    cocos2d::CCEvent* event,
-    unsigned int touchType
-) {
-    CCTouchDispatcher::m_bLocked = true;
-    auto mutableSet = 
-        m_pTargetedHandlers->count() == 0 ||
-        m_pStandardHandlers->count() == 0;
-    
-    auto mutableTouches = mutableSet ? touches->copy() : touches;
-    auto helperData = m_sHandlerHelperData[touchType];
-    if (m_pTargetedHandlers->count()) {
-        for (auto& obj : *touches) {
-            auto touch = as<CCTouch*>(obj);
-            CCARRAY_FOREACH_B_TYPE(m_pTargetedHandlers, handler, CCTargetedTouchHandler) {
-                if (!handler) break;
-
-                auto extDelegate = dynamic_cast<ExtMouseDelegate*>(handler->getDelegate());
-                if (extDelegate) {
-                    if (touchType == CCTOUCHBEGAN) {
-                        if (extDelegate->mouseDownExt(m_lastPressed, getMousePosition())) {
-                            break;
-                        }
-                    } else if (
-                        touchType == CCTOUCHENDED ||
-                        touchType == CCTOUCHCANCELLED
-                    ) {
-                        if (extDelegate->mouseUpExt(m_lastPressed, getMousePosition())) {
-                            break;
-                        }
-                    }
-                }
-
-                bool claimed = false;
-                if (touchType == CCTOUCHBEGAN) {
-                    claimed = handler->getDelegate()->ccTouchBegan(touch, event);
-                    if (claimed) {
-                        handler->getClaimedTouches()->addObject(touch);
-                    }
-                } else {
-                    if (handler->getClaimedTouches()->containsObject(touch)) {
-                        claimed = true;
-
-                        switch (helperData.m_type) {
-                            case CCTOUCHMOVED:
-                                handler->getDelegate()->ccTouchMoved(touch, event);
-                                break;
-
-                            case CCTOUCHENDED:
-                                handler->getDelegate()->ccTouchEnded(touch, event);
-                                handler->getClaimedTouches()->removeObject(touch);
-                                break;
-                            
-                            case CCTOUCHCANCELLED:
-                                handler->getDelegate()->ccTouchCancelled(touch, event);
-                                handler->getClaimedTouches()->removeObject(touch);
-                                break;
-                        }
-                    }
-                }
-
-                if (claimed && handler->isSwallowsTouches()) {
-                    if (mutableSet) {
-                        mutableTouches->removeObject(touch);
-                    }
-                    break;
-                }
-            }
-        }
-    }
-
-    if (m_pStandardHandlers->count() && mutableTouches->count()) {
-        CCARRAY_FOREACH_B_TYPE(m_pTargetedHandlers, handler, CCStandardTouchHandler) {
-            if (!handler) break;
-            switch (helperData.m_type) {
-                case CCTOUCHBEGAN:
-                    handler->getDelegate()->ccTouchesBegan(touches, event);
-                    break;
-                
-                case CCTOUCHMOVED:
-                    handler->getDelegate()->ccTouchesMoved(touches, event);
-                    break;
-                
-                case CCTOUCHENDED:
-                    handler->getDelegate()->ccTouchesEnded(touches, event);
-                    break;
-                
-                case CCTOUCHCANCELLED:
-                    handler->getDelegate()->ccTouchesCancelled(touches, event);
-                    break;
-            }
-        }
-    }
-
-    if (mutableSet) {
-        mutableTouches->release();
-    }
-
-    CCTouchDispatcher::m_bLocked = false;
+void ExtMouseDispatcher::handleTouchDelegates() {
     if (CCTouchDispatcher::m_bToRemove) {
         CCTouchDispatcher::m_bToRemove = false;
         for (unsigned int i = 0; i < CCTouchDispatcher::m_pHandlersToRemove->num; i++) {
@@ -383,6 +190,187 @@ void ExtMouseDispatcher::touches(
     }
 }
 
+void ExtMouseDispatcher::update() {
+    // check if mouse has moved
+    auto mpos = getMousePosition();
+    if (m_lastPosition == mpos) {
+        return;
+    }
+    m_lastPosition = mpos;
+
+    // pass to capturing delegate if one exists
+    if (m_capturing) {
+        // if you've captured the mouse, the 
+        // mouse cant really enter / leave the 
+        // node unless you tell it to
+        return m_capturing->mouseMoveExt(mpos);
+    }
+    
+    CCTouchDispatcher::m_bLocked = true;
+    CCARRAY_FOREACH_B_TYPE(m_pTargetedHandlers, handler, CCTargetedTouchHandler) {
+        if (!handler) break;
+        auto extDelegate = dynamic_cast<ExtMouseDelegate*>(handler->getDelegate());
+        if (extDelegate) {
+            auto hovered = delegateIsHovered(extDelegate, mpos);
+            if (hovered != extDelegate->m_extMouseHovered) {
+                extDelegate->m_extMouseHovered = hovered;
+                if (hovered) {
+                    extDelegate->m_extMouseDown = m_pressedButtons;
+                    extDelegate->mouseEnterExt(mpos);
+                } else {
+                    extDelegate->m_extMouseDown.clear();
+                    extDelegate->mouseLeaveExt(mpos);
+                }
+            }
+            if (hovered) {
+                extDelegate->mouseMoveExt(mpos);
+            }
+        }
+    }
+    CCTouchDispatcher::m_bLocked = false;
+
+    // extdelegates are never standard delegates 
+    // so no need to even check
+
+    this->handleTouchDelegates();
+}
+
+void ExtMouseDispatcher::touches(
+    cocos2d::CCSet* touches,
+    cocos2d::CCEvent* event,
+    unsigned int touchType
+) {
+    CCTouchDispatcher::m_bLocked = true;
+    auto mutableSet = 
+        m_pTargetedHandlers->count() == 0 ||
+        m_pStandardHandlers->count() == 0;
+    
+    auto mutableTouches = mutableSet ? touches->copy() : touches;
+    auto helperData = m_sHandlerHelperData[touchType];
+    if (m_pTargetedHandlers->count()) {
+        for (auto& obj : *touches) {
+            auto touch = as<CCTouch*>(obj);
+            CCARRAY_FOREACH_B_TYPE(m_pTargetedHandlers, handler, CCTargetedTouchHandler) {
+                if (!handler) break;
+
+                bool claimed = false;
+                if (touchType == CCTOUCHBEGAN) {
+                    claimed = handler->getDelegate()->ccTouchBegan(touch, event);
+                    if (claimed) {
+                        handler->getClaimedTouches()->addObject(touch);
+                    }
+                } else {
+                    if (handler->getClaimedTouches()->containsObject(touch)) {
+                        claimed = true;
+                        switch (helperData.m_type) {
+                            case CCTOUCHMOVED:
+                                handler->getDelegate()->ccTouchMoved(touch, event);
+                                break;
+
+                            case CCTOUCHENDED:
+                                handler->getDelegate()->ccTouchEnded(touch, event);
+                                handler->getClaimedTouches()->removeObject(touch);
+                                break;
+                            
+                            case CCTOUCHCANCELLED:
+                                handler->getDelegate()->ccTouchCancelled(touch, event);
+                                handler->getClaimedTouches()->removeObject(touch);
+                                break;
+                        }
+                    }
+                }
+
+                if (claimed && handler->isSwallowsTouches()) {
+                    if (mutableSet) {
+                        mutableTouches->removeObject(touch);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    if (m_pStandardHandlers->count() && mutableTouches->count()) {
+        CCARRAY_FOREACH_B_TYPE(m_pStandardHandlers, handler, CCStandardTouchHandler) {
+            if (!handler) break;
+            switch (helperData.m_type) {
+                case CCTOUCHBEGAN:
+                    handler->getDelegate()->ccTouchesBegan(touches, event);
+                    break;
+                
+                case CCTOUCHMOVED:
+                    handler->getDelegate()->ccTouchesMoved(touches, event);
+                    break;
+                
+                case CCTOUCHENDED:
+                    handler->getDelegate()->ccTouchesEnded(touches, event);
+                    break;
+                
+                case CCTOUCHCANCELLED:
+                    handler->getDelegate()->ccTouchesCancelled(touches, event);
+                    break;
+            }
+        }
+    }
+
+    if (mutableSet) {
+        mutableTouches->release();
+    }
+    CCTouchDispatcher::m_bLocked = false;
+
+    this->handleTouchDelegates();
+}
+
+bool ExtMouseDispatcher::dispatchMouseEvent(
+    MouseEvent event,
+    bool down,
+    cocos2d::CCPoint const& mpos
+) {
+    // handle capturing delegates
+    if (m_capturing) {
+        if (down) {
+            m_capturing->m_extMouseDown = m_pressedButtons;
+            m_capturing->mouseDownExt(event, getMousePosition());
+        } else {
+            m_capturing->m_extMouseDown = m_pressedButtons;
+            m_capturing->m_extMouseHovered = delegateIsHovered(m_capturing, getMousePosition());
+            m_capturing->mouseUpExt(event, getMousePosition());
+        }
+        return true;
+    }
+
+    bool noPropagate = false;
+
+    CCTouchDispatcher::m_bLocked = true;
+    CCARRAY_FOREACH_B_TYPE(m_pTargetedHandlers, handler, CCTargetedTouchHandler) {
+        if (!handler) break;
+        auto extDelegate = dynamic_cast<ExtMouseDelegate*>(handler->getDelegate());
+        if (extDelegate && delegateIsHovered(extDelegate, mpos)) {
+            std::cout << "hovered extDelegate\n";
+            if (down) {
+                extDelegate->m_extMouseDown = m_pressedButtons;
+                if (extDelegate->mouseDownExt(event, mpos)) {
+                    noPropagate = true;
+                    break;
+                }
+            } else {
+                extDelegate->m_extMouseDown = m_pressedButtons;
+                if (extDelegate->mouseUpExt(event, mpos)) {
+                    noPropagate = true;
+                    break;
+                }
+            }
+        }
+        if (handler->isSwallowsTouches()) {
+            std::cout << "swallows like a good boy >w<\n";
+            break;
+        }
+    }
+    CCTouchDispatcher::m_bLocked = false;
+
+    return noPropagate;
+}
+
 bool ExtMouseDispatcher::dispatchScrollMSG(float x, float y) {
     CCMouseDispatcher::m_bLocked = true;
     CCARRAY_FOREACH_B_TYPE(m_pMouseHandlers, handler, CCMouseHandler) {
@@ -394,7 +382,7 @@ bool ExtMouseDispatcher::dispatchScrollMSG(float x, float y) {
         auto delegate = dynamic_cast<ExtMouseDelegate*>(handler->getDelegate());
         if (delegate) {
             if (delegate->m_targetedScroll) {
-                invoke = this->delegateIsHovered(handler->getDelegate(), this->getMousePosition());
+                invoke = this->delegateIsHovered(delegate, this->getMousePosition());
             } else {
                 invoke = true;
             }
@@ -406,7 +394,9 @@ bool ExtMouseDispatcher::dispatchScrollMSG(float x, float y) {
 
         if (invoke) {
             handler->getDelegate()->scrollWheel(x, y);
-            if (noPropagate) break;
+            if (noPropagate) {
+                break;
+            }
         }
     }
     CCMouseDispatcher::m_bLocked = false;
