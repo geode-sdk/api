@@ -5,7 +5,7 @@
 
 #import <Cocoa/Cocoa.h>
 #include <dispatch/MacMouseEvent.hmm>
-
+#include <DragDropEvent.hpp>
 
 // Code taken from https://cocoawithlove.com/2008/03/supersequent-implementation.html
 /*
@@ -79,15 +79,11 @@
 	- (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender {
         NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
         
-        /*if (EventCenter::get()->getObservers("dragdrop", nullptr).size() > 0)
-            return YES;
-
         for (NSURL* dragItem in dragItems) {
-            //DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
-            if (EventCenter::get()->getObservers(std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String, nullptr).size() > 0)
+            if (DragDropEvent::filtersMatchExtension(std::string(dragItem.path.pathExtension.UTF8String)))
                 return YES;
-        }*/
-        #pragma message("Event")
+        }
+
         return NO;
 	}
 
@@ -95,6 +91,8 @@
 	    NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
 	    
 	    for (NSURL* dragItem in dragItems) {
+            DragDropEvent(ghc::filesystem::path(dragItem.path.UTF8String)).post();
+
 	    	//DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
 
             /*EventCenter::get()->broadcast(Event(
@@ -108,7 +106,6 @@
                 ghc::filesystem::path(dragItem.path.UTF8String),
                 Mod::get()                
             ));*/
-            #pragma message("Event")
 	    }
 	    return YES;
 	}

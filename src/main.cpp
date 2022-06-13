@@ -1,36 +1,25 @@
 #include <Geode.hpp>
 #include "APIInternal.hpp"
+#include <DragDropEvent.hpp>
 
 USE_GEODE_NAMESPACE();
 
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
 
-    /*ShortcutManager::get()->registerShortcut(ShortcutAction::globalShortcut(
-        "Test Keybind",
-        Shortcut(
-            KEY_T,
-            KeyModifiers::Control
-        )
-    ));*/
-    //
+    DragDropEvent::addHandler({"geode"}, [](auto path) {
+        auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
 
-
-    /*EventCenter::get()->registerObserver<ghc::filesystem::path>(
-       "dragdrop.geode", [](auto const& data) {
-            auto path = data.object();
-            auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
-
-            if (to_file == path) {
-                FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> is already installed!", "OK")->show();
-            } else if (ghc::filesystem::copy_file(path, to_file, ghc::filesystem::copy_options::overwrite_existing)) {
-                FLAlertLayer::create("Success!", "<cg>" + path.stem().u8string() + "</c> successfully installed!", "OK")->show();
-            } else {
-                FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> couldn't be installed!", "OK")->show();
-            }
+        if (to_file == path) {
+            FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> is already installed!", "OK")->show();
+        } else if (ghc::filesystem::copy_file(path, to_file, ghc::filesystem::copy_options::overwrite_existing)) {
+            FLAlertLayer::create("Success!", "<cg>" + path.stem().u8string() + "</c> successfully installed!", "OK")->show();
+        } else {
+            FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> couldn't be installed!", "OK")->show();
         }
-    );*/
-    #pragma message("Event")
+
+        return false;
+    });
 
     return true;
 }

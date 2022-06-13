@@ -61,7 +61,7 @@ setup_geode_mod(BUILD_CODEGEN OUTPUT "GeodeAPI")
 set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
 set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADERS})
+#target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADERS})
 
 add_subdirectory(md4c)
 
