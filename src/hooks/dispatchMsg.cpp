@@ -48,7 +48,9 @@ class $modify(CCNode) {
 #ifdef GEODE_IS_DESKTOP
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
-        ShortcutManager::get()->dispatchEvent(key, down);
+        // FIXME: no shortcut
+        // TODO: no shortcut
+        // ShortcutManager::get()->dispatchEvent(key, down);
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down);
     }
 };
@@ -64,8 +66,9 @@ class $modify(CCScheduler) {
     void update(float dt) {
         // dispatch mouse move events
         ExtMouseDispatcher::get()->update();
-        // handle shortcut repeating
-        ShortcutManager::get()->update(dt);
+        // FIXME: no shortcut
+        // TODO: no shortcut
+        // ShortcutManager::get()->update(dt);
         return CCScheduler::update(dt);
     }
 };

@@ -7,6 +7,7 @@ void HookCell::draw() {
     reinterpret_cast<StatsCell*>(this)->StatsCell::draw();
 }
 
+
 void HookCell::updateBGColor(int index) {
 	if (index & 1) m_backgroundLayer->setColor(ccc3(0xc2, 0x72, 0x3e));
     else m_backgroundLayer->setColor(ccc3(0xa1, 0x58, 0x2c));

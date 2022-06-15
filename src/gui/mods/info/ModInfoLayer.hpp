@@ -20,7 +20,6 @@ protected:
     std::vector<std::string> m_installing;
 
     void onHooks(CCObject*);
-    void onDev(CCObject*);
     void onSettings(CCObject*);
     void onNoSettings(CCObject*);
     void onInfo(CCObject*);

@@ -1,6 +1,5 @@
 #include "ModInfoLayer.hpp"
 #include "../dev/HookListLayer.hpp"
-#include "../dev/DevSettingsLayer.hpp"
 #include "../settings/ModSettingsLayer.hpp"
 #include <nodes/BasedButton.hpp>
 #include <nodes/MDTextArea.hpp>
@@ -165,18 +164,10 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         settingsBtn->setPosition(-size.width / 2 + 25.f, -size.height / 2 + 25.f);
         m_buttonMenu->addChild(settingsBtn);
 
-	// <<<<<<< HEAD
-	//         if (!m_info.m_settings.size()) {
-	//             settingsSpr->setColor({ 150, 150, 150 });
-	//             settingsBtn->setTarget(this, menu_selector(ModInfoLayer::onNoSettings));
-	//         }
-	// =======
 	    if (!SettingManager::with(m_mod)->hasSettings()) {
 	        settingsSpr->setColor({ 150, 150, 150 });
 	        settingsBtn->setTarget(this, menu_selector(ModInfoLayer::onNoSettings));
 	    }
-	// >>>>>>> 01d0771d3dd1ed0dac5705fd26deecca2581fdf7
-
 
         auto devSpr = ButtonSprite::create("Dev Options", "bigFont.fnt", "GJ_button_05.png", .6f);
         devSpr->setScale(.5f);
@@ -483,12 +474,6 @@ void ModInfoLayer::onDisablingNotSupported(CCObject* pSender) {
         "OK"
     )->show();
     as<CCMenuItemToggler*>(pSender)->toggle(m_mod->isEnabled());
-}
-
-void ModInfoLayer::onDev(CCObject*) {
-    auto layer = DevSettingsLayer::create(m_mod);
-    this->addChild(layer);
-    layer->showLayer(false);
 }
 
 void ModInfoLayer::onHooks(CCObject*) {

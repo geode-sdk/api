@@ -329,11 +329,19 @@ bool ModListView::filter(ModInfo const& info, const char* searchFilter, int sear
             string_utils::toLower(searchFilter)
         );
     };
+<<<<<<< HEAD
     if (check(SearchFlags::Name,        info.m_name)) return true;
     if (check(SearchFlags::ID,          info.m_id)) return true;
     if (check(SearchFlags::Developer,   info.m_developer)) return true;
     if (check(SearchFlags::Description, info.m_description)) return true;
     if (check(SearchFlags::Details,     info.m_details)) return true;
+=======
+    if (check(SearchFlags::Name,        mod->getName())) return true;
+    if (check(SearchFlags::ID,          mod->getID())) return true;
+    if (check(SearchFlags::Developer,   mod->getDeveloper())) return true;
+    if (check(SearchFlags::Description, mod->getDescription())) return true;
+    if (check(SearchFlags::Details,     mod->getDetails())) return true;
+>>>>>>> 2f59c5226a477381db287c491c38f0587b81b0f8
     return false;
 }
 
@@ -357,8 +365,12 @@ bool ModListView::init(
                     mods->addObject(new ModObject(imod));
                 }
                 for (auto const& mod : Loader::get()->getAllMods()) {
+<<<<<<< HEAD
                     if (mod->isUninstalled() && !mod->isLoaded()) continue;
                     if (this->filter(mod->getModInfo(), searchFilter, searchFlags)) {
+=======
+                    if (this->filter(mod, searchFilter, searchFlags)) {
+>>>>>>> 2f59c5226a477381db287c491c38f0587b81b0f8
                         mods->addObject(new ModObject(mod));
                     }
                 }
