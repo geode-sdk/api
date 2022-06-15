@@ -1,6 +1,5 @@
 #include "hook.hpp"
 #include <dispatch/ExtMouseDispatcher.hpp>
-#include <shortcuts/ShortcutManager.hpp>
 
 // override CCTouchDispatcher with ExtMouseDispatcher
 class $modify(CCTouchDispatcher) {

@@ -3,10 +3,21 @@
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
 #include <unordered_set>
-#include "../shortcuts/MouseEvent.hpp"
 
 namespace geode {
     class ExtMouseDispatcher;
+
+    // remove
+    enum class MouseEvent {
+        Left = 0,
+        Right = 1,
+        Middle = 2,
+        Prev = 3,
+        Next = 4,
+        DoubleClick = 8,
+        ScrollUp,
+        ScrollDown,
+    };
 
     static constexpr const unsigned int EXTMOUSEMOVED = 0x10;
 

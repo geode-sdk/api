@@ -173,7 +173,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         devSpr->setScale(.5f);
 
         auto devBtn = CCMenuItemSpriteExtra::create(
-            devSpr, this, menu_selector(ModInfoLayer::onDev)
+            devSpr, this, nullptr
         );
         devBtn->setPosition(size.width / 2 - 50.f, -size.height / 2 + 25.f);
         m_buttonMenu->addChild(devBtn);
@@ -499,16 +499,17 @@ void ModInfoLayer::onInfo(CCObject*) {
     FLAlertLayer::create(
         nullptr,
         ("About " + m_info.m_name).c_str(),
-        fmt::format(
-            "<cr>ID: {}</c>\n"
-            "<cg>Version: {}</c>\n"
-            "<cp>Developer: {}</c>\n"
-            "<cb>Path: {}</c>",
-            m_info.m_id,
-            m_info.m_version.toString(),
-            m_info.m_developer,
-            m_info.m_path.string()
-        ),
+        // fmt::format(
+        //     "<cr>ID: {}</c>\n"
+        //     "<cg>Version: {}</c>\n"
+        //     "<cp>Developer: {}</c>\n"
+        //     "<cb>Path: {}</c>",
+        //     m_info.m_id,
+        //     m_info.m_version.toString(),
+        //     m_info.m_developer,
+        //     m_info.m_path.string()
+        // ),
+        "",
         "OK", nullptr, 400.f
     )->show();
 }

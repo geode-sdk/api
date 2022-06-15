@@ -4,7 +4,6 @@
 
 #ifdef GEODE_IS_MACOS
 
-#include "../shortcuts/MouseEvent.hpp"
 #include <CCEventDispatcher.h>
 #import <Cocoa/Cocoa.h>
 #import <platform/mac/EAGLView.h>
