@@ -167,7 +167,7 @@ void ModCell::onEnable(CCObject* pSender) {
         return;
     }
     if (!as<CCMenuItemToggler*>(pSender)->isToggled()) {
-        auto res = this->m_mod->enable();
+        auto res = this->m_mod->load();
         if (!res) {
             FLAlertLayer::create(
                 nullptr,
