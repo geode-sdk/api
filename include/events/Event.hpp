@@ -24,8 +24,6 @@ namespace geode {
 	 	Event();
 	 	Event(Mod*);
 	 	virtual ~Event();
-
-	 	static std::vector<BasicEventHandler*> const& getHandlers() const;
 	};
 
 	template <typename T>
