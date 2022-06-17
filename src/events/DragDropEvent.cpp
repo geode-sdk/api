@@ -37,6 +37,8 @@ DragDropHandler::DragDropHandler(
     std::function<bool(DragDropEvent*)> callback
 ) : DragDropHandler(std::vector<std::string>(), callback) {}
 
+DragDropHandler::~DragDropHandler() {}
+
 /*DragDropEvent::DragDropEvent(ghc::filesystem::path const& url) : Event(), m_draggedURL(url) {}
 
 bool DragDropEvent::passThrough(DragDropHandler const& handler, DragDropFilter const& filters) {
