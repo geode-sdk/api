@@ -3,12 +3,14 @@
 #include <Geode.hpp>
 #include <unordered_map>
 
+#include "../APIMacros.hpp"
+
 class ModSettingsList;
 
 namespace geode {
     class SettingManager;
 
-    class Setting {
+    class GEODE_API_DLL Setting {
      protected:
         std::string m_id;
         friend class SettingManager;
@@ -20,7 +22,7 @@ namespace geode {
         virtual cocos2d::CCNode* createControl() = 0;
     };
 
-    class SettingManager {
+    class GEODE_API_DLL SettingManager {
      protected:
         Mod* m_mod;
         std::unordered_map<std::string, Setting*> m_settings;

@@ -5,9 +5,11 @@
 #include <Geode.hpp>
 #include <Event.hpp>
 
+#include "../APIMacros.hpp"
+
 namespace geode {
 
-    class DragDropEvent : public Event {
+    class GEODE_API_DLL DragDropEvent : public Event {
      protected:
         ghc::filesystem::path m_path;
      public:
@@ -16,7 +18,7 @@ namespace geode {
         inline ghc::filesystem::path const& path() { return m_path; }
     };
 
-    class DragDropHandler : public EventHandler<DragDropEvent>{
+    class GEODE_API_DLL DragDropHandler : public EventHandler<DragDropEvent>{
      protected:
         std::vector<std::string> m_extensions;
         

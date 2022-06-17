@@ -2,10 +2,13 @@
 
 #include <Geode.hpp>
 #include <type_traits>
+
+#include "../APIMacros.hpp"
+
 namespace geode {
 
 	class Event;
-	struct BasicEventHandler {
+	struct GEODE_API_DLL BasicEventHandler {
 		virtual bool passThrough(Event*) = 0;
 
 		void addToHandlers();
@@ -13,7 +16,7 @@ namespace geode {
 
 	};
 
-	class Event {
+	class GEODE_API_DLL Event {
 		static std::vector<BasicEventHandler*> handlers;
 	 protected:
 	 	Mod* m_owner;
