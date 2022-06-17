@@ -175,7 +175,9 @@ void ModCell::onEnable(CCObject* pSender) {
                 res.error(),
                 "OK", nullptr
             )->show();
-            auto res = this->m_mod->enable();
+        }
+        else {
+        	auto res = this->m_mod->enable();
 	        if (!res) {
 	            FLAlertLayer::create(
 	                nullptr,
