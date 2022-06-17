@@ -50,7 +50,7 @@ bool ModListLayer::init() {
 			testSpr, this, menu_selector(ModListLayer::onTest)
 		);
 		testBtn->setPosition(
-			-winSize.width / 2 + 30.0f,
+			-winSize.width / 2 + 65.0f,
 			-winSize.height / 2 + 75.0f + 25 * i
 		);
 		testBtn->setTag(i);

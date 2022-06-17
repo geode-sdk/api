@@ -2,7 +2,7 @@
 
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
-#include "../dispatch/ExtMouseManager.hpp"
+#include "../dispatch/ExtMouseDispatcher.hpp"
 #include "SceneManager.hpp"
 #include <chrono>
 

@@ -9,7 +9,7 @@ USE_GEODE_NAMESPACE();
 bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {
     if (!m_target) return false;
 
-    ExtMouseManager::get()->captureMouse(this);
+    ExtMouseDispatcher::get()->attainCapture(this);
 
     auto pos = this->convertToNodeSpace(mpos);
 
@@ -31,25 +31,16 @@ bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {
     
     auto offsetY = m_target->m_contentLayer->getPositionY() - posY;
 
-    if (fabsf(offsetY) < thumbHeight) {
-        m_extMouseHitArea.origin = CCPoint {
-            pos.x,
-            m_target->m_contentLayer->getPositionY() - posY
-        };
-    } else {
-        m_extMouseHitArea.origin = CCPointZero;
-    }
-    
     return true;
 }
 
 bool Scrollbar::mouseUpExt(MouseEvent, cocos2d::CCPoint const&) {
-    ExtMouseManager::get()->releaseCapture(this);
+    ExtMouseDispatcher::get()->releaseCapture(this);
     return true;
 }
 
 void Scrollbar::mouseMoveExt(cocos2d::CCPoint const& mpos) {
-    if (!m_target || !ExtMouseManager::get()->isCapturing(this)) return;
+    if (!m_target || !ExtMouseDispatcher::get()->isCapturing(this)) return;
 
     if (this->m_extMouseDown.size()) {
         auto pos = this->convertToNodeSpace(mpos);
@@ -67,8 +58,6 @@ void Scrollbar::mouseMoveExt(cocos2d::CCPoint const& mpos) {
             (targetHeight - thumbHeight / 2 + 10)
         );
 
-        posY += m_extMouseHitArea.origin.y;
-
         if (posY > 0.0f) posY = 0.0f;
         if (posY < -h) posY = -h;
 
@@ -76,11 +65,9 @@ void Scrollbar::mouseMoveExt(cocos2d::CCPoint const& mpos) {
     }
 }
 
-bool Scrollbar::mouseScrollExt(float y, float x) {
-    if (!m_target)
-        return false;
+void Scrollbar::scrollWheel(float x, float y) {
+    if (!m_target) return;
     m_target->scrollWheel(x, y);
-    return true;
 }
 
 void Scrollbar::draw() {
@@ -104,7 +91,7 @@ void Scrollbar::draw() {
     }
     m_track->setPosition(.0f, .0f);
 
-    m_extMouseHitArea.size = CCSize { m_width, targetHeight };
+    this->setContentSize({ m_width, targetHeight });
 
     auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
     auto p = targetHeight / contentHeight;
@@ -194,6 +181,8 @@ bool Scrollbar::init(CCScrollLayerExt* target) {
 
     this->addChild(m_track);
     this->addChild(m_thumb);
+
+    this->registerWithMouseDispatcher();
 
     return true;
 }

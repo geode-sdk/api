@@ -7,7 +7,11 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-ferror-limit=99999")
+# only camila needs this, it also creates a billion warnings on msvc
+# because this is an invalid msvc option
+if (APPLE)
+	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-ferror-limit=99999")
+endif()
 
 file(GLOB_RECURSE CORE_SOURCES
 	src/*.cpp
@@ -21,14 +25,15 @@ add_library(${PROJECT_NAME} SHARED
 	src/hooks/objcHook.mm
     src/dispatch/MacMouseEvent.mm
 )
+
 target_include_directories(${PROJECT_NAME} PUBLIC
 	"hash"
 	"include"
 	"include/dragdrop"
 	"include/nodes"
 	"include/settings"
-	"include/shortcuts"
 	"include/views"
+	"include/events"
 	"src"
 	"src/gui/loading"
 	"src/gui"
@@ -47,6 +52,7 @@ if (APPLE)
 		${CURL_INCLUDE_DIR}
 	)
 	target_link_libraries(${PROJECT_NAME} "-framework Cocoa" ${CURL_LIBRARIES})
+	target_include_directories(${PROJECT_NAME} ${CURL_INCLUDE_DIR})
 endif()
 
 find_path(GEODE_SDK_PATH
@@ -58,9 +64,10 @@ find_path(GEODE_SDK_PATH
 include(${GEODE_SDK_PATH}/Geode.cmake)
 setup_geode_mod(BUILD_CODEGEN OUTPUT "GeodeAPI")
 
-set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+if (APPLE)
+	set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+endif()
 
-set_source_files_properties(src/hooks/objcHook.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADERS})
 
 add_subdirectory(md4c)

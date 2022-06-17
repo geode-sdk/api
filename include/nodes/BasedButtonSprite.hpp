@@ -5,67 +5,67 @@
 
 namespace geode {
     enum class CircleBaseSize {
-        Tiny    = 0, // Equivalent to the tiny delete button
-        Small   = 1, // Equivalent to most circular buttons in the editor
-        Small2  = 2, // Equivalent to the trash button in the editor
-        Medium  = 3, // Equivalent to most buttons
+        Tiny = 0,    // Equivalent to the tiny delete button
+        Small = 1,   // Equivalent to most circular buttons in the editor
+        Small2 = 2,  // Equivalent to the trash button in the editor
+        Medium = 3,  // Equivalent to most buttons
         Medium2 = 4, // Equivalent to the bottom buttons in MenuLayer
-        Big     = 5, // Equivalent to the New button
-        Big2    = 6, // Equivalent to the Account button
-        Large   = 7, // Equivalent to the big Play Button
+        Big = 5,     // Equivalent to the New button
+        Big2 = 6,    // Equivalent to the Account button
+        Large = 7,   // Equivalent to the big Play Button
     };
 
     enum class CrossBaseSize {
         Small = 0,
-        Huge  = 1,
+        Huge = 1,
     };
 
     enum class CircleBaseColor {
-        Green   = 0,
-        Pink    = 1,
-        Gray    = 2,
-        Blue    = 3,
-        Cyan    = 4,
-        Geode   = 5,
+        Green = 0,
+        Pink = 1,
+        Gray = 2,
+        Blue = 3,
+        Cyan = 4,
+        Geode = 5,
     };
 
     enum class AccountBaseColor {
-        Blue    = 0,
-        Gray    = 1,
-        Purple  = 2,
+        Blue = 0,
+        Gray = 1,
+        Purple = 2,
     };
 
     enum class IconSelectBaseColor {
-        Gray    = 0,
-        Selected= 1,
+        Gray = 0,
+        Selected = 1,
     };
 
     enum class EditorBaseColor {
         LightBlue = 0,
-        Green     = 1,
-        Orange    = 2,
-        DarkGray  = 3,
-        Gray      = 4,
-        Pink      = 5,
-        Teal      = 6,
-        Aqua      = 7,
-        Cyan      = 8,
+        Green = 1,
+        Orange = 2,
+        DarkGray = 3,
+        Gray = 4,
+        Pink = 5,
+        Teal = 6,
+        Aqua = 7,
+        Cyan = 8,
     };
 
     enum class TabBaseColor {
-        Unselected     = 0,
-        Selected       = 1,
+        Unselected = 0,
+        Selected = 1,
         UnselectedDark = 2,
     };
 
     enum class BaseType {
-        Circle     = 0,
-        Cross      = 1,
-        Account    = 2,
+        Circle = 0,
+        Cross = 1,
+        Account = 2,
         IconSelect = 3,
-        GlobalThing= 4,
-        Editor     = 5,
-        Tab        = 6,
+        GlobalThing = 4,
+        Editor = 5,
+        Tab = 6,
     };
 
     /**

@@ -2,7 +2,7 @@
 
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
-#include "../dispatch/ExtMouseManager.hpp"
+#include "../dispatch/ExtMouseDispatcher.hpp"
 
 namespace geode {
     class GEODE_API_DLL Scrollbar :
@@ -22,7 +22,7 @@ namespace geode {
         bool mouseDownExt(MouseEvent, cocos2d::CCPoint const&) override;
         bool mouseUpExt(MouseEvent, cocos2d::CCPoint const&) override;
         void mouseMoveExt(cocos2d::CCPoint const&) override;
-        bool mouseScrollExt(float y, float x) override;
+        void scrollWheel(float y, float x) override;
     
         void draw() override;
 

@@ -4,11 +4,14 @@
 
 #ifdef GEODE_IS_MACOS
 
-#include "../shortcuts/MouseEvent.hpp"
-#include <platform/mac/CCEventDispatcher.h>
+#include <CCEventDispatcher.h>
 #import <Cocoa/Cocoa.h>
 #import <platform/mac/EAGLView.h>
 #import <objc/runtime.h>
+
+namespace geode {
+    enum class MouseEvent;
+}
 
 @interface MacMouseEvent : NSObject {
     float m_xPosition;

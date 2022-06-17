@@ -27,7 +27,7 @@ void ModCell::onFailedInfo(CCObject*) {
 
 void ModCell::setupUnloaded() {
     m_mainLayer->setVisible(true);
-    
+
     auto menu = CCMenu::create();
     menu->setPosition(m_width - m_height, m_height / 2);
     m_mainLayer->addChild(menu);

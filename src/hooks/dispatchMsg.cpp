@@ -1,63 +1,74 @@
 #include "hook.hpp"
-#include <dispatch/ExtMouseManager.hpp>
-#include <shortcuts/ShortcutManager.hpp>
+#include <dispatch/ExtMouseDispatcher.hpp>
+
+// override CCTouchDispatcher with ExtMouseDispatcher
+class $modify(CCTouchDispatcher) {
+    void touches(CCSet* touches, CCEvent* event, unsigned int touchType) {
+        #ifdef GEODE_IS_MOBILE
+        if (touchType == CCTOUCHMOVED) {
+            ExtMouseDispatcher::get()->update();
+        }
+        #endif
+        ExtMouseDispatcher::get()->touches(touches, event, touchType);
+    }
+
+    // fixes for touch dispatcher discrepancies, by alk
+
+    void addTargetedDelegate(CCTouchDelegate* delegate, int priority, bool swallowsTouches) {
+        m_bForcePrio = false;
+        if (m_pTargetedHandlers->count() > 0) {
+            auto handler = static_cast<CCTouchHandler*>(m_pTargetedHandlers->objectAtIndex(0));
+            priority = handler->getPriority() - 2;
+        }
+        CCTouchDispatcher::addTargetedDelegate(delegate, priority, swallowsTouches);
+    }
+
+    void incrementForcePrio(int num) {
+        m_bForcePrio = false;
+    }
+
+    void decrementForcePrio(int num) {
+        m_bForcePrio = false;
+    }
+};
+
+// pop ExtMouseDispatcher delegates.
+// CCTouchDispatcher etc. pop their delegates in 
+// CCLayer::onExit aswell
+class $modify(CCNode) {
+    void onExit() {
+        if (auto d = dynamic_cast<ExtMouseDelegate*>(static_cast<CCNode*>(this))) {
+            ExtMouseDispatcher::get()->popDelegate(d);
+        }
+        CCNode::onExit();
+    }
+};
 
 #ifdef GEODE_IS_DESKTOP
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
-        ShortcutManager::get()->dispatchEvent(key, down);
+        // FIXME: no shortcut
+        // TODO: no shortcut
+        // ShortcutManager::get()->dispatchEvent(key, down);
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down);
     }
 };
 
+// override CCMouseDispatcher with ExtMouseDispatcher
 class $modify(CCMouseDispatcher) {
     bool dispatchScrollMSG(float x, float y) {
-        ExtMouseManager::get()->dispatchScrollEvent(
-            y, x, ExtMouseManager::getMousePosition()
-        );
-        return CCMouseDispatcher::dispatchScrollMSG(x, y);
+        return ExtMouseDispatcher::get()->dispatchScrollMSG(x, y);
     }
 };
 
 class $modify(CCScheduler) {
     void update(float dt) {
-        ExtMouseManager::get()->dispatchMoveEvent(
-            ExtMouseManager::getMousePosition()
-        );
-        ShortcutManager::get()->update(dt);
+        // dispatch mouse move events
+        ExtMouseDispatcher::get()->update();
+        // FIXME: no shortcut
+        // TODO: no shortcut
+        // ShortcutManager::get()->update(dt);
         return CCScheduler::update(dt);
-    }
-};
-#endif
-
-#if defined(GEODE_IS_MOBILE)
-class $modify(CCTouchDispatcher) {
-    void touches(cocos2d::CCSet* touches, cocos2d::CCEvent* event, unsigned int touchType) {
-        auto touch = touches->anyObject();
-        if (touch) {
-            switch (touchType) {
-                case CCTOUCHBEGAN: {
-                    if (ExtMouseManager::get()->dispatchClickEvent(
-                        MouseEvent::Left, true, as<CCTouch*>(touch)->getLocation()
-                    )) return;
-                } break;
-
-                case CCTOUCHENDED: case CCTOUCHCANCELLED: {
-                    if (ExtMouseManager::get()->dispatchClickEvent(
-                        MouseEvent::Left, false, as<CCTouch*>(touch)->getLocation()
-                    )) return;
-                } break;
-
-                case CCTOUCHMOVED: {
-                    ExtMouseManager::get()->dispatchMoveEvent(
-                        as<CCTouch*>(touch)->getLocation()
-                    );
-                } break;
-
-                default: break;
-            }
-        }
-        return CCTouchDispatcher::touches(touches, event, touchType);
     }
 };
 #endif
@@ -65,47 +76,22 @@ class $modify(CCTouchDispatcher) {
 #ifdef GEODE_IS_WINDOWS
 class $modify(CCEGLView) {
     void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods) {
-        if (ExtMouseManager::get()->dispatchClickEvent(
-            static_cast<MouseEvent>(button), action,
-            ExtMouseManager::getMousePosition()
-        )) return;
-        return CCEGLView::onGLFWMouseCallBack(window, button, action, mods);
-    }
-    
-    void pollEvents() {
-        // MSG msg;
-		// while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-        //     TranslateMessage(&msg);
-        //     if (msg.message == WM_DROPFILES) {
-        //         UINT buffsize = MAX_PATH;
-        //         char* buf = new char[MAX_PATH];
-        //         HDROP hDropInfo = (HDROP) msg.wParam;
-        //         DragQueryFile(hDropInfo, 0, buf, buffsize);
-
-        //         ghc::filesystem::path p(buf);
-
-        //         std::string fileExtension = p.extension().u8string();
-        //         if (fileExtension.at(0) == '.') {
-        //             fileExtension = fileExtension.substr(1);
-        //         }
-
-        //         EventCenter::get()->broadcast(Event(
-        //             "dragdrop",
-        //             p,
-        //             Mod::get()
-        //         ));
-
-        //         EventCenter::get()->broadcast(Event(
-        //             std::string("dragdrop.") + fileExtension,
-        //             p,
-        //             Mod::get()            
-        //         ));
-
-        //         delete[] buf;
-        //     }
-        //     DispatchMessage(&msg);
-        // }
-        CCEGLView::pollEvents();
+        if (action == 1) {
+            ExtMouseDispatcher::get()->mouseDown(
+                static_cast<MouseEvent>(button)
+            );
+        } else {
+            ExtMouseDispatcher::get()->mouseUp(
+                static_cast<MouseEvent>(button)
+            );
+        }
+        if (!ExtMouseDispatcher::get()->dispatchMouseEvent(
+            static_cast<MouseEvent>(button),
+            action == 1, 
+            ExtMouseDispatcher::getMousePosition()
+        )) {
+            CCEGLView::onGLFWMouseCallBack(window, button, action, mods);
+        }
     }
 };
 #endif

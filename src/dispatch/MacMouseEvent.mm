@@ -1,5 +1,5 @@
 #include <dispatch/MacMouseEvent.hmm>
-#include <dispatch/ExtMouseManager.hpp>
+#include <dispatch/ExtMouseDispatcher.hpp>
 
 #ifdef GEODE_IS_MACOS
 
@@ -95,16 +95,12 @@ method_exchangeImplementations(method##Method, swizzle##Method);
 
 -(void) down:(NSEvent*)event type:(geode::MouseEvent)type {
 	[self moved: event];
-	ExtMouseManager::get()->dispatchClickEvent(
-		type, true, ExtMouseManager::getMousePosition()
-	);
+	ExtMouseDispatcher::get()->mouseDown(type);
 }
 
 -(void) up:(NSEvent*)event type:(geode::MouseEvent)type {
 	[self moved: event];
-	ExtMouseManager::get()->dispatchClickEvent(
-		type, false, ExtMouseManager::getMousePosition()
-	);
+	ExtMouseDispatcher::get()->mouseUp(type);
 }
 
 -(cocos2d::CCPoint) getMousePosition {
@@ -113,7 +109,7 @@ method_exchangeImplementations(method##Method, swizzle##Method);
 
 @end
 
-CCPoint ExtMouseManager::getMousePosition() {
+CCPoint ExtMouseDispatcher::getMousePosition() {
 	static auto cachedMousePos = CCPointZero;
 	auto mpos = [s_sharedEvent getMousePosition];
 	if (mpos == cachedMousePos) return cachedMousePos;
