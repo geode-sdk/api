@@ -7,7 +7,7 @@ USE_GEODE_NAMESPACE();
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
 
-    DragDropEvent::addHandler({"geode"}, [](auto path) {
+    /*DragDropEvent::addHandler({"geode"}, [](auto path) {
         auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
 
         if (to_file == path) {
@@ -19,7 +19,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
         }
 
         return false;
-    });
+    });*/
 
     return true;
 }

@@ -80,18 +80,20 @@
         NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
         
         for (NSURL* dragItem in dragItems) {
-            if (DragDropEvent::filtersMatchExtension(std::string(dragItem.path.pathExtension.UTF8String)))
-                return YES;
+            //if (DragDropEvent::filtersMatchExtension(std::string(dragItem.path.pathExtension.UTF8String)))
+            //    return YES;
         }
 
-        return NO;
+        return YES; // fake 
 	}
 
 	-(BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
 	    NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
 	    
 	    for (NSURL* dragItem in dragItems) {
-            DragDropEvent(ghc::filesystem::path(dragItem.path.UTF8String)).post();
+            DragDropEvent(dragItem.path.UTF8String).post();
+
+            //DragDropEvent(ghc::filesystem::path(dragItem.path.UTF8String)).post();
 
 	    	//DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
 
