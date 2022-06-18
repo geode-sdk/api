@@ -1,11 +1,14 @@
 #include <Geode.hpp>
 #include "APIInternal.hpp"
-#include <DragDropEvent.hpp>
+#include <events/DragDropEvent.hpp>
+#include <dispatch/ExtMouseDispatcher.hpp>
 
 USE_GEODE_NAMESPACE();
 
 GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
+
+    ExtMouseDispatcher::get()->registerDispatcher();
 
     /*ShortcutManager::get()->registerShortcut(ShortcutAction::globalShortcut(
         "Test Keybind",

@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <Geode.hpp>
-#include <Event.hpp>
+#include "Event.hpp"
 
 namespace geode {
 

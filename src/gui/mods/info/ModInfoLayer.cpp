@@ -64,7 +64,6 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         default: return false;
     }
 
-
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 	CCSize size { 440.f, 290.f };
 
