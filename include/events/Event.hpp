@@ -2,9 +2,50 @@
 
 #include <Geode.hpp>
 #include <type_traits>
+
+#include "../APIMacros.hpp"
+
 namespace geode {
 
-	template <class D, typename H, typename F = std::monostate>
+	class Event;
+	struct GEODE_API_DLL BasicEventHandler {
+		virtual bool passThrough(Event*) = 0;
+
+		void addToHandlers();
+		void removeFromHandlers();
+
+	};
+
+	class GEODE_API_DLL Event {
+		static std::vector<BasicEventHandler*> handlers;
+	 protected:
+	 	Mod* m_owner;
+	 	friend BasicEventHandler;
+	 public:
+	 	void post();
+
+	 	Event();
+	 	Event(Mod*);
+	 	virtual ~Event();
+	};
+
+	template <typename T>
+	class EventHandler : public BasicEventHandler {
+	 protected:
+	 	std::function<bool(T*)> m_callback;
+	 public:
+		virtual bool handle(T*) = 0;
+		bool passThrough(Event* ev) override {
+			if (auto myev = dynamic_cast<T*>(ev)) {
+				return handle(myev);
+			}
+			return true;
+		}
+
+		EventHandler(std::function<bool(T*)> cb) : m_callback(cb) {}
+	};
+
+	/*template <class D, typename H, typename F = std::monostate>
 	class Event {
 	 private:
 	 	Mod* m_owner;
@@ -40,5 +81,5 @@ namespace geode {
 	 				break;
 	 		}
 	 	}
-	};
+	};*/
 }

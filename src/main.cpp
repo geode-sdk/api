@@ -9,6 +9,9 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 	Interface::get()->init(mod);
 
     ExtMouseDispatcher::get()->registerDispatcher();
+    
+    /*DragDropEvent::addHandler({"geode"}, [](auto path) {
+        auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
 
     /*ShortcutManager::get()->registerShortcut(ShortcutAction::globalShortcut(
         "Test Keybind",
