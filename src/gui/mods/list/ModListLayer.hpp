@@ -21,6 +21,7 @@ protected:
 	CCNode* m_searchBG = nullptr;
 	CCTextInputNode* m_searchInput = nullptr;
 	int m_searchFlags = ModListView::s_allFlags;
+    CCLayer* parentLayer;
 
 	~ModListLayer() override;
 
@@ -41,6 +42,6 @@ protected:
 	friend class SearchFilterPopup;
 
 public:
-	static ModListLayer* create();
+	static ModListLayer* create(CCLayer*);
 	static ModListLayer* scene();
 };

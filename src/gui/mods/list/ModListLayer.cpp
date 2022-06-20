@@ -198,9 +198,14 @@ void ModListLayer::textChanged(CCTextInputNode* input) {
 }
 
 void ModListLayer::onExit(CCObject*) {
-	CCDirector::sharedDirector()->replaceScene(
-		CCTransitionFade::create(.5f, MenuLayer::scene(false))
-	);
+	if(this->parentLayer != nullptr) {
+        parentLayer->setVisible(true);
+        this->removeFromParentAndCleanup(true);
+    } else {
+        CCDirector::sharedDirector()->replaceScene(
+                CCTransitionFade::create(.5f, MenuLayer::scene(false))
+        );
+    }
 }
 
 void ModListLayer::onReload(CCObject*) {
@@ -251,8 +256,9 @@ void ModListLayer::onSearchFilters(CCObject*) {
 	SearchFilterPopup::create(this)->show();
 }
 
-ModListLayer* ModListLayer::create() {
+ModListLayer* ModListLayer::create(CCLayer* parentLayer) {
 	auto ret = new ModListLayer();
+    ret->parentLayer = parentLayer;
 	if (ret && ret->init()) {
 		ret->autorelease();
 		return ret;
@@ -263,7 +269,7 @@ ModListLayer* ModListLayer::create() {
 
 ModListLayer* ModListLayer::scene() {
 	auto scene = CCScene::create();
-	auto layer = ModListLayer::create();
+	auto layer = ModListLayer::create(nullptr);
 	scene->addChild(layer);
 	CCDirector::sharedDirector()->replaceScene(
 		CCTransitionFade::create(.5f, scene)
