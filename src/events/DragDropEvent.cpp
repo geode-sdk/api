@@ -1,23 +1,24 @@
-#include <DragDropEvent.hpp>
+#include <events/DragDropEvent.hpp>
 
 USE_GEODE_NAMESPACE();
 
 DragDropEvent::DragDropEvent(ghc::filesystem::path path) : m_path(path) {}
 
-bool DragDropHandler::handle(DragDropEvent* ev) {
+PassThrough DragDropHandler::handle(DragDropEvent* ev) {
 	auto ext = ev->path().extension().string();
 	if (ext.size() > 0)
 		ext = ext.substr(1);
 
-	if (m_extensions.size() == 0 || vector_utils::contains(m_extensions, ext))
+	if (m_extensions.size() == 0 || vector_utils::contains(m_extensions, ext)) {
 		return m_callback(ev);
+	}
 
-	return true;
+	return PassThrough::Propagate;
 }
 
 DragDropHandler::DragDropHandler(
-    std::vector<std::string> extensions,
-    std::function<bool(DragDropEvent*)> callback
+    std::vector<std::string> const& extensions,
+    std::function<PassThrough(DragDropEvent*)> callback
 ) : EventHandler(callback) {
 	for (auto s : extensions) {
 		if (s[0] == '.') {
@@ -29,12 +30,12 @@ DragDropHandler::DragDropHandler(
 }
 
 DragDropHandler::DragDropHandler(
-    std::string extension,
-    std::function<bool(DragDropEvent*)> callback
+    std::string const& extension,
+    std::function<PassThrough(DragDropEvent*)> callback
 ) : DragDropHandler(std::vector<std::string>{extension}, callback) {}
 
 DragDropHandler::DragDropHandler(
-    std::function<bool(DragDropEvent*)> callback
+    std::function<PassThrough(DragDropEvent*)> callback
 ) : DragDropHandler(std::vector<std::string>(), callback) {}
 
 DragDropHandler::~DragDropHandler() {}

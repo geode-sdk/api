@@ -1,12 +1,15 @@
-#include <Event.hpp>
+#include <events/Event.hpp>
 
 USE_GEODE_NAMESPACE();
 
 std::vector<BasicEventHandler*> Event::handlers = {};
 
-void BasicEventHandler::addToHandlers() {
-	if (!vector_utils::contains(Event::handlers, this))
+bool BasicEventHandler::addToHandlers() {
+	if (!vector_utils::contains(Event::handlers, this)) {
 		Event::handlers.push_back(this);
+		return true;
+	}
+	return false;
 }
 
 void BasicEventHandler::removeFromHandlers() {
@@ -19,8 +22,9 @@ Event::~Event() {}
 
 void Event::post() {
 	for (auto h : Event::handlers) {
-		if (!h->passThrough(this))
+		if (h->passThrough(this) == PassThrough::Stop) {
 			break;
+		}
 	}
 }
 

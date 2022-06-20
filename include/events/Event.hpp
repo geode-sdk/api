@@ -6,22 +6,28 @@
 #include "../APIMacros.hpp"
 
 namespace geode {
-
 	class Event;
+
+	enum class PassThrough : bool {
+		Propagate,
+		Stop,
+	};
+
 	struct GEODE_API_DLL BasicEventHandler {
-		virtual bool passThrough(Event*) = 0;
+		virtual PassThrough passThrough(Event*) = 0;
 
-		void addToHandlers();
+		bool addToHandlers();
 		void removeFromHandlers();
-
 	};
 
 	class GEODE_API_DLL Event {
 		static std::vector<BasicEventHandler*> handlers;
-	 protected:
+		
+	protected:
 	 	Mod* m_owner;
 	 	friend BasicEventHandler;
-	 public:
+
+	public:
 	 	void post();
 
 	 	Event();
@@ -31,18 +37,19 @@ namespace geode {
 
 	template <typename T>
 	class EventHandler : public BasicEventHandler {
-	 protected:
-	 	std::function<bool(T*)> m_callback;
-	 public:
-		virtual bool handle(T*) = 0;
-		bool passThrough(Event* ev) override {
+	protected:
+	 	std::function<PassThrough(T*)> m_callback;
+
+	public:
+		virtual PassThrough handle(T*) = 0;
+		PassThrough passThrough(Event* ev) override {
 			if (auto myev = dynamic_cast<T*>(ev)) {
 				return handle(myev);
 			}
-			return true;
+			return PassThrough::Propagate;
 		}
 
-		EventHandler(std::function<bool(T*)> cb) : m_callback(cb) {}
+		EventHandler(std::function<PassThrough(T*)> cb) : m_callback(cb) {}
 	};
 
 	/*template <class D, typename H, typename F = std::monostate>

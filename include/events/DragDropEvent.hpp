@@ -10,31 +10,31 @@
 namespace geode {
 
     class GEODE_API_DLL DragDropEvent : public Event {
-     protected:
+    protected:
         ghc::filesystem::path m_path;
-     public:
+    public:
         DragDropEvent(ghc::filesystem::path path);
 
         inline ghc::filesystem::path const& path() { return m_path; }
     };
 
-    class GEODE_API_DLL DragDropHandler : public EventHandler<DragDropEvent>{
-     protected:
+    class GEODE_API_DLL DragDropHandler : public EventHandler<DragDropEvent> {
+    protected:
         std::vector<std::string> m_extensions;
         
-     public:
-        bool handle(DragDropEvent* ev);
+    public:
+        PassThrough handle(DragDropEvent* ev) override;
 
         DragDropHandler(
-            std::vector<std::string> extensions,
-            std::function<bool(DragDropEvent*)> callback
+            std::vector<std::string> const& extensions,
+            std::function<PassThrough(DragDropEvent*)> callback
         );
         DragDropHandler(
-            std::string extension,
-            std::function<bool(DragDropEvent*)> callback
+            std::string const& extension,
+            std::function<PassThrough(DragDropEvent*)> callback
         );
         DragDropHandler(
-            std::function<bool(DragDropEvent*)> callback
+            std::function<PassThrough(DragDropEvent*)> callback
         );
 
         ~DragDropHandler();
