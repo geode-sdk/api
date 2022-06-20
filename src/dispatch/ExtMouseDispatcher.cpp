@@ -346,7 +346,6 @@ bool ExtMouseDispatcher::dispatchMouseEvent(
         if (!handler) break;
         auto extDelegate = dynamic_cast<ExtMouseDelegate*>(handler->getDelegate());
         if (extDelegate && delegateIsHovered(extDelegate, mpos)) {
-            std::cout << "hovered extDelegate\n";
             if (down) {
                 extDelegate->m_extMouseDown = m_pressedButtons;
                 if (extDelegate->mouseDownExt(event, mpos)) {
@@ -362,7 +361,6 @@ bool ExtMouseDispatcher::dispatchMouseEvent(
             }
         }
         if (handler->isSwallowsTouches()) {
-            std::cout << "swallows like a good boy >w<\n";
             break;
         }
     }
