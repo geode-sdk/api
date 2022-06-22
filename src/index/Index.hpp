@@ -1,11 +1,13 @@
 #pragma once
 
 #include <Geode.hpp>
+#include <mutex>
 
 USE_GEODE_NAMESPACE();
 
-struct IndexDelegate;
+class Index;
 struct ModInstallUpdate;
+class InstallTicket;
 
 struct IndexItem {
     ghc::filesystem::path m_path;
@@ -19,6 +21,68 @@ struct IndexItem {
     std::string m_installFailed;
 };
 
+enum class UpdateStatus {
+    Progress,
+    Failed,
+    Finished,
+};
+
+struct IndexDelegate {
+    virtual void indexUpdateProgress(
+        UpdateStatus status,
+        std::string const& info,
+        uint8_t percentage
+    );
+
+    IndexDelegate();
+    virtual ~IndexDelegate();
+};
+
+using SEL_ModInstallProgress = void(CCObject::*)(
+    InstallTicket*, UpdateStatus, std::string const&, uint8_t
+);
+#define modinstallprogress_selector(_SELECTOR)\
+    (SEL_ModInstallProgress)(&_SELECTOR)
+
+class InstallTicket : public CCObject {
+protected:
+    CCObject* m_target;
+    SEL_ModInstallProgress m_progress;
+    std::vector<std::string> m_installList;
+    mutable std::mutex m_cancelMutex;
+    bool m_cancelling = false;
+    size_t m_installIndex = 0;
+    Index* m_index;
+
+    void postProgress(
+        UpdateStatus status,
+        std::string const& info = "",
+        uint8_t progress = 0
+    );
+    void installNext();
+
+    bool init(
+        Index* index,
+        std::vector<std::string> const& list,
+        CCObject* target,
+        SEL_ModInstallProgress progress
+    );
+    
+    friend class Index;
+
+public:
+    static InstallTicket* create(
+        Index* index,
+        std::vector<std::string> const& list,
+        CCObject* target,
+        SEL_ModInstallProgress progress
+    );
+
+    std::vector<std::string> getInstallList() const;
+    void cancel();
+    void start();
+};
+
 class Index : public CCObject {
 protected:
     bool m_upToDate = false;
@@ -27,30 +91,28 @@ protected:
     std::vector<IndexDelegate*> m_delegates;
     std::vector<IndexItem> m_items;
 
-    void indexUpdateProgress(CCObject* info);
-    void indexUpdateFailed(CCObject* info);
-    void indexUpdateFinished();
-
-    void modInstallProgress(CCObject* info);
-    void modInstallFailed(CCObject* info);
-    void modInstallFinished();
-
-    void postMSG(SEL_CallFunc func);
-    void postMSG(SEL_CallFuncO func, std::string const& info);
-    void postMSG(SEL_CallFuncO func, ModInstallUpdate* info);
+    void indexUpdateProgress(
+        UpdateStatus status,
+        std::string const& info = "",
+        uint8_t percentage = 0
+    );
 
     void updateIndexFromLocalCache();
 
+    Result<std::vector<std::string>> checkDependenciesForItem(IndexItem const& item);
+
 public:
     static Index* get();
-
-    std::string calculateHash(ghc::filesystem::path const& path);
 
     std::vector<IndexItem> const& getItems() const;
     std::vector<IndexItem> getUninstalledItems() const;
     bool isKnownItem(std::string const& id) const;
     IndexItem getKnownItem(std::string const& id) const;
-    void installItem(std::string const& id);
+    Result<InstallTicket*> installItem(
+        IndexItem const& item,
+        CCObject* target = nullptr,
+        SEL_ModInstallProgress progress = nullptr
+    );
 
     bool isIndexUpdated() const;
     std::string indexUpdateFailed() const;
@@ -58,17 +120,4 @@ public:
 
     void pushDelegate(IndexDelegate*);
     void popDelegate(IndexDelegate*);
-};
-
-struct IndexDelegate {
-    virtual void indexUpdateProgress(std::string const& info);
-    virtual void indexUpdateFailed(std::string const& info);
-    virtual void indexUpdateFinished();
-
-    virtual void modInstallProgress(std::string const& info, uint8_t percentage);
-    virtual void modInstallFailed(std::string const& info);
-    virtual void modInstallFinished();
-
-    IndexDelegate();
-    virtual ~IndexDelegate();
 };

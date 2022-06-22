@@ -38,9 +38,11 @@ protected:
 	void onTab(CCObject*);
 	void onSearchFilters(CCObject*);
 	void textChanged(CCTextInputNode*) override;
-	void indexUpdateProgress(std::string const& info) override;
-	void indexUpdateFailed(std::string const& info) override;
-	void indexUpdateFinished() override;
+	void indexUpdateProgress(
+        UpdateStatus status,
+        std::string const& info,
+        uint8_t percentage
+	) override;
 	std::tuple<CCNode*, CCTextInputNode*> createSearchControl();
 
 	friend class SearchFilterPopup;

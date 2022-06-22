@@ -28,8 +28,12 @@ namespace geode {
      * account; `level:<id>` to link to a GD level and 
      * `mod:<id>` to link to another Geode mod.
      */
-    class GEODE_API_DLL MDTextArea : public cocos2d::CCLayer, public cocos2d::CCLabelProtocol, public FLAlertLayerProtocol {
-     protected:
+    class GEODE_API_DLL MDTextArea :
+        public cocos2d::CCLayer,
+        public cocos2d::CCLabelProtocol,
+        public FLAlertLayerProtocol
+    {
+    protected:
         std::string m_text;
         cocos2d::CCSize m_size;
         cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
@@ -47,7 +51,7 @@ namespace geode {
 
         friend struct ::MDParser;
 
-     public:
+    public:
         /**
          * Create a markdown text area. See class
          * documentation for details on supported

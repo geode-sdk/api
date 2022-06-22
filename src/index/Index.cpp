@@ -1,113 +1,9 @@
 #include "Index.hpp"
-#include <curl/curl.h>
 #include <thread>
 #include <utils/json.hpp>
-#include <hash.hpp>
+#include "fetch.hpp"
 
-#define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
-
-using FetchProgFunc = void(*)(double, double, void*);
-struct FetchProgInfo {
-    FetchProgFunc m_func = nullptr;
-    void* m_userdata = nullptr;
-};
-
-namespace fetch_utils {
-    static size_t writeData(char* data, size_t size, size_t nmemb, void* str) {
-        as<std::string*>(str)->append(data, size * nmemb);
-        return size * nmemb;
-    }
-
-    static size_t writeBinaryData(char* data, size_t size, size_t nmemb, void* file) {
-        as<std::ofstream*>(file)->write(data, size * nmemb);
-        return size * nmemb;
-    }
-
-    static int progress(void* ptr, double total, double now, double, double) {
-        auto info = as<FetchProgInfo*>(ptr);
-        info->m_func(now, total, info->m_userdata);
-        return 0;
-    }
-}
-
-Result<> fetchFile(
-    std::string const& url,
-    ghc::filesystem::path const& into,
-    FetchProgInfo prog = FetchProgInfo()
-) {
-    auto curl = curl_easy_init();
-    
-    if (!curl) return Err("Curl not initialized!");
-
-    std::ofstream file(into, std::ios::out | std::ios::binary);
-
-    if (!file.is_open()) {
-        return Err("Unable to open output file");
-    }
-
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &file);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fetch_utils::writeBinaryData);
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
-    if (prog.m_func) {
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, fetch_utils::progress);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
-    }
-    auto res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        curl_easy_cleanup(curl);
-        return Err("Fetch failed");
-    }
-
-    char* ct;
-    res = curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &ct);
-    if ((res == CURLE_OK) && ct) {
-        curl_easy_cleanup(curl);
-        return Ok();
-    }
-    curl_easy_cleanup(curl);
-    return Err("Error getting info: " + std::string(curl_easy_strerror(res)));
-}
-
-Result<std::string> fetch(std::string const& url) {
-    auto curl = curl_easy_init();
-    
-    if (!curl) return Err("Curl not initialized!");
-
-    std::string ret;
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ret);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fetch_utils::writeData);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
-    auto res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        curl_easy_cleanup(curl);
-        return Err("Fetch failed");
-    }
-
-    char* ct;
-    res = curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &ct);
-    if ((res == CURLE_OK) && ct) {
-        curl_easy_cleanup(curl);
-        return Ok(ret);
-    }
-    curl_easy_cleanup(curl);
-    return Err("Error getting info: " + std::string(curl_easy_strerror(res)));
-}
-
-Result<nlohmann::json> fetchJSON(std::string const& url) {
-    auto res = fetch(url);
-    if (!res) return Err(res.error());
-    try {
-        return Ok(nlohmann::json::parse(res.value()));
-    } catch(std::exception& e) {
-        return Err(e.what());
-    }
-}
+#define GITHUB_DONT_RATE_LIMIT_ME_PLS 1
 
 Result<nlohmann::json> readJSON(ghc::filesystem::path const& path) {
     auto indexJsonData = file_utils::readString(path);
@@ -122,25 +18,6 @@ Result<nlohmann::json> readJSON(ghc::filesystem::path const& path) {
 }
 
 
-struct ModInstallUpdate : public CCObject {
-    IndexItem* m_item = nullptr;
-    std::string m_info = "";
-    uint8_t m_percentage = 0;
-
-    ModInstallUpdate(IndexItem* item, std::string const& info, uint8_t p = 0)
-     : m_item(item), m_info(info), m_percentage(p) {
-        this->autorelease();
-    }
-    ModInstallUpdate() {
-        this->autorelease();
-    }
-};
-
-
-std::string Index::calculateHash(ghc::filesystem::path const& path) {
-    return ::calculateHash(path.string());
-}
-
 Index* Index::get() {
     static auto ret = new Index();
     return ret;
@@ -154,76 +31,18 @@ std::string Index::indexUpdateFailed() const {
     return m_indexUpdateFailed;
 }
 
-void Index::indexUpdateProgress(CCObject* info) {
-    m_indexUpdateFailed.clear();
-    for (auto& d : m_delegates) {
-        d->indexUpdateProgress(as<CCString*>(info)->getCString());
-    }
+
+void Index::indexUpdateProgress(
+    UpdateStatus status,
+    std::string const& info,
+    uint8_t percentage
+) {
+    Loader::get()->queueInGDThread([this, status, info, percentage]() -> void {
+        for (auto& d : m_delegates) {
+            d->indexUpdateProgress(status, info, percentage);
+        }
+    });
 }
-
-void Index::indexUpdateFailed(CCObject* info) {
-    m_updating = false;
-    m_indexUpdateFailed = as<CCString*>(info)->getCString();
-    for (auto& d : m_delegates) {
-        d->indexUpdateFailed(m_indexUpdateFailed);
-    }
-}
-
-void Index::indexUpdateFinished() {
-    m_updating = false;
-    m_indexUpdateFailed.clear();
-    for (auto& d : m_delegates) {
-        d->indexUpdateFinished();
-    }
-}
-
-void Index::modInstallProgress(CCObject* info) {
-    auto obj = as<ModInstallUpdate*>(info);
-    for (auto& d : m_delegates) {
-        d->modInstallProgress(obj->m_info, obj->m_percentage);
-    }
-}
-
-void Index::modInstallFailed(CCObject* info) {
-    for (auto& d : m_delegates) {
-        d->modInstallFailed(as<ModInstallUpdate*>(info)->m_info);
-    }
-}
-
-void Index::modInstallFinished() {
-    for (auto& d : m_delegates) {
-        d->modInstallFinished();
-    }
-}
-
-void Index::postMSG(SEL_CallFunc func) {
-    CCDirector::sharedDirector()->getActionManager()->addAction(
-        CCCallFunc::create(this, func),
-        CCNode::create(), false
-    );
-}
-
-void Index::postMSG(SEL_CallFuncO func, std::string const& info) {
-    CCDirector::sharedDirector()->getActionManager()->addAction(
-        CCCallFuncO::create(this, func, CCString::create(info)),
-        CCNode::create(), false
-    );
-}
-
-void Index::postMSG(SEL_CallFuncO func, ModInstallUpdate* info) {
-    CCDirector::sharedDirector()->getActionManager()->addAction(
-        CCCallFuncO::create(this, func, info),
-        CCNode::create(), false
-    );
-}
-
-#define POST_IU_PROG(msg) this->postMSG(callfuncO_selector(Index::indexUpdateProgress), msg)
-#define POST_MI_PROG(msg, prog) \
-    {\
-        auto info = new ModInstallUpdate(&item, msg, prog);\
-        this->postMSG(callfuncO_selector(Index::modInstallProgress), info);\
-    }
-
 
 void Index::updateIndex(bool force) {
     if (m_upToDate || m_updating) return;
@@ -233,38 +52,43 @@ void Index::updateIndex(bool force) {
     ghc::filesystem::create_directories(indexDir);
     std::thread updateThread([force, this, indexDir]() -> void {
         #if GITHUB_DONT_RATE_LIMIT_ME_PLS == 0
-        POST_IU_PROG("Fetching index metadata");
+
+        indexUpdateProgress(UpdateStatus::Progress, "Fetching index metadata", 0);
+
         auto commit = fetchJSON("https://api.github.com/repos/geode-sdk/mods/commits");
         if (!commit) {
-            return this->postMSG(callfuncO_selector(Index::indexUpdateFailed), commit.error());
+            return indexUpdateProgress(UpdateStatus::Failed, commit.error());
         }
         auto json = commit.value();
         if (json.is_object() && json.contains("documentation_url") && json.contains("message")) {
             // whoops! got rate limited
-            return this->postMSG(callfuncO_selector(Index::indexUpdateFailed), json["message"].get<std::string>());
+            return indexUpdateProgress(
+                UpdateStatus::Failed,
+                json["message"].get<std::string>()
+            );
         }
 
-        POST_IU_PROG("Checking index status");
+        indexUpdateProgress(UpdateStatus::Progress, "Checking index status", 25);
 
         if (!json.is_array()) {
-            return this->postMSG(
-                callfuncO_selector(Index::indexUpdateFailed),
+            return indexUpdateProgress(
+                UpdateStatus::Failed,
                 "Fetched commits, expected 'array', got '" + std::string(json.type_name()) + "'. "
                 "Report this bug to the Geode developers!"
             );
         }
 
         if (!json.at(0).is_object()) {
-            return this->postMSG(
-                callfuncO_selector(Index::indexUpdateFailed),
+            return indexUpdateProgress(
+                UpdateStatus::Failed,
                 "Fetched commits, expected 'array.object', got 'array." + std::string(json.type_name()) + "'. "
                 "Report this bug to the Geode developers!"
             );
         }
 
         if (!json.at(0).contains("sha")) {
-            return this->postMSG(
-                callfuncO_selector(Index::indexUpdateFailed),
+            return indexUpdateProgress(
+                UpdateStatus::Failed,
                 "Fetched commits, missing '0.sha'. "
                 "Report this bug to the Geode developers!"
             );
@@ -283,13 +107,20 @@ void Index::updateIndex(bool force) {
         if (force || currentCommitSHA != upcomingCommitSHA) {
             file_utils::writeString(indexDir / "current", upcomingCommitSHA);
 
-            POST_IU_PROG("Downloading index");
+            indexUpdateProgress(
+                UpdateStatus::Progress,
+                "Downloading index",
+                50
+            );
             auto gotZip = fetchFile(
                 "https://github.com/geode-sdk/mods/zipball/main",
                 indexDir / "index.zip"
             );
             if (!gotZip) {
-                return this->postMSG(callfuncO_selector(Index::indexUpdateFailed), gotZip.error());
+                return indexUpdateProgress(
+                    UpdateStatus::Failed,
+                    gotZip.error()
+                );
             }
 
             // delete old index
@@ -300,8 +131,8 @@ void Index::updateIndex(bool force) {
             // unzip downloaded
             auto unzip = ZipFile((indexDir / "index.zip").string());
             if (!unzip.isLoaded()) {
-                return this->postMSG(
-                    callfuncO_selector(Index::indexUpdateFailed),
+                return indexUpdateProgress(
+                    UpdateStatus::Failed,
                     "Unable to unzip index.zip"
                 );
             }
@@ -328,8 +159,8 @@ void Index::updateIndex(bool force) {
                         !ghc::filesystem::exists(indexDir / path.parent_path()) &&
                         !ghc::filesystem::create_directories(indexDir / path.parent_path())
                     ) {
-                        return this->postMSG(
-                            callfuncO_selector(Index::indexUpdateFailed),
+                        return indexUpdateProgress(
+                            UpdateStatus::Failed,
                             "Unable to create directories \"" + path.parent_path().string() + "\""
                         );
                     }
@@ -337,8 +168,8 @@ void Index::updateIndex(bool force) {
                 unsigned long size;
                 auto data = unzip.getFileData(zipPath, &size);
                 if (!data || !size) {
-                    return this->postMSG(
-                        callfuncO_selector(Index::indexUpdateFailed),
+                    return indexUpdateProgress(
+                        UpdateStatus::Failed,
                         "Unable to read \"" + std::string(zipPath) + "\""
                     );
                 }
@@ -347,8 +178,8 @@ void Index::updateIndex(bool force) {
                     byte_array(data, data + size)
                 );
                 if (!wrt) {
-                    return this->postMSG(
-                        callfuncO_selector(Index::indexUpdateFailed),
+                    return indexUpdateProgress(
+                        UpdateStatus::Failed,
                         "Unable to write \"" + file + "\": " + wrt.error()
                     );
                 }
@@ -356,11 +187,19 @@ void Index::updateIndex(bool force) {
         }
         #endif
 
-        POST_IU_PROG("Updating index");
+        indexUpdateProgress(
+            UpdateStatus::Progress,
+            "Updating index",
+            75
+        );
         this->updateIndexFromLocalCache();
 
         m_upToDate = true;
-        this->postMSG(callfunc_selector(Index::indexUpdateFinished));
+        indexUpdateProgress(
+            UpdateStatus::Finished,
+            "",
+            100
+        );
     });
     updateThread.detach();
 }
@@ -507,107 +346,101 @@ IndexItem Index::getKnownItem(std::string const& id) const {
     return IndexItem();
 }
 
-void Index::installItem(std::string const& id) {
-    if (!this->isKnownItem(id)) {
-        auto info = new ModInstallUpdate();
-        info->m_info = "Unknown item \"" + id + "\"";
-        return this->indexUpdateFailed(info);
+struct UninstalledDependency {
+    std::string m_id;
+    bool m_isInIndex;
+};
+
+static void getUninstalledDependenciesRecursive(
+    ModInfo const& info,
+    std::vector<UninstalledDependency>& deps
+) {
+    for (auto& dep : info.m_dependencies) {
+        UninstalledDependency d;
+        d.m_isInIndex = Index::get()->isKnownItem(dep.m_id);
+        if (!Loader::get()->isModInstalled(dep.m_id)) {
+            d.m_id = dep.m_id;
+            deps.push_back(d);
+        }
+        if (d.m_isInIndex) {
+            getUninstalledDependenciesRecursive(
+                Index::get()->getKnownItem(dep.m_id).m_info,
+                deps
+            );
+        }
     }
-    auto indexDir = Loader::get()->getGeodeDirectory() / "index" / "index";
-    std::thread t([indexDir, this, id]() -> void {
-        auto item = this->getKnownItem(id);
+}
 
-        POST_MI_PROG("Checking status", 0);
-        if (!item.m_download.m_platforms.count(GEODE_PLATFORM_TARGET)) {
-            return this->postMSG(callfuncO_selector(Index::modInstallFailed), new ModInstallUpdate(
-                &item, "This mod is not available on your "
-                "current platform \"" GEODE_PLATFORM_NAME "\" - Sorry! :("
-            ));
+Result<std::vector<std::string>> Index::checkDependenciesForItem(IndexItem const& item) {
+    std::vector<UninstalledDependency> deps;
+    getUninstalledDependenciesRecursive(item.m_info, deps);
+    if (deps.size()) {
+        std::vector<std::string> unknownDeps;
+        for (auto& dep : deps) {
+            if (!dep.m_isInIndex) {
+                unknownDeps.push_back(dep.m_id);
+            }
         }
-        if (!item.m_download.m_url.size()) {
-            return this->postMSG(callfuncO_selector(Index::modInstallFailed), new ModInstallUpdate(
-                &item, "Download URL not set! Report this bug to "
-                "the Geode developers - this should not happen, ever."
-            ));
+        if (unknownDeps.size()) {
+            std::string list = "";
+            for (auto& ud : unknownDeps) {
+                list += "<cp>" + ud + "</c>, ";
+            }
+            list.pop_back();
+            list.pop_back();
+            return Err(
+                "This mod or its dependencies <cb>depends</c> on the following "
+                "unknown mods: " + list + ". You will have to manually "
+                "install these mods before you can install this one."
+            );
         }
-        if (!item.m_download.m_filename.size()) {
-            return this->postMSG(callfuncO_selector(Index::modInstallFailed), new ModInstallUpdate(
-                &item, "Download filename not set! Report this bug to "
-                "the Geode developers - this should not happen, ever."
-            ));
+        std::vector<std::string> list = {};
+        for (auto& d : deps) {
+            list.push_back(d.m_id);
         }
-        if (!item.m_download.m_hash.size()) {
-            return this->postMSG(callfuncO_selector(Index::modInstallFailed), new ModInstallUpdate(
-                &item, "Checksum not set! Report this bug to "
-                "the Geode developers - this should not happen, ever."
-            ));
-        }
+        list.push_back(item.m_info.m_id);
+        return Ok(list);
+    } else {
+        return Ok<std::vector<std::string>>({ item.m_info.m_id });
+    }
+}
 
-        struct Data {
-            IndexItem* m_item;
-            Index* m_self;
-        } data = { &item, this };
-
-        auto tempFile = indexDir / item.m_download.m_filename;
-
-        POST_MI_PROG("Fetching binary", 0);
-        auto res = fetchFile(
-            item.m_download.m_url,
-            tempFile,
-            { [](double now, double total, void* self) -> void {
-                auto data = as<Data*>(self);
-                data->m_self->postMSG(callfuncO_selector(Index::modInstallProgress), new ModInstallUpdate(
-                    data->m_item, "Downloading binary",
-                    static_cast<uint8_t>(now / total * 100.0)
-                ));
-            }, &data }
+Result<InstallTicket*> Index::installItem(
+    IndexItem const& item,
+    CCObject* target,
+    SEL_ModInstallProgress progress
+) {
+    if (!item.m_download.m_platforms.count(GEODE_PLATFORM_TARGET)) {
+        return Err(
+            "This mod is not available on your "
+            "current platform \"" GEODE_PLATFORM_NAME "\" - Sorry! :("
         );
-        if (!res) {
-            ghc::filesystem::remove(tempFile);
-            return this->postMSG(callfuncO_selector(Index::modInstallFailed), new ModInstallUpdate(
-                &item, "Downloading failed: " + res.error()
-            ));
-        }
-
-        auto notFound = file_utils::readString(tempFile);
-        if (notFound && notFound.value() == "Not Found") {
-            ghc::filesystem::remove(tempFile);
-            return this->postMSG(callfuncO_selector(Index::modInstallFailed), new ModInstallUpdate(
-                &item, "Binary file download returned \"Not found\". Report "
-                "this to the Geode development team."
-            ));
-        }
-
-        POST_MI_PROG("Verifying", 100);
-        auto checksum = this->calculateHash(tempFile);
-
-        if (checksum != item.m_download.m_hash) {
-            return this->postMSG(callfuncO_selector(Index::modInstallFailed), new ModInstallUpdate(
-                &item, "Checksum mismatch! (Downloaded file did not match what "
-                "was expected. Try again, and if the download fails another time, "
-                "report this to the Geode development team."
-            ));
-        }
-
-        if (!ghc::filesystem::copy_file(
-            tempFile,
-            Loader::get()->getGeodeDirectory() / "mods" / item.m_download.m_filename,
-            ghc::filesystem::copy_options::overwrite_existing
-        )) {
-            ghc::filesystem::remove(tempFile);
-            return this->postMSG(callfuncO_selector(Index::modInstallFailed), new ModInstallUpdate(
-                &item, "Unable to copy downloaded file to mods directory! ("
-                "might be due to insufficient permissions to write files under "
-                "SteamLibrary, try running GD as administrator)"
-            ));
-        }
-
-        ghc::filesystem::remove(tempFile);
-        Loader::get()->refreshMods();
-
-        this->postMSG(callfunc_selector(Index::modInstallFinished));
-    });
-    t.detach();
+    }
+    if (!item.m_download.m_url.size()) {
+        return Err(
+            "Download URL not set! Report this bug to "
+            "the Geode developers - this should not happen, ever."
+        );
+    }
+    if (!item.m_download.m_filename.size()) {
+        return Err(
+            "Download filename not set! Report this bug to "
+            "the Geode developers - this should not happen, ever."
+        );
+    }
+    if (!item.m_download.m_hash.size()) {
+        return Err(
+            "Checksum not set! Report this bug to "
+            "the Geode developers - this should not happen, ever."
+        );
+    }
+    auto list = checkDependenciesForItem(item);
+    if (!list) {
+        return Err(list.error());
+    }
+    auto ticket = InstallTicket::create(this, list.value(), target, progress);
+    CC_SAFE_RETAIN(ticket);
+    return Ok(ticket);
 }
 
 void Index::pushDelegate(IndexDelegate* delegate) {
@@ -618,14 +451,9 @@ void Index::popDelegate(IndexDelegate* delegate) {
     vector_utils::erase(m_delegates, delegate);
 }
 
-
-void IndexDelegate::indexUpdateFailed(std::string const&) {}
-void IndexDelegate::indexUpdateProgress(std::string const&) {}
-void IndexDelegate::indexUpdateFinished() {}
-
-void IndexDelegate::modInstallProgress(std::string const& info, uint8_t percentage) {}
-void IndexDelegate::modInstallFailed(std::string const& info) {}
-void IndexDelegate::modInstallFinished() {}
+void IndexDelegate::indexUpdateProgress(
+    UpdateStatus, std::string const&, uint8_t
+) {}
 
 IndexDelegate::IndexDelegate() {
     Index::get()->pushDelegate(this);

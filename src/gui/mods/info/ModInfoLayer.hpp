@@ -8,16 +8,33 @@ USE_GEODE_NAMESPACE();
 class ModListView;
 class ModObject;
 
-class ModInfoLayer : public FLAlertLayer, public FLAlertLayerProtocol, public IndexDelegate {
+class DownloadStatusNode : public CCNode {
+protected:
+    Slider* m_bar;
+    CCLabelBMFont* m_label;
+
+    bool init();
+
+public:
+    static DownloadStatusNode* create();
+
+    void setProgress(uint8_t progress);
+    void setStatus(std::string const& text);
+};
+
+class ModInfoLayer :
+    public FLAlertLayer,
+    public FLAlertLayerProtocol
+{
 protected:
     Mod* m_mod = nullptr;
     ModInfo m_info;
     bool m_isIndexMod = false;
     ModListView* m_list = nullptr;
-    LoadingCircle* m_loadingCircle = nullptr;
-    CCLabelBMFont* m_loadingLabel = nullptr;
+    DownloadStatusNode* m_installStatus = nullptr;
+    IconButtonSprite* m_installBtnSpr;
     CCMenuItemSpriteExtra* m_installBtn;
-    std::vector<std::string> m_installing;
+    InstallTicket* m_ticket = nullptr;
 
     void onHooks(CCObject*);
     void onSettings(CCObject*);
@@ -25,15 +42,19 @@ protected:
     void onInfo(CCObject*);
     void onEnableMod(CCObject*);
     void onInstallMod(CCObject*);
+    void onCancelInstall(CCObject*);
     void onUninstall(CCObject*);
     void onDisablingNotSupported(CCObject*);
-    void installMod(std::string const& id);
+    void install();
     void uninstall();
-    void updateInstallStatus(std::string const& status = "");
+    void updateInstallStatus(std::string const& status, uint8_t progress);
 
-    void modInstallProgress(std::string const& info, uint8_t percentage) override;
-    void modInstallFailed(std::string const& info) override;
-    void modInstallFinished() override;
+    void modInstallProgress(
+        InstallTicket*,
+        UpdateStatus status,
+        std::string const& info,
+        uint8_t percentage
+    );
     void FLAlert_Clicked(FLAlertLayer*, bool) override;
 
     bool init(ModObject* obj, ModListView* list);

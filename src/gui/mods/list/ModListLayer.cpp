@@ -166,29 +166,26 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	return { layer, input };
 }
 
-void ModListLayer::indexUpdateProgress(std::string const& info) {
+void ModListLayer::indexUpdateProgress(
+	UpdateStatus status,
+	std::string const& info,
+	uint8_t percentage
+) {
 	if (g_tab == ModListType::Download) {
-		this->reloadList();
-		m_indexUpdateLabel->setVisible(true);
-		m_indexUpdateLabel->setString(info.c_str());
-	}
-}
+		if (status == UpdateStatus::Finished) {
+			m_indexUpdateLabel->setVisible(false);
+			this->reloadList();
+		} else {
+			m_indexUpdateLabel->setVisible(true);
+			m_indexUpdateLabel->setString(info.c_str());
+		}
 
-void ModListLayer::indexUpdateFailed(std::string const& info) {
-	if (g_tab == ModListType::Download) {
-		this->reloadList();
-		m_indexUpdateLabel->setString("");
-	}
-	FLAlertLayer::create(
-		"Error Updating Index",
-		info, "OK"
-	)->show();
-}
-
-void ModListLayer::indexUpdateFinished() {
-	if (g_tab == ModListType::Download) {
-		this->reloadList();
-		m_indexUpdateLabel->setString("");
+		if (status == UpdateStatus::Failed) {
+			FLAlertLayer::create(
+				"Error Updating Index",
+				info, "OK"
+			)->show();
+		}
 	}
 }
 

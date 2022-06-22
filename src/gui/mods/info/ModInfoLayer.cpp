@@ -8,41 +8,67 @@
 #include <nodes/Scrollbar.hpp>
 #include <utils/WackyGeodeMacros.hpp>
 #include <settings/Setting.hpp>
+#include <nodes/IconButtonSprite.hpp>
 
 // TODO: die
 #undef min
 #undef max
 
-struct UninstalledDependency {
-    std::string m_id;
-    bool m_isInIndex;
-};
 
-void getUninstalledDependenciesRecursive(
-    ModInfo const& info,
-    std::vector<UninstalledDependency>& deps
-) {
-    for (auto& dep : info.m_dependencies) {
-        UninstalledDependency d;
-        d.m_isInIndex = Index::get()->isKnownItem(dep.m_id);
-        if (!Loader::get()->isModInstalled(dep.m_id)) {
-            d.m_id = dep.m_id;
-            deps.push_back(d);
-        }
-        if (d.m_isInIndex) {
-            getUninstalledDependenciesRecursive(
-                Index::get()->getKnownItem(dep.m_id).m_info,
-                deps
-            );
-        }
+static constexpr const int TAG_CONFIRM_INSTALL = 4;
+static constexpr const int TAG_CONFIRM_UNINSTALL = 5;
+static constexpr const int TAG_DELETE_SAVEDATA = 6;
+
+
+bool DownloadStatusNode::init() {
+    if (!CCNode::init())
+        return false;
+    
+    this->setContentSize({ 150.f, 25.f });
+
+    auto bg = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+    bg->setScale(.33f);
+    bg->setColor({ 0, 0, 0 });
+    bg->setOpacity(75);
+    bg->setContentSize(m_obContentSize * 3);
+    this->addChild(bg);
+
+    m_bar = Slider::create(this, nullptr, .6f);
+    m_bar->setValue(.0f);
+    m_bar->updateBar();
+    m_bar->setPosition(0.f, -5.f);
+    m_bar->m_touchLogic->m_thumb->setVisible(false);
+    this->addChild(m_bar);
+
+    m_label = CCLabelBMFont::create("", "bigFont.fnt");
+    m_label->setAnchorPoint({ .0f, .5f });
+    m_label->setScale(.45f);
+    m_label->setPosition(-m_obContentSize.width / 2 + 15.f, 5.f);
+    this->addChild(m_label);
+
+    return true;
+}
+
+DownloadStatusNode* DownloadStatusNode::create() {
+    auto ret = new DownloadStatusNode();
+    if (ret && ret->init()) {
+        ret->autorelease();
+        return ret;
     }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
 }
 
-std::vector<UninstalledDependency> getUninstalledDependencies(ModInfo const& info) {
-    std::vector<UninstalledDependency> deps;
-    getUninstalledDependenciesRecursive(info, deps);
-    return deps;
+void DownloadStatusNode::setProgress(uint8_t progress) {
+    m_bar->setValue(progress / 100.f);
+    m_bar->updateBar();
 }
+
+void DownloadStatusNode::setStatus(std::string const& text) {
+    m_label->setString(text.c_str());
+    m_label->limitLabelWidth(m_obContentSize.width - 30.f, .5f, .1f);
+}
+
 
 bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     m_noElasticity = true;
@@ -218,25 +244,25 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
             m_buttonMenu->addChild(uninstallBtn);
         }
     } else {
-        auto installBtnSpr = ButtonSprite::create(
-            "Install", "bigFont.fnt", "GJ_button_02.png", .6f
+        m_installBtnSpr = IconButtonSprite::createWithSpriteFrameName(
+            "GE_button_01.png"_spr,
+            CCSprite::createWithSpriteFrameName("install.png"_spr),
+            "Install",
+            "bigFont.fnt"
         );
-        installBtnSpr->setScale(.6f);
+        m_installBtnSpr->setScale(.6f);
 
         m_installBtn = CCMenuItemSpriteExtra::create(
-            installBtnSpr, this,
+            m_installBtnSpr, this,
             menu_selector(ModInfoLayer::onInstallMod)
         );
-        m_installBtn->setPosition(-155.f, 75.f);
+        m_installBtn->setPosition(-143.0f, 75.f);
         m_buttonMenu->addChild(m_installBtn);
 
-        m_loadingLabel = CCLabelBMFont::create(
-            "", "bigFont.fnt"
-        );
-        m_loadingLabel->setPosition(winSize.width / 2 - 75.f, winSize.height / 2 + 75.f);
-        m_loadingLabel->setAnchorPoint({ .0f, .5f });
-        m_loadingLabel->setScale(.35f);
-        m_mainLayer->addChild(m_loadingLabel);
+        m_installStatus = DownloadStatusNode::create();
+        m_installStatus->setPosition(winSize.width / 2 - 25.f, winSize.height / 2 + 75.f);
+        m_installStatus->setVisible(false);
+        m_mainLayer->addChild(m_installStatus);
     }
 
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
@@ -306,50 +332,37 @@ void ModInfoLayer::onEnableMod(CCObject* pSender) {
 }
 
 void ModInfoLayer::onInstallMod(CCObject*) {
-    this->updateInstallStatus("Checking dependencies");
-    auto deps = getUninstalledDependencies(m_info);
-    if (deps.size()) {
-        std::vector<std::string> unknownDeps;
-        for (auto& dep : deps) {
-            if (!dep.m_isInIndex) {
-                unknownDeps.push_back(dep.m_id);
-            }
-        }
-        if (unknownDeps.size()) {
-            std::string list = "";
-            for (auto& ud : unknownDeps) {
-                list += "<cp>" + ud + "</c>, ";
-            }
-            list.pop_back();
-            list.pop_back();
-            return FLAlertLayer::create(
-                nullptr,
-                "Unknown Dependencies",
-                "This mod or its dependencies <cb>depends</c> on the following "
-                "unknown mods: " + list + ". You will have to manually "
-                "install these mods before you can install this one.",
-                "OK", nullptr, 360.f
-            )->show();
-        }
-        std::string list = "";
-        m_installing = {};
-        for (auto& d : deps) {
-            list += "<cy>" + d.m_id + "</c>, ";
-            m_installing.push_back(d.m_id);
-        }
-        m_installing.push_back(m_info.m_id);
-        list.pop_back();
-        list.pop_back();
-        auto layer = FLAlertLayer::create(
-            this,
-            "Installing Dependencies",
-            "The following <cb>dependencies</c> will be installed: " + list + ".",
-            "Cancel", "OK", 360.f
-        );
-        layer->setTag(4);
-        layer->show();
-    } else {
-        this->installMod(m_info.m_id);
+    auto ticketRes = Index::get()->installItem(
+        Index::get()->getKnownItem(m_info.m_id),
+        this,
+        modinstallprogress_selector(ModInfoLayer::modInstallProgress)
+    );
+    if (!ticketRes) {
+        return FLAlertLayer::create(
+            "Unable to install",
+            ticketRes.error(),
+            "OK"
+        )->show();
+    }
+    m_ticket = ticketRes.value();
+
+    auto layer = FLAlertLayer::create(
+        this,
+        "Install",
+        "The following <cb>mods</c> will be installed: " +
+        vector_utils::join(m_ticket->getInstallList(), ",") + ".",
+        "Cancel", "OK", 360.f
+    );
+    layer->setTag(TAG_CONFIRM_INSTALL);
+    layer->show();
+}
+
+void ModInfoLayer::onCancelInstall(CCObject*) {
+    m_installBtn->setEnabled(false);
+    m_installBtnSpr->setString("Cancelling");
+
+    if (m_ticket) {
+        m_ticket->cancel();
     }
 }
 
@@ -360,30 +373,27 @@ void ModInfoLayer::onUninstall(CCObject*) {
         "Are you sure you want to uninstall <cr>" + m_info.m_name + "</c>?",
         "Cancel", "OK"
     );
-    layer->setTag(5);
+    layer->setTag(TAG_CONFIRM_UNINSTALL);
     layer->show();
 }
 
 void ModInfoLayer::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     switch (layer->getTag()) {
-        case 4: {
+        case TAG_CONFIRM_INSTALL: {
             if (btn2) {
-                if (m_installing.size()) {
-                    this->installMod(m_installing.back());
-                    m_installing.pop_back();
-                }
+                this->install();
             } else {
-                this->updateInstallStatus();
+                this->updateInstallStatus("", 0);
             }
         } break;
 
-        case 5: {
+        case TAG_CONFIRM_UNINSTALL: {
             if (btn2) {
                 this->uninstall();
             }
         } break;
 
-        case 6: {
+        case TAG_DELETE_SAVEDATA: {
             if (btn2) {
                 if (ghc::filesystem::remove_all(m_mod->getSaveDir())) {
                     FLAlertLayer::create(
@@ -405,56 +415,67 @@ void ModInfoLayer::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     }
 }
 
-void ModInfoLayer::updateInstallStatus(std::string const& status) {
+void ModInfoLayer::updateInstallStatus(std::string const& status, uint8_t progress) {
     if (status.size()) {
-        if (!m_loadingCircle) {
-            m_loadingCircle = LoadingCircle::create();
-            m_loadingCircle->setPosition(-90.f, 75.f);
-            m_loadingCircle->setScale(.25f);
-            m_loadingCircle->show();
-        }
-        m_loadingLabel->setString(status.c_str());
+        m_installStatus->setVisible(true);
+        m_installStatus->setStatus(status);
+        m_installStatus->setProgress(progress);
     } else {
-        if (m_loadingCircle) {
-            m_loadingCircle->fadeAndRemove();
-            m_loadingCircle = nullptr;
-        }
-        m_loadingLabel->setString("");
+        m_installStatus->setVisible(false);
     }
 }
 
-void ModInfoLayer::modInstallProgress(std::string const& info, uint8_t percentage) {
-    this->updateInstallStatus(info + " (" + std::to_string(percentage) + "%)");
-}
+void ModInfoLayer::modInstallProgress(
+    InstallTicket*,
+    UpdateStatus status,
+    std::string const& info,
+    uint8_t percentage
+) {
+    switch (status) {
+        case UpdateStatus::Failed: {
+            FLAlertLayer::create(
+                "Installation failed :(", info, "OK"
+            )->show();
+            this->updateInstallStatus("", 0);
 
-void ModInfoLayer::modInstallFailed(std::string const& info) {
-    m_installing = {};
-    this->updateInstallStatus("");
-    FLAlertLayer::create(
-        "Installation failed :(", info, "OK"
-    )->show();
-}
+            m_installBtn->setEnabled(true);
+            m_installBtn->setTarget(this, menu_selector(ModInfoLayer::onInstallMod));
+            m_installBtnSpr->setString("Install");
+            m_installBtnSpr->setBG("GE_button_01.png"_spr, true);
+        } break;
 
-void ModInfoLayer::modInstallFinished() {
-    if (m_installing.size()) {
-        this->installMod(m_installing.back());
-        m_installing.pop_back();
-    } else {
-        this->updateInstallStatus("");
-        FLAlertLayer::create(
-            "Install complete",
-            "Mod succesfully installed! :) (You may need to <cy>restart the game</c> "
-            "for the mod to take full effect)",
-            "OK"
-        )->show();
+        case UpdateStatus::Finished: {
+            this->updateInstallStatus("", 100);
+            
+            FLAlertLayer::create(
+                "Install complete",
+                "Mod succesfully installed! :) (You may need to <cy>restart the game</c> "
+                "for the mod to take full effect)",
+                "OK"
+            )->show();
+
+            m_ticket = nullptr;
+
+            m_list->refreshList();
+            this->onClose(nullptr);
+        } break;
+
+        default: {
+            this->updateInstallStatus(info, percentage);
+        } break;
     }
-    m_list->refreshList();
-    this->onClose(nullptr);
 }
 
-void ModInfoLayer::installMod(std::string const& id) {
-    this->updateInstallStatus("Installing " + id);
-    Index::get()->installItem(id);
+void ModInfoLayer::install() {
+    if (m_ticket) {
+        this->updateInstallStatus("Starting install", 0);
+
+        m_installBtn->setTarget(this, menu_selector(ModInfoLayer::onCancelInstall));
+        m_installBtnSpr->setString("Cancel");
+        m_installBtnSpr->setBG("GJ_button_06.png", false);
+
+        m_ticket->start();
+    }
 }
 
 void ModInfoLayer::uninstall() {
@@ -474,7 +495,7 @@ void ModInfoLayer::uninstall() {
         "save data?</c>",
         "Cancel", "Delete", 350.f
     );
-    layer->setTag(6);
+    layer->setTag(TAG_DELETE_SAVEDATA);
     layer->show();
 }
 
