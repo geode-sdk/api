@@ -69,14 +69,16 @@ void InstallTicket::installNext() {
             100.0 * (m_installIndex + 1) / m_installList.size()
         );
 
+        auto download = item.m_download.at(GEODE_PLATFORM_TARGET);
+
         this->postProgress(UpdateStatus::Progress, "Checking status", currentProgress);
         
         // download to temp file in index dir
-        auto tempFile = indexDir / item.m_download.m_filename;
+        auto tempFile = indexDir / download.m_filename;
 
         this->postProgress(UpdateStatus::Progress, "Fetching binary", currentProgress);
         auto res = fetchFile(
-            item.m_download.m_url,
+            download.m_url,
             tempFile,
             [this, currentProgress](double now, double total) -> int {
                 // check if cancelled
@@ -127,7 +129,7 @@ void InstallTicket::installNext() {
         this->postProgress(UpdateStatus::Progress, "Verifying", currentProgress);
         auto checksum = ::calculateHash(tempFile.string());
 
-        if (checksum != item.m_download.m_hash) {
+        if (checksum != download.m_hash) {
             return this->postProgress(
                 UpdateStatus::Failed,
                 "Checksum mismatch! (Downloaded file did not match what "
@@ -140,9 +142,9 @@ void InstallTicket::installNext() {
         try {
             // find valid filename that doesn't exist yet
             auto modDir = Loader::get()->getGeodeDirectory() / "mods";
-            auto targetFile = modDir / item.m_download.m_filename;
+            auto targetFile = modDir / download.m_filename;
             auto filename = ghc::filesystem::path(
-                item.m_download.m_filename
+                download.m_filename
             ).replace_extension("").string();
 
             size_t number = 0;

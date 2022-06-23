@@ -3,7 +3,7 @@
 #include <utils/json.hpp>
 #include "fetch.hpp"
 
-#define GITHUB_DONT_RATE_LIMIT_ME_PLS 1
+#define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 
 Result<nlohmann::json> readJSON(ghc::filesystem::path const& path) {
     auto indexJsonData = file_utils::readString(path);
@@ -255,46 +255,58 @@ void Index::updateIndexFromLocalCache() {
 
                 item.m_path = dir.path();
                 item.m_info = info.value();
+
                 if (json.contains("download") && json["download"].is_object()) {
                     auto download = json["download"];
-                    if (!download.contains("platforms") || !download["platforms"].is_array()) {
-                        Log::get() << Severity::Warning
-                            << "[index.json].download.platforms is not an array, skipping";
-                        continue;
-                    }
-                    if (!download.contains("url") || !download["url"].is_string()) {
-                        Log::get() << Severity::Warning
-                            << "[index.json].download.url is not a string, skipping";
-                        continue;
-                    }
-                    if (!download.contains("name") || !download["name"].is_string()) {
-                        Log::get() << Severity::Warning
-                            << "[index.json].download.name is not a string, skipping";
-                        continue;
-                    }
-                    if (!download.contains("hash") || !download["hash"].is_string()) {
-                        Log::get() << Severity::Warning
-                            << "[index.json].download.hash is not a string, skipping";
-                        continue;
-                    }
-                    item.m_download.m_url = download["url"].get<std::string>();
-                    item.m_download.m_filename = download["name"].get<std::string>();
-                    item.m_download.m_hash = download["hash"].get<std::string>();
-                    for (auto& platform : download["platforms"]) {
-                        if (!platform.is_string()) {
-                            Log::get() << Severity::Warning
-                                << "[index.json].download.platforms contains a non-string, skipping";
-                            goto skip_this;
-                        }
-                        auto str = platform.get<std::string>();
-                        auto id = platformFromString(str);
-                        if (id != PlatformID::Unknown) {
-                            item.m_download.m_platforms.insert(id);
-                        } else {
-                            Log::get() << Severity::Warning
-                                << "[index.json].download.platforms contains an unknown platform \""
-                                << str << "\", skipping";
-                            goto skip_this;
+                    std::set<PlatformID> unsetPlatforms = {
+                        PlatformID::Windows,
+                        PlatformID::MacOS,
+                        PlatformID::iOS,
+                        PlatformID::Android,
+                        PlatformID::Linux,
+                    };
+                    for (auto& key : std::initializer_list<std::string> {
+                        "windows",
+                        "macos",
+                        "android",
+                        "ios",
+                        "*",
+                    }) {
+                        if (download.contains(key)) {
+                            auto platformDownload = download[key];
+                            if (!platformDownload.is_object()) {
+                                Log::get() << Severity::Warning
+                                    << "[index.json].download." + key + " is not an object, skipping";
+                                continue;
+                            }
+                            if (!platformDownload.contains("url") || !platformDownload["url"].is_string()) {
+                                Log::get() << Severity::Warning
+                                    << "[index.json].download." + key + ".url is not a string, skipping";
+                                continue;
+                            }
+                            if (!platformDownload.contains("name") || !platformDownload["name"].is_string()) {
+                                Log::get() << Severity::Warning
+                                    << "[index.json].download." + key + ".name is not a string, skipping";
+                                continue;
+                            }
+                            if (!platformDownload.contains("hash") || !platformDownload["hash"].is_string()) {
+                                Log::get() << Severity::Warning
+                                    << "[index.json].download." + key + ".hash is not a string, skipping";
+                                continue;
+                            }
+                            IndexItem::Download down;
+                            down.m_url = platformDownload["url"].get<std::string>();
+                            down.m_filename = platformDownload["name"].get<std::string>();
+                            down.m_hash = platformDownload["hash"].get<std::string>();
+                            if (key == "*") {
+                                for (auto& platform : unsetPlatforms) {
+                                    item.m_download[platform] = down;
+                                }
+                            } else {
+                                auto id = platformFromString(key);
+                                item.m_download[id] = down;
+                                unsetPlatforms.erase(id);
+                            }
                         }
                     }
                 } else {
@@ -303,8 +315,6 @@ void Index::updateIndexFromLocalCache() {
                 }
 
                 m_items.push_back(item);
-
-            skip_this: continue;
 
             } else {
                 Log::get() << Severity::Warning << "Index directory "
@@ -322,7 +332,7 @@ std::vector<IndexItem> Index::getUninstalledItems() const {
     std::vector<IndexItem> items;
     for (auto& item : m_items) {
         if (!Loader::get()->isModInstalled(item.m_info.m_id)) {
-            if (item.m_download.m_platforms.count(GEODE_PLATFORM_TARGET)) {
+            if (item.m_download.count(GEODE_PLATFORM_TARGET)) {
                 items.push_back(item);
             }
         }
@@ -410,25 +420,26 @@ Result<InstallTicket*> Index::installItem(
     CCObject* target,
     SEL_ModInstallProgress progress
 ) {
-    if (!item.m_download.m_platforms.count(GEODE_PLATFORM_TARGET)) {
+    if (!item.m_download.count(GEODE_PLATFORM_TARGET)) {
         return Err(
             "This mod is not available on your "
             "current platform \"" GEODE_PLATFORM_NAME "\" - Sorry! :("
         );
     }
-    if (!item.m_download.m_url.size()) {
+    auto download = item.m_download.at(GEODE_PLATFORM_TARGET);
+    if (!download.m_url.size()) {
         return Err(
             "Download URL not set! Report this bug to "
             "the Geode developers - this should not happen, ever."
         );
     }
-    if (!item.m_download.m_filename.size()) {
+    if (!download.m_filename.size()) {
         return Err(
             "Download filename not set! Report this bug to "
             "the Geode developers - this should not happen, ever."
         );
     }
-    if (!item.m_download.m_hash.size()) {
+    if (!download.m_hash.size()) {
         return Err(
             "Checksum not set! Report this bug to "
             "the Geode developers - this should not happen, ever."

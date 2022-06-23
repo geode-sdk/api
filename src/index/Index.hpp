@@ -10,14 +10,15 @@ struct ModInstallUpdate;
 class InstallTicket;
 
 struct IndexItem {
-    ghc::filesystem::path m_path;
-    ModInfo m_info;
-    struct {
-        std::unordered_set<PlatformID> m_platforms;
+    struct Download {
         std::string m_url;
         std::string m_filename;
         std::string m_hash;
-    } m_download;
+    };
+
+    ghc::filesystem::path m_path;
+    ModInfo m_info;
+    std::unordered_map<PlatformID, Download> m_download;
     std::string m_installFailed;
 };
 
