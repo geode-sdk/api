@@ -138,8 +138,8 @@ void ModCell::loadFromObject(ModObject* modobj) {
 
     auto titleLabel = CCLabelBMFont::create(info.m_name.c_str(), "bigFont.fnt");
     titleLabel->setAnchorPoint({ .0f, .5f });
-    titleLabel->setScale(.5f);
     titleLabel->setPosition(m_height / 2 + logoSize, m_height / 2 + 7.f);
+    titleLabel->limitLabelWidth(m_width / 2 - 30.f, .5f, .1f);
     m_mainLayer->addChild(titleLabel);
 
     auto versionLabel = CCLabelBMFont::create(info.m_version.toString().c_str(), "bigFont.fnt");
