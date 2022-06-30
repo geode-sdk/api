@@ -8,7 +8,7 @@ namespace geode {
 	class Shortcut;
 	class ShortcutSettings;
 
-	class ShortcutReceptor {
+	class GEODE_API_DLL ShortcutReceptor {
 	 protected:
 		virtual void activate(Shortcut*) = 0;
 		virtual void deactivate(Shortcut*) = 0;
@@ -21,7 +21,7 @@ namespace geode {
 		friend Shortcut;
 	};
 
-	struct ShortcutSettings {
+	struct GEODE_API_DLL ShortcutSettings {
 		bool rapidFire;
 		int rapidFireRate;
 		float rapidFireDelay;
