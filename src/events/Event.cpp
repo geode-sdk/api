@@ -24,3 +24,6 @@ void Event::post() {
 	}
 }
 
+std::vector<BasicEventHandler*> const& Event::getHandlers() {
+	return Event::handlers;
+}

@@ -6,36 +6,57 @@ DragDropEvent::DragDropEvent(ghc::filesystem::path path) : m_path(path) {}
 
 bool DragDropHandler::handle(DragDropEvent* ev) {
 	auto ext = ev->path().extension().string();
-	if (ext.size() > 0)
+
+	if (wouldAccept(ext))
+		return m_callback(ev);
+	else
+		return true;
+}
+
+bool DragDropHandler::wouldAccept(std::string ext) {
+	if (ext[0] == '.')
 		ext = ext.substr(1);
 
-	if (m_extensions.size() == 0 || vector_utils::contains(m_extensions, ext))
-		return m_callback(ev);
+	if (m_extensions.size() == 0 || vector_utils::contains(m_extensions, ext)) {
+		return true;
+	}
 
-	return true;
+	return false;
 }
 
 DragDropHandler::DragDropHandler(
+	std::function<bool(DragDropEvent*)> callback
+) : EventHandler(callback) {}
+
+DragDropHandler* DragDropHandler::create(
     std::vector<std::string> extensions,
     std::function<bool(DragDropEvent*)> callback
-) : EventHandler(callback) {
+) {
+	auto ret = new DragDropHandler(callback);
+
 	for (auto s : extensions) {
 		if (s[0] == '.') {
-			m_extensions.push_back(s.substr(1));
+			ret->m_extensions.push_back(s.substr(1));
 		} else {
-			m_extensions.push_back(s);
+			ret->m_extensions.push_back(s);
 		}
 	}
+
+	return ret;
 }
 
-DragDropHandler::DragDropHandler(
+DragDropHandler* DragDropHandler::create(
     std::string extension,
     std::function<bool(DragDropEvent*)> callback
-) : DragDropHandler(std::vector<std::string>{extension}, callback) {}
+) {
+	return DragDropHandler::create(std::vector<std::string>{extension}, callback);
+}
 
-DragDropHandler::DragDropHandler(
+DragDropHandler* DragDropHandler::create(
     std::function<bool(DragDropEvent*)> callback
-) : DragDropHandler(std::vector<std::string>(), callback) {}
+) {
+	return DragDropHandler::create(std::vector<std::string>{}, callback);
+}
 
 DragDropHandler::~DragDropHandler() {}
 
