@@ -18,15 +18,11 @@ namespace geode {
 
 	class GEODE_API_DLL Event {
 		static std::vector<BasicEventHandler*> handlers;
-	 protected:
-	 	Mod* m_owner;
 	 	friend BasicEventHandler;
 	 public:
 	 	void post();
 	 	static std::vector<BasicEventHandler*> const& getHandlers();
 
-	 	Event();
-	 	Event(Mod*);
 	 	virtual ~Event();
 	};
 

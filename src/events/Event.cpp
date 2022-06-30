@@ -13,8 +13,6 @@ void BasicEventHandler::removeFromHandlers() {
 	vector_utils::erase(Event::handlers, this);
 }
 
-Event::Event(Mod* m) : m_owner(m) {}
-Event::Event() : Event(Mod::get()) {}
 Event::~Event() {}
 
 void Event::post() {

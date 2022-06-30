@@ -33,6 +33,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	"include/settings"
 	"include/views"
 	"include/events"
+	"include/shortcuts"
 	"src"
 	"src/gui/loading"
 	"src/gui"
