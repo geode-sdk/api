@@ -21,19 +21,21 @@ namespace geode {
     class GEODE_API_DLL DragDropHandler : public EventHandler<DragDropEvent> {
     protected:
         std::vector<std::string> m_extensions;
-        
-    public:
-        PassThrough handle(DragDropEvent* ev) override;
+        DragDropHandler(std::function<PassThrough(DragDropEvent*)> callback);
 
-        DragDropHandler(
+    public:
+        bool wouldAccept(std::string ext);
+        PassThrough handle(DragDropEvent* ev);
+
+        static DragDropHandler* create(
             std::vector<std::string> const& extensions,
             std::function<PassThrough(DragDropEvent*)> callback
         );
-        DragDropHandler(
+        static DragDropHandler* create(
             std::string const& extension,
             std::function<PassThrough(DragDropEvent*)> callback
         );
-        DragDropHandler(
+        static DragDropHandler* create(
             std::function<PassThrough(DragDropEvent*)> callback
         );
 

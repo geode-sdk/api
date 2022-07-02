@@ -73,18 +73,23 @@
 
 @implementation NSWindow(GeodeHook)
 	- (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
-		return NSDragOperationEvery;
-	}
+        NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
 
-	// - (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender {
- //        NSArray* dragItems = [[sender draggingPasteboard] readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:nil];
-        
-        for (NSURL* dragItem in dragItems) {
-            //if (DragDropEvent::filtersMatchExtension(std::string(dragItem.path.pathExtension.UTF8String)))
-            //    return YES;
+        for (auto handler : Event::getHandlers()) {
+            if (auto dragHandler = dynamic_cast<DragDropHandler*>(handler)) {
+                for (NSURL* dragItem in dragItems) {
+                    if (dragHandler->wouldAccept(std::string(dragItem.path.pathExtension.UTF8String))) {
+                        return NSDragOperationCopy;
+                    }
+                }
+            }
         }
 
-        return YES; // fake 
+        return NSDragOperationNone; // real
+	}
+
+	- (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender {
+        return YES;
 	}
 
 	-(BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
@@ -92,24 +97,8 @@
 	    
 	    for (NSURL* dragItem in dragItems) {
             DragDropEvent(dragItem.path.UTF8String).post();
-
-            //DragDropEvent(ghc::filesystem::path(dragItem.path.UTF8String)).post();
-
-	    	//DragDropManager::get()->dispatchEvent(std::string(dragItem.path.UTF8String));
-
-            /*EventCenter::get()->broadcast(Event(
-                "dragdrop",
-                ghc::filesystem::path(dragItem.path.UTF8String),
-                Mod::get()                
-            ));
-
-            EventCenter::get()->broadcast(Event(
-                std::string("dragdrop.") + dragItem.path.pathExtension.UTF8String,
-                ghc::filesystem::path(dragItem.path.UTF8String),
-                Mod::get()                
-            ));*/
 	    }
-	    return YES;
+	    return NO;
 	}
 @end
 

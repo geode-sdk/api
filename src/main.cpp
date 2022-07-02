@@ -11,6 +11,9 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
     ExtMouseDispatcher::get()->registerDispatcher();
     
     /*DragDropEvent::addHandler({"geode"}, [](auto path) {
+    DragDropHandler::create("geode", [](DragDropEvent* event) {
+        auto path = event->path();
+
         auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
 
     /*ShortcutManager::get()->registerShortcut(ShortcutAction::globalShortcut(

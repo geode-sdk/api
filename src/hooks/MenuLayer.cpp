@@ -17,13 +17,25 @@ class $modify(CustomMenuLayer, MenuLayer) {
 			return false;
 		
 		CCMenu* bottomMenu = nullptr;
-		// this is why we need the view system
-		if (!GameManager::sharedState()->m_clickedGarage) {
-			bottomMenu = getChild<CCMenu*>(this, 4);
+
+		size_t indexCounter = 0;
+		for (size_t i = 0; i < this->getChildren()->count(); ++i) {
+			auto obj = typeinfo_cast<CCMenu*>(this->getChildren()->objectAtIndex(i));
+			if (obj != nullptr) {
+				++indexCounter;
+				if (indexCounter == 2) {
+					bottomMenu = obj;
+					break;
+				}
+			}
 		}
-		else {
-			bottomMenu = getChild<CCMenu*>(this, 3);
-		}
+
+		// if (!GameManager::sharedState()->m_clickedGarage) {
+		// 	bottomMenu = getChild<CCMenu*>(this, 4);
+		// }
+		// else {
+		// 	bottomMenu = getChild<CCMenu*>(this, 3);
+		// }
 
 		auto chest = getChild<>(bottomMenu, -1);
 		if (chest) {
