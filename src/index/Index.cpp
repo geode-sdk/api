@@ -3,7 +3,7 @@
 #include <utils/json.hpp>
 #include "fetch.hpp"
 
-#define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
+#define GITHUB_DONT_RATE_LIMIT_ME_PLS 1
 
 Result<nlohmann::json> readJSON(ghc::filesystem::path const& path) {
     auto indexJsonData = file_utils::readString(path);
@@ -382,6 +382,7 @@ static void getUninstalledDependenciesRecursive(
 }
 
 Result<std::vector<std::string>> Index::checkDependenciesForItem(IndexItem const& item) {
+    // todo: check versions
     std::vector<UninstalledDependency> deps;
     getUninstalledDependenciesRecursive(item.m_info, deps);
     if (deps.size()) {
@@ -452,6 +453,18 @@ Result<InstallTicket*> Index::installItem(
     auto ticket = InstallTicket::create(this, list.value(), target, progress);
     CC_SAFE_RETAIN(ticket);
     return Ok(ticket);
+}
+
+bool Index::isUpdateAvailableForItem(std::string const& id) const {
+    if (!Loader::get()->isModInstalled(id)) {
+        return false;
+    }
+    if (!this->isKnownItem(id)) {
+        return false;
+    }
+    return
+        this->getKnownItem(id).m_info.m_version > 
+        Loader::get()->getInstalledMod(id)->getVersion();
 }
 
 void Index::pushDelegate(IndexDelegate* delegate) {

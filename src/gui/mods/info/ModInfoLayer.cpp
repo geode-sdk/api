@@ -242,9 +242,28 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
             );
             uninstallBtn->setPosition(-85.f, 75.f);
             m_buttonMenu->addChild(uninstallBtn);
+
+            // api and loader should be updated through the installer
+            // todo: show update button on them that invokes the installer
+            if (Index::get()->isUpdateAvailableForItem(m_info.m_id)) {
+                m_installBtnSpr = IconButtonSprite::create(
+                    "GE_button_01.png"_spr,
+                    CCSprite::createWithSpriteFrameName("install.png"_spr),
+                    "Update",
+                    "bigFont.fnt"
+                );
+                m_installBtnSpr->setScale(.6f);
+
+                m_installBtn = CCMenuItemSpriteExtra::create(
+                    m_installBtnSpr, this,
+                    menu_selector(ModInfoLayer::onInstallMod)
+                );
+                m_installBtn->setPosition(-8.0f, 75.f);
+                m_buttonMenu->addChild(m_installBtn);
+            }
         }
     } else {
-        m_installBtnSpr = IconButtonSprite::createWithSpriteFrameName(
+        m_installBtnSpr = IconButtonSprite::create(
             "GE_button_01.png"_spr,
             CCSprite::createWithSpriteFrameName("install.png"_spr),
             "Install",
@@ -258,12 +277,11 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         );
         m_installBtn->setPosition(-143.0f, 75.f);
         m_buttonMenu->addChild(m_installBtn);
-
-        m_installStatus = DownloadStatusNode::create();
-        m_installStatus->setPosition(winSize.width / 2 - 25.f, winSize.height / 2 + 75.f);
-        m_installStatus->setVisible(false);
-        m_mainLayer->addChild(m_installStatus);
     }
+    m_installStatus = DownloadStatusNode::create();
+    m_installStatus->setPosition(winSize.width / 2 - 25.f, winSize.height / 2 + 75.f);
+    m_installStatus->setVisible(false);
+    m_mainLayer->addChild(m_installStatus);
 
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
     closeSpr->setScale(.8f);
@@ -441,7 +459,7 @@ void ModInfoLayer::modInstallProgress(
             m_installBtn->setEnabled(true);
             m_installBtn->setTarget(this, menu_selector(ModInfoLayer::onInstallMod));
             m_installBtnSpr->setString("Install");
-            m_installBtnSpr->setBG("GE_button_01.png"_spr, true);
+            m_installBtnSpr->setBG("GE_button_01.png"_spr, false);
         } break;
 
         case UpdateStatus::Finished: {

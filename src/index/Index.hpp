@@ -114,6 +114,7 @@ public:
         CCObject* target = nullptr,
         SEL_ModInstallProgress progress = nullptr
     );
+    bool isUpdateAvailableForItem(std::string const& id) const;
 
     bool isIndexUpdated() const;
     std::string indexUpdateFailed() const;

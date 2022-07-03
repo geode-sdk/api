@@ -118,6 +118,16 @@ void ModCell::setupLoadedButtons() {
 
     if (!m_obj->m_mod->wasSuccesfullyLoaded()) {
         m_unresolvedExMark->setVisible(false);
+    } else {
+        if (Index::get()->isUpdateAvailableForItem(m_obj->m_mod->getID())) {
+            viewSpr->updateBGImage("GE_button_01.png"_spr);
+
+            auto updateIcon = CCSprite::createWithSpriteFrameName("update.png"_spr);
+            updateIcon->setPosition(viewSpr->getContentSize() - CCSize { 2.f, 2.f });
+            updateIcon->setZOrder(99);
+            updateIcon->setScale(.5f);
+            viewSpr->addChild(updateIcon);
+        }
     }
 }
 
