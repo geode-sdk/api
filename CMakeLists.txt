@@ -53,7 +53,7 @@ if (APPLE)
 		${CURL_INCLUDE_DIR}
 	)
 	target_link_libraries(${PROJECT_NAME} "-framework Cocoa" ${CURL_LIBRARIES})
-	target_include_directories(${PROJECT_NAME} ${CURL_INCLUDE_DIR})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${CURL_INCLUDE_DIR})
 endif()
 
 find_path(GEODE_SDK_PATH
