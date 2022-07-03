@@ -14,15 +14,44 @@ void ModCell::draw() {
 
 void ModCell::onFailedInfo(CCObject*) {
     FLAlertLayer::create(
-        nullptr,
+        this,
         "Error Info",
         m_obj->m_info.m_reason.size() ?
             m_obj->m_info.m_reason :
             m_obj->m_mod->getLoadErrorInfo(),
-        "OK",
-        nullptr,
+        "OK", "Remove file",
         360.f
     )->show();
+}
+
+void ModCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
+    if (btn2) {
+        try {
+            if (ghc::filesystem::remove(m_obj->m_info.m_file)) {
+                FLAlertLayer::create(
+                    "File removed",
+                    "Removed <cy>" + m_obj->m_info.m_file + "</c>",
+                    "OK"
+                )->show();
+            } else {
+                FLAlertLayer::create(
+                    "Unable to remove file",
+                    "Unable to remove <cy>" + m_obj->m_info.m_file + "</c>",
+                    "OK"
+                )->show();
+            }
+        } catch(std::exception& e) {
+            FLAlertLayer::create(
+                "Unable to remove file",
+                "Unable to remove <cy>" +
+                    m_obj->m_info.m_file + "</c>: <cr>" + 
+                    std::string(e.what()) + "</c>",
+                "OK"
+            )->show();
+        }
+        Loader::get()->refreshMods();
+        m_list->refreshList();
+    }
 }
 
 void ModCell::setupUnloaded() {
@@ -396,7 +425,7 @@ bool ModListView::init(
             default: return false;
         }
     }
-    return CustomListView::init(mods, kBoomListType_Mod, width, height);
+    return CustomListView::init(mods, BoomListType::Default, width, height);
 }
 
 ModListView* ModListView::create(

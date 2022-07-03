@@ -5,9 +5,6 @@
 
 USE_GEODE_NAMESPACE();
 
-static constexpr const BoomListType kBoomListType_Mod
-    = static_cast<BoomListType>(0x350);
-
 enum class ModListType {
 	Installed,
 	Download,
@@ -45,7 +42,7 @@ struct ModObject : public CCObject {
 
 class ModListView;
 
-class ModCell : public TableViewCell {
+class ModCell : public TableViewCell, public FLAlertLayerProtocol {
 protected:
     ModListView* m_list;
     ModObject* m_obj;
@@ -64,6 +61,8 @@ protected:
     void setupUnloaded();
     void setupLoadedButtons();
     void setupIndexButtons();
+
+    void FLAlert_Clicked(FLAlertLayer*, bool btn2) override;
 
     bool init(ModListView* list);
 
