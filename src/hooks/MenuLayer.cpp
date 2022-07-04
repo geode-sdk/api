@@ -1,8 +1,10 @@
 #include "hook.hpp"
-#include <mods/list/ModListLayer.hpp>
+#include <gui/mods/list/ModListLayer.hpp>
 #include <utils/WackyGeodeMacros.hpp>
 #include <nodes/BasedButtonSprite.hpp>
 #include <views/BasicViews.hpp>
+#include <index/Index.hpp>
+#include <general/Notification.hpp>
 
 // class $modify(PlatformToolbox) {
 // 	bool isControllerConnected() {
@@ -10,7 +12,10 @@
 // 	}
 // };
 
+static Notification* INDEX_UPDATE_NOTIF = nullptr;
+
 class $modify(CustomMenuLayer, MenuLayer) {
+	CCSprite* m_geodeButtonSpr = nullptr;
 
 	bool init() {
 		if (!MenuLayer::init())
@@ -19,7 +24,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		CCMenu* bottomMenu = nullptr;
 
 		size_t indexCounter = 0;
-		for (size_t i = 0; i < this->getChildren()->count(); ++i) {
+		for (size_t i = 0; i < this->getChildren()->count(); i++) {
 			auto obj = typeinfo_cast<CCMenu*>(this->getChildren()->objectAtIndex(i));
 			if (obj != nullptr) {
 				++indexCounter;
@@ -43,20 +48,22 @@ class $modify(CustomMenuLayer, MenuLayer) {
 			chest->removeFromParent();
 		}
 		
-
 		auto y = getChild<>(bottomMenu, 0)->getPositionY();
 
-		CCSprite* spr = CircleButtonSprite::createWithSpriteFrameName(
-			"geode-logo-outline-gold.png"_spr, 1.0f,
-			CircleBaseColor::Green, CircleBaseSize::Medium2
+		m_fields->m_geodeButtonSpr = CircleButtonSprite::createWithSpriteFrameName(
+			"geode-logo-outline-gold.png"_spr,
+			1.0f,
+			CircleBaseColor::Green,
+			CircleBaseSize::Medium2
 		);
-		if (!spr) {
-			spr = ButtonSprite::create("!!");
+		if (!m_fields->m_geodeButtonSpr) {
+			m_fields->m_geodeButtonSpr = ButtonSprite::create("!!");
 		}
+		this->addUpdateIcon();
 		auto btn = CCMenuItemSpriteExtra::create(
-			spr, this, menu_selector(CustomMenuLayer::onGeode)
+			m_fields->m_geodeButtonSpr, this, menu_selector(CustomMenuLayer::onGeode)
 		);
-		bottomMenu->addChild(btn); 
+		bottomMenu->addChild(btn);
 
 		bottomMenu->alignItemsHorizontallyWithPadding(3.f);
 
@@ -70,7 +77,6 @@ class $modify(CustomMenuLayer, MenuLayer) {
 			bottomMenu->addChild(chest);
 			chest->release();
 		}
-		
 
 		auto failed = Loader::get()->getFailedMods();
 		if (failed.size()) {
@@ -84,7 +90,54 @@ class $modify(CustomMenuLayer, MenuLayer) {
 			layer->show();
         }
 
+		if (!INDEX_UPDATE_NOTIF && !Index::get()->isIndexUpdated()) {
+			INDEX_UPDATE_NOTIF = NotificationBuilder()
+				.title("Index Update")
+				.text("Updating index...")
+				.loading()
+				.stay()
+				.show();
+
+			Index::get()->updateIndex(
+				this, indexupdateprogress_selector(CustomMenuLayer::onIndexUpdate)
+			);
+		}
+
 		return true;
+	}
+
+	void addUpdateIcon() {
+		if (Index::get()->areUpdatesAvailable()) {
+            auto updateIcon = CCSprite::createWithSpriteFrameName("update.png"_spr);
+            updateIcon->setPosition(m_fields->m_geodeButtonSpr->getContentSize() - CCSize { 10.f, 10.f });
+            updateIcon->setZOrder(99);
+            updateIcon->setScale(.5f);
+            m_fields->m_geodeButtonSpr->addChild(updateIcon);
+		}
+	}
+
+	void onIndexUpdate(UpdateStatus status, std::string const& info, uint8_t progress) {
+		if (status == UpdateStatus::Failed) {
+			INDEX_UPDATE_NOTIF->hide();
+			INDEX_UPDATE_NOTIF = nullptr;
+			NotificationBuilder()
+				.title("Index Update")
+				.text("Index update failed :(")
+				.icon("info-alert.png"_spr)
+				.show();
+		}
+		if (status == UpdateStatus::Finished) {
+			INDEX_UPDATE_NOTIF->hide();
+			INDEX_UPDATE_NOTIF = nullptr;
+			if (Index::get()->areUpdatesAvailable()) {
+				NotificationBuilder()
+					.title("Updates available")
+					.text("Some mods have updates available!")
+					.icon("update.png"_spr)
+					.show();
+				this->addUpdateIcon();
+			}
+		}
 	}
 
 	void onGeode(CCObject*) {

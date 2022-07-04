@@ -8,7 +8,7 @@ USE_GEODE_NAMESPACE();
 
 class SearchFilterPopup;
 
-class ModListLayer : public CCLayer, public TextInputDelegate, public IndexDelegate {
+class ModListLayer : public CCLayer, public TextInputDelegate {
 protected:
 	GJListLayer* m_list = nullptr;
 	CCLabelBMFont* m_listLabel;
@@ -20,6 +20,7 @@ protected:
 	CCMenuItemToggler* m_featuredTabBtn;
 	CCMenuItemSpriteExtra* m_searchBtn;
 	CCMenuItemSpriteExtra* m_searchClearBtn;
+	CCMenuItemSpriteExtra* m_checkForUpdatesBtn = nullptr;
 	CCNode* m_searchBG = nullptr;
 	CCTextInputNode* m_searchInput = nullptr;
 	LoadingCircle* m_loadingCircle = nullptr;
@@ -32,6 +33,7 @@ protected:
 	void onTest(CCObject*);
 	void onExit(CCObject*);
 	void onReload(CCObject*);
+	void onCheckForUpdates(CCObject*);
 	void onOpenFolder(CCObject*);
 	void onResetSearch(CCObject*);
 	void keyDown(enumKeyCodes) override;
@@ -42,7 +44,7 @@ protected:
         UpdateStatus status,
         std::string const& info,
         uint8_t percentage
-	) override;
+	);
 	std::tuple<CCNode*, CCTextInputNode*> createSearchControl();
 
 	friend class SearchFilterPopup;

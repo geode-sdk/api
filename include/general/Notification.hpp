@@ -16,8 +16,8 @@ namespace geode {
         BottomRight,
     };
 
-    static constexpr const float g_defaultNotificationTime = 3.f;
-    static constexpr const NotificationLocation g_platformNotificationLocation = 
+    static constexpr const float DEFAULT_NOTIFICATION_TIME = 4.f;
+    static constexpr const NotificationLocation PLATFORM_NOTIFICATION_LOCATION = 
     #ifdef GEODE_IS_DESKTOP 
         NotificationLocation::BottomRight;
     #else
@@ -28,14 +28,19 @@ namespace geode {
     class NotificationManager;
 
     struct GEODE_API_DLL NotificationBuilder {
+        Mod* m_owner = Mod::get();
         std::string m_title = "";
         std::string m_text = "";
         std::string m_icon = "GJ_infoIcon_001.png";
         cocos2d::CCNode* m_iconNode = nullptr;
         std::string m_bg = "GJ_square02.png";
-        float m_time = g_defaultNotificationTime;
-        NotificationLocation m_location = g_platformNotificationLocation;
+        float m_time = DEFAULT_NOTIFICATION_TIME;
+        NotificationLocation m_location = PLATFORM_NOTIFICATION_LOCATION;
 
+        inline NotificationBuilder& from(Mod* owner) {
+            m_owner = owner;
+            return *this;
+        }
         inline NotificationBuilder& title(std::string const& title) {
             m_title = title;
             return *this;
@@ -55,7 +60,11 @@ namespace geode {
             return *this;
         }
         inline NotificationBuilder& loading() {
-            return this->icon(LoadingCircle::create());
+            auto loadingCircle = cocos2d::CCSprite::create("loadingCircle.png");
+            loadingCircle->runAction(cocos2d::CCRepeat::create(
+                cocos2d::CCRotateBy::create(1.f, 360.f), 40000
+            ));
+            return this->icon(loadingCircle);
         }
         inline NotificationBuilder& bg(std::string const& bg) {
             m_bg = bg;
@@ -69,14 +78,16 @@ namespace geode {
             m_time = time;
             return *this;
         }
+        inline NotificationBuilder& stay() {
+            m_time = .0f;
+            return *this;
+        }
         Notification* show();
     };
 
-    class GEODE_API_DLL Notification :
-        public cocos2d::CCNode,
-        public ExtMouseDelegate
-    {
+    class GEODE_API_DLL Notification : public cocos2d::CCLayer {
     protected:
+        Mod* m_owner;
         cocos2d::CCObject* m_target = nullptr;
         cocos2d::SEL_MenuHandler m_selector = nullptr;
         cocos2d::extension::CCScale9Sprite* m_bg;
@@ -85,7 +96,6 @@ namespace geode {
         cocos2d::CCArray* m_labels = nullptr;
         cocos2d::CCPoint m_showDest;
         cocos2d::CCPoint m_hideDest;
-        cocos2d::CCPoint m_touchStart;
         cocos2d::CCPoint m_posAtTouchStart;
         std::chrono::system_clock::time_point m_touchTime;
         NotificationLocation m_location;
@@ -93,6 +103,7 @@ namespace geode {
         bool m_hiding;
 
         bool init(
+            Mod* owner,
             std::string const& title,
             std::string const& text,
             cocos2d::CCNode* icon,
@@ -102,11 +113,10 @@ namespace geode {
         Notification();
         virtual ~Notification();
 
-        void mouseEnterExt(cocos2d::CCPoint const& pos) override;
-        void mouseLeaveExt(cocos2d::CCPoint const& pos) override;
-        void mouseMoveExt(cocos2d::CCPoint const& pos) override;
-        bool mouseUpExt(MouseEvent button, cocos2d::CCPoint const& pos) override;
-        bool mouseDownExt(MouseEvent button, cocos2d::CCPoint const& pos) override;
+        bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+        void ccTouchEnded(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+        void ccTouchMoved(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+        void registerWithTouchDispatcher() override;
 
         void clicked();
 
@@ -120,6 +130,7 @@ namespace geode {
 
     public:
         static Notification* create(
+            Mod* owner,
             std::string const& title,
             std::string const& text,
             cocos2d::CCNode* icon,
@@ -128,8 +139,8 @@ namespace geode {
         static NotificationBuilder build();
 
         void show(
-            NotificationLocation = g_platformNotificationLocation,
-            float time = g_defaultNotificationTime
+            NotificationLocation = PLATFORM_NOTIFICATION_LOCATION,
+            float time = DEFAULT_NOTIFICATION_TIME
         );
         void hide();
     };

@@ -3,7 +3,7 @@
 #include <utils/json.hpp>
 #include "fetch.hpp"
 
-#define GITHUB_DONT_RATE_LIMIT_ME_PLS 1
+#define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 
 Result<nlohmann::json> readJSON(ghc::filesystem::path const& path) {
     auto indexJsonData = file_utils::readString(path);
@@ -27,10 +27,6 @@ bool Index::isIndexUpdated() const {
     return m_upToDate;
 }
 
-std::string Index::indexUpdateFailed() const {
-    return m_indexUpdateFailed;
-}
-
 
 void Index::indexUpdateProgress(
     UpdateStatus status,
@@ -38,23 +34,80 @@ void Index::indexUpdateProgress(
     uint8_t percentage
 ) {
     Loader::get()->queueInGDThread([this, status, info, percentage]() -> void {
+        m_delegatesMutex.lock();
         for (auto& d : m_delegates) {
-            d->indexUpdateProgress(status, info, percentage);
+            (d.m_target->*d.m_progress)(status, info, percentage);
         }
+        if (
+            status == UpdateStatus::Finished ||
+            status == UpdateStatus::Failed
+        ) {
+            m_delegates.clear();
+        }
+        m_delegatesMutex.unlock();
     });
 }
 
-void Index::updateIndex(bool force) {
-    if (m_upToDate || m_updating) return;
+void Index::updateIndex(
+    CCObject* target,
+    SEL_IndexUpdateProgress progress,
+    bool force
+) {
+    // if already updated and no force, let 
+    // delegate know
+    if (!force && m_upToDate) {
+        if (target && progress) {
+            (target->*progress)(
+                UpdateStatus::Finished,
+                "Index already updated",
+                100
+            );
+        }
+        return;
+    }
+
+    // add delegate thread-safely if it's not 
+    // added already
+    if (target && progress) {
+        m_delegatesMutex.lock();
+        if (!vector_utils::contains<IndexUpdateDelegate>(
+            m_delegates,
+            [progress](IndexUpdateDelegate d) -> bool {
+                return d.m_progress == progress;
+            }
+        )) {
+            m_delegates.push_back({ target, progress });
+        }
+        m_delegatesMutex.unlock();
+    }
+
+    // if already updating, let delegate know 
+    // and return
+    if (m_updating) {
+        if (target && progress) {
+            (target->*progress)(
+                UpdateStatus::Progress,
+                "Waiting for update info",
+                0
+            );
+        }
+        return;
+    }
     m_updating = true;
 
+    // create directory for the local clone of 
+    // the index
     auto indexDir = Loader::get()->getGeodeDirectory() / "index";
     ghc::filesystem::create_directories(indexDir);
+
+    // update index in another thread to avoid 
+    // pausing UI
     std::thread updateThread([force, this, indexDir]() -> void {
         #if GITHUB_DONT_RATE_LIMIT_ME_PLS == 0
 
         indexUpdateProgress(UpdateStatus::Progress, "Fetching index metadata", 0);
 
+        // get all commits in index repo
         auto commit = fetchJSON("https://api.github.com/repos/geode-sdk/mods/commits");
         if (!commit) {
             return indexUpdateProgress(UpdateStatus::Failed, commit.error());
@@ -69,6 +122,8 @@ void Index::updateIndex(bool force) {
         }
 
         indexUpdateProgress(UpdateStatus::Progress, "Checking index status", 25);
+
+        // read sha of latest commit
 
         if (!json.is_array()) {
             return indexUpdateProgress(
@@ -96,6 +151,7 @@ void Index::updateIndex(bool force) {
 
         auto upcomingCommitSHA = json.at(0)["sha"];
 
+        // read sha of currently installed commit
         std::string currentCommitSHA = "";
         if (ghc::filesystem::exists(indexDir / "current")) {
             auto data = file_utils::readString(indexDir / "current");
@@ -104,8 +160,14 @@ void Index::updateIndex(bool force) {
             }
         }
 
+        // update if forced or latest commit has 
+        // different sha
         if (force || currentCommitSHA != upcomingCommitSHA) {
+            // save new sha in file
             file_utils::writeString(indexDir / "current", upcomingCommitSHA);
+
+            // download latest commit (by downloading 
+            // the repo as a zip)
 
             indexUpdateProgress(
                 UpdateStatus::Progress,
@@ -187,6 +249,8 @@ void Index::updateIndex(bool force) {
         }
         #endif
 
+        // update index
+
         indexUpdateProgress(
             UpdateStatus::Progress,
             "Updating index",
@@ -195,6 +259,8 @@ void Index::updateIndex(bool force) {
         this->updateIndexFromLocalCache();
 
         m_upToDate = true;
+        m_updating = false;
+
         indexUpdateProgress(
             UpdateStatus::Finished,
             "",
@@ -456,7 +522,6 @@ Result<InstallTicket*> Index::installItem(
 }
 
 bool Index::isUpdateAvailableForItem(std::string const& id) const {
-    return true;
     if (!Loader::get()->isModInstalled(id)) {
         return false;
     }
@@ -468,22 +533,11 @@ bool Index::isUpdateAvailableForItem(std::string const& id) const {
         Loader::get()->getInstalledMod(id)->getVersion();
 }
 
-void Index::pushDelegate(IndexDelegate* delegate) {
-    m_delegates.push_back(delegate);
-}
-
-void Index::popDelegate(IndexDelegate* delegate) {
-    vector_utils::erase(m_delegates, delegate);
-}
-
-void IndexDelegate::indexUpdateProgress(
-    UpdateStatus, std::string const&, uint8_t
-) {}
-
-IndexDelegate::IndexDelegate() {
-    Index::get()->pushDelegate(this);
-}
-
-IndexDelegate::~IndexDelegate() {
-    Index::get()->popDelegate(this);
+bool Index::areUpdatesAvailable() const {
+    for (auto& item : m_items) {
+        if (this->isUpdateAvailableForItem(item.m_info.m_id)) {
+            return true;
+        }
+    }
+    return false;
 }

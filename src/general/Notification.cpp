@@ -7,113 +7,117 @@ USE_GEODE_NAMESPACE();
 Notification::Notification() {}
 
 Notification::~Notification() {
+    CCDirector::sharedDirector()->getTouchDispatcher()->decrementForcePrio(2);
     CC_SAFE_RELEASE(m_labels);
 }
 
-void Notification::mouseEnterExt(CCPoint const&) {
+void Notification::registerWithTouchDispatcher() {
+    CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(
+        this,
+        0,
+        true
+    );
 }
 
-void Notification::mouseLeaveExt(CCPoint const&) {
-    m_bg->setColor({ 255, 255, 255 });
-}
-
-void Notification::mouseMoveExt(CCPoint const& pos) {
-    m_bg->setColor({ 150, 150, 150 });
-    if (m_extMouseDown.count(MouseEvent::Left)) {
-        auto dist = pos - m_touchStart;
-        switch (m_location) {
-            case NotificationLocation::BottomLeft:
-            case NotificationLocation::TopLeft:
-                this->setPositionX(m_posAtTouchStart.x + dist.x);
-                if (this->getPositionX() > m_showDest.x) {
-                    this->setPositionX(m_showDest.x);
-                }
-                break;
-                
-            case NotificationLocation::BottomRight:
-            case NotificationLocation::TopRight:
-                this->setPositionX(m_posAtTouchStart.x + dist.x);
-                if (this->getPositionX() < m_showDest.x) {
-                    this->setPositionX(m_showDest.x);
-                }
-                break;
-
-            case NotificationLocation::BottomCenter:
-                this->setPositionY(m_posAtTouchStart.y + dist.y);
-                if (this->getPositionY() > m_showDest.y) {
-                    this->setPositionY(m_showDest.y);
-                }
-                break;
-
-            case NotificationLocation::TopCenter:
-                this->setPositionY(m_posAtTouchStart.y + dist.y);
-                if (this->getPositionY() < m_showDest.y) {
-                    this->setPositionY(m_showDest.y);
-                }
-                break;
-        }
-    }
-}
-
-bool Notification::mouseDownExt(MouseEvent button, cocos2d::CCPoint const& pos) {
-    if (button == MouseEvent::Left) {
-        this->stopAllActions();
-        m_touchStart = pos;
-        m_posAtTouchStart = this->getPosition();
-        m_touchTime = std::chrono::system_clock::now();
-        this->attainCapture();
-    }
-    return false;
-}
-
-bool Notification::mouseUpExt(MouseEvent button, CCPoint const& pos) {
-    static constexpr const float g_hideThreshold = 20.f;
-    this->releaseCapture();
-    m_bg->setColor({ 255, 255, 255 });
-    if (button == MouseEvent::Left) {
-        auto dist = pos - m_touchStart;
-        switch (m_location) {
-            case NotificationLocation::BottomLeft:
-            case NotificationLocation::TopLeft:
-                if (dist.x < -g_hideThreshold) {
-                    this->hide();
-                    return false;
-                } break;
-
-            case NotificationLocation::BottomRight:
-            case NotificationLocation::TopRight:
-                if (dist.x > g_hideThreshold) {
-                    this->hide();
-                    return false;
-                } break;
-
-            case NotificationLocation::BottomCenter:
-                if (dist.y < -g_hideThreshold) {
-                    this->hide();
-                    return false;
-                } break;
-
-            case NotificationLocation::TopCenter:
-                if (dist.y > g_hideThreshold) {
-                    this->hide();
-                    return false;
-                } break;
-        }
-        auto touchTime = std::chrono::system_clock::now();
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(
-            m_touchTime - touchTime
-        ).count() > 500) {
-            if (m_hiding) {
-                this->animateOut();
-            } else {
-                this->animateIn();
+void Notification::ccTouchMoved(CCTouch* touch, CCEvent* event) {
+    auto dist = touch->getLocation() - touch->getStartLocation();
+    switch (m_location) {
+        case NotificationLocation::BottomLeft:
+        case NotificationLocation::TopLeft:
+            this->setPositionX(m_posAtTouchStart.x + dist.x);
+            if (this->getPositionX() > m_showDest.x) {
+                this->setPositionX(m_showDest.x);
             }
+            break;
+            
+        case NotificationLocation::BottomRight:
+        case NotificationLocation::TopRight:
+            this->setPositionX(m_posAtTouchStart.x + dist.x);
+            if (this->getPositionX() < m_showDest.x) {
+                this->setPositionX(m_showDest.x);
+            }
+            break;
+
+        case NotificationLocation::BottomCenter:
+            this->setPositionY(m_posAtTouchStart.y + dist.y);
+            if (this->getPositionY() > m_showDest.y) {
+                this->setPositionY(m_showDest.y);
+            }
+            break;
+
+        case NotificationLocation::TopCenter:
+            this->setPositionY(m_posAtTouchStart.y + dist.y);
+            if (this->getPositionY() < m_showDest.y) {
+                this->setPositionY(m_showDest.y);
+            }
+            break;
+    }
+}
+
+bool Notification::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+    auto csize = this->getScaledContentSize();
+    if (
+        !CCRect {
+            m_obPosition.x - csize.width * m_obAnchorPoint.x,
+            m_obPosition.y - csize.height * m_obAnchorPoint.y,
+            csize.width,
+            csize.height
+        }.containsPoint(touch->getLocation())
+    ) {
+        return false;
+    }
+    m_bg->setColor({ 150, 150, 150 });
+    this->stopAllActions();
+    m_posAtTouchStart = this->getPosition();
+    m_touchTime = std::chrono::system_clock::now();
+    return true;
+}
+
+void Notification::ccTouchEnded(CCTouch* touch, CCEvent* event) {
+    static constexpr const float HIDE_THRESHOLD = 20.f;
+
+    m_bg->setColor({ 255, 255, 255 });
+    auto dist = touch->getLocation() - touch->getStartLocation();
+    switch (m_location) {
+        case NotificationLocation::BottomLeft:
+        case NotificationLocation::TopLeft:
+            if (dist.x < -HIDE_THRESHOLD) {
+                this->hide();
+                return;
+            } break;
+
+        case NotificationLocation::BottomRight:
+        case NotificationLocation::TopRight:
+            if (dist.x > HIDE_THRESHOLD) {
+                this->hide();
+                return;
+            } break;
+
+        case NotificationLocation::BottomCenter:
+            if (dist.y < -HIDE_THRESHOLD) {
+                this->hide();
+                return;
+            } break;
+
+        case NotificationLocation::TopCenter:
+            if (dist.y > HIDE_THRESHOLD) {
+                this->hide();
+                return;
+            } break;
+    }
+    auto touchTime = std::chrono::system_clock::now();
+    if (std::chrono::duration_cast<std::chrono::milliseconds>(
+        m_touchTime - touchTime
+    ).count() > 500) {
+        if (m_hiding) {
+            this->animateOut();
         } else {
             this->animateIn();
-            this->clicked();
         }
+    } else {
+        this->animateIn();
+        this->clicked();
     }
-    return false;
 }
 
 void Notification::clicked() {
@@ -123,6 +127,7 @@ void Notification::clicked() {
 }
 
 bool Notification::init(
+    Mod* owner,
     std::string const& title,
     std::string const& text,
     CCNode* icon,
@@ -130,6 +135,8 @@ bool Notification::init(
 ) {
     if (!CCNode::init())
         return false;
+    
+    m_owner = owner;
 
     m_labels = CCArray::create();
     m_labels->retain();
@@ -146,7 +153,9 @@ bool Notification::init(
 
     renderer->pushBMFont("chatFont.fnt");
     renderer->pushScale(.4f);
-    for (auto& label : renderer->renderString(text)) {
+    for (auto& label : renderer->renderString(
+        text + " (from " + owner->getName() + ")"
+    )) {
         m_labels->addObject(label.m_node);
     }
 
@@ -185,20 +194,23 @@ bool Notification::init(
 
     this->setAnchorPoint({ .0f, .0f });
     this->setVisible(false);
-    
-    this->registerWithMouseDispatcher();
+
+    this->setTouchEnabled(true);
+    CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
+    this->registerWithTouchDispatcher();
 
     return true;
 }
 
 Notification* Notification::create(
+    Mod* owner,
     std::string const& title,
     std::string const& text,
     CCNode* icon,
     const char* bg
 ) {
     auto ret = new Notification();
-    if (ret && ret->init(title, text, icon, bg)) {
+    if (ret && ret->init(owner, title, text, icon, bg)) {
         ret->autorelease();
         return ret;
     }
@@ -327,7 +339,7 @@ void Notification::hidden() {
 }
 
 NotificationBuilder Notification::build() {
-    return NotificationBuilder();
+    return std::move(NotificationBuilder());
 }
 
 Notification* NotificationBuilder::show() {
@@ -337,7 +349,7 @@ Notification* NotificationBuilder::show() {
         if (!icon) icon = CCSprite::createWithSpriteFrameName(m_icon.c_str());
     }
     auto notif = Notification::create(
-        m_title, m_text, icon, m_bg.c_str()
+        m_owner, m_title, m_text, icon, m_bg.c_str()
     );
     notif->show(m_location, m_time);
     return notif;

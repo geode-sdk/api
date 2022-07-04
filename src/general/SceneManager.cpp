@@ -32,7 +32,8 @@ void SceneManager::forget(CCNode* node) {
 
 void SceneManager::willSwitchToScene(CCScene* scene) {
     CCARRAY_FOREACH_B_TYPE(m_persistedNodes, node, CCNode) {
-        node->removeFromParent();
+        // no cleanup in order to keep actions running
+        node->removeFromParentAndCleanup(false);
         scene->addChild(node);
     }
 }

@@ -9,6 +9,8 @@ class Index;
 struct ModInstallUpdate;
 class InstallTicket;
 
+// todo: make index use events
+
 struct IndexItem {
     struct Download {
         std::string m_url;
@@ -28,15 +30,15 @@ enum class UpdateStatus {
     Finished,
 };
 
-struct IndexDelegate {
-    virtual void indexUpdateProgress(
-        UpdateStatus status,
-        std::string const& info,
-        uint8_t percentage
-    );
+using SEL_IndexUpdateProgress = void(CCObject::*)(
+    UpdateStatus, std::string const&, uint8_t
+);
+#define indexupdateprogress_selector(_SELECTOR)\
+    (SEL_IndexUpdateProgress)(&_SELECTOR)
 
-    IndexDelegate();
-    virtual ~IndexDelegate();
+struct IndexUpdateDelegate {
+    CCObject* m_target;
+    SEL_IndexUpdateProgress m_progress;
 };
 
 using SEL_ModInstallProgress = void(CCObject::*)(
@@ -89,8 +91,8 @@ class Index : public CCObject {
 protected:
     bool m_upToDate = false;
     bool m_updating = false;
-    std::string m_indexUpdateFailed = "";
-    std::vector<IndexDelegate*> m_delegates;
+    mutable std::mutex m_delegatesMutex;
+    std::vector<IndexUpdateDelegate> m_delegates;
     std::vector<IndexItem> m_items;
 
     void indexUpdateProgress(
@@ -116,11 +118,12 @@ public:
         SEL_ModInstallProgress progress = nullptr
     );
     bool isUpdateAvailableForItem(std::string const& id) const;
+    bool areUpdatesAvailable() const;
 
     bool isIndexUpdated() const;
-    std::string indexUpdateFailed() const;
-    void updateIndex(bool force = false);
-
-    void pushDelegate(IndexDelegate*);
-    void popDelegate(IndexDelegate*);
+    void updateIndex(
+        CCObject* target = nullptr,
+        SEL_IndexUpdateProgress progress = nullptr,
+        bool force = false
+    );
 };
