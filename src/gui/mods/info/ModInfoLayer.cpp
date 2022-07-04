@@ -14,11 +14,9 @@
 #undef min
 #undef max
 
-
 static constexpr const int TAG_CONFIRM_INSTALL = 4;
 static constexpr const int TAG_CONFIRM_UNINSTALL = 5;
 static constexpr const int TAG_DELETE_SAVEDATA = 6;
-
 
 bool DownloadStatusNode::init() {
     if (!CCNode::init())
@@ -26,7 +24,9 @@ bool DownloadStatusNode::init() {
     
     this->setContentSize({ 150.f, 25.f });
 
-    auto bg = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+    auto bg = CCScale9Sprite::create(
+        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+    );
     bg->setScale(.33f);
     bg->setColor({ 0, 0, 0 });
     bg->setOpacity(75);
@@ -97,7 +97,9 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     m_mainLayer = CCLayer::create();
     this->addChild(m_mainLayer);
 
-    auto bg = CCScale9Sprite::create("GJ_square01.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+    auto bg = CCScale9Sprite::create(
+        "GJ_square01.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+    );
     bg->setContentSize(size);
     bg->setPosition(winSize.width / 2, winSize.height / 2);
     m_mainLayer->addChild(bg);
@@ -180,21 +182,30 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
 
 
     if (isInstalledMod) {
-        auto settingsSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+        auto settingsSpr = CCSprite::createWithSpriteFrameName(
+            "GJ_optionsBtn_001.png"
+        );
         settingsSpr->setScale(.65f);
 
         auto settingsBtn = CCMenuItemSpriteExtra::create(
             settingsSpr, this, menu_selector(ModInfoLayer::onSettings)
         );
-        settingsBtn->setPosition(-size.width / 2 + 25.f, -size.height / 2 + 25.f);
+        settingsBtn->setPosition(
+            -size.width / 2 + 25.f,
+            -size.height / 2 + 25.f
+        );
         m_buttonMenu->addChild(settingsBtn);
 
 	    if (!SettingManager::with(m_mod)->hasSettings()) {
 	        settingsSpr->setColor({ 150, 150, 150 });
-	        settingsBtn->setTarget(this, menu_selector(ModInfoLayer::onNoSettings));
+	        settingsBtn->setTarget(
+                this, menu_selector(ModInfoLayer::onNoSettings)
+            );
 	    }
 
-        auto devSpr = ButtonSprite::create("Dev Options", "bigFont.fnt", "GJ_button_05.png", .6f);
+        auto devSpr = ButtonSprite::create(
+            "Dev Options", "bigFont.fnt", "GJ_button_05.png", .6f
+        );
         devSpr->setScale(.5f);
 
         auto devBtn = CCMenuItemSpriteExtra::create(
@@ -215,14 +226,17 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         disableBtnSpr->setScale(.6f);
 
         auto enableBtn = CCMenuItemToggler::create(
-            disableBtnSpr, enableBtnSpr, this, menu_selector(ModInfoLayer::onEnableMod)
+            disableBtnSpr, enableBtnSpr,
+            this, menu_selector(ModInfoLayer::onEnableMod)
         );
         enableBtn->setPosition(-155.f, 75.f);
         enableBtn->toggle(!obj->m_mod->isEnabled());
         m_buttonMenu->addChild(enableBtn);
 
         if (!m_info.m_supportsDisabling) {
-            enableBtn->setTarget(this, menu_selector(ModInfoLayer::onDisablingNotSupported));
+            enableBtn->setTarget(
+                this, menu_selector(ModInfoLayer::onDisablingNotSupported)
+            );
             enableBtnSpr->setColor({ 150, 150, 150 });
             disableBtnSpr->setColor({ 150, 150, 150 });
         }
@@ -260,6 +274,14 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
                 );
                 m_installBtn->setPosition(-8.0f, 75.f);
                 m_buttonMenu->addChild(m_installBtn);
+
+                m_installStatus = DownloadStatusNode::create();
+                m_installStatus->setPosition(
+                    winSize.width / 2 + 105.f,
+                    winSize.height / 2 + 75.f
+                );
+                m_installStatus->setVisible(false);
+                m_mainLayer->addChild(m_installStatus);
             }
         }
     } else {
@@ -277,11 +299,15 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         );
         m_installBtn->setPosition(-143.0f, 75.f);
         m_buttonMenu->addChild(m_installBtn);
+        
+        m_installStatus = DownloadStatusNode::create();
+        m_installStatus->setPosition(
+            winSize.width / 2 - 25.f,
+            winSize.height / 2 + 75.f
+        );
+        m_installStatus->setVisible(false);
+        m_mainLayer->addChild(m_installStatus);
     }
-    m_installStatus = DownloadStatusNode::create();
-    m_installStatus->setPosition(winSize.width / 2 - 25.f, winSize.height / 2 + 75.f);
-    m_installStatus->setVisible(false);
-    m_mainLayer->addChild(m_installStatus);
 
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
     closeSpr->setScale(.8f);
@@ -433,7 +459,10 @@ void ModInfoLayer::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     }
 }
 
-void ModInfoLayer::updateInstallStatus(std::string const& status, uint8_t progress) {
+void ModInfoLayer::updateInstallStatus(
+    std::string const& status,
+    uint8_t progress
+) {
     if (status.size()) {
         m_installStatus->setVisible(true);
         m_installStatus->setStatus(status);
@@ -457,7 +486,9 @@ void ModInfoLayer::modInstallProgress(
             this->updateInstallStatus("", 0);
 
             m_installBtn->setEnabled(true);
-            m_installBtn->setTarget(this, menu_selector(ModInfoLayer::onInstallMod));
+            m_installBtn->setTarget(
+                this, menu_selector(ModInfoLayer::onInstallMod)
+            );
             m_installBtnSpr->setString("Install");
             m_installBtnSpr->setBG("GE_button_01.png"_spr, false);
         } break;
@@ -467,7 +498,8 @@ void ModInfoLayer::modInstallProgress(
             
             FLAlertLayer::create(
                 "Install complete",
-                "Mod succesfully installed! :) (You may need to <cy>restart the game</c> "
+                "Mod succesfully installed! :) "
+                "(You may need to <cy>restart the game</c> "
                 "for the mod to take full effect)",
                 "OK"
             )->show();
@@ -488,7 +520,9 @@ void ModInfoLayer::install() {
     if (m_ticket) {
         this->updateInstallStatus("Starting install", 0);
 
-        m_installBtn->setTarget(this, menu_selector(ModInfoLayer::onCancelInstall));
+        m_installBtn->setTarget(
+            this, menu_selector(ModInfoLayer::onCancelInstall)
+        );
         m_installBtnSpr->setString("Cancel");
         m_installBtnSpr->setBG("GJ_button_06.png", false);
 
@@ -508,8 +542,10 @@ void ModInfoLayer::uninstall() {
     auto layer = FLAlertLayer::create(
         this,
         "Uninstall complete",
-        "Mod was succesfully uninstalled! :) (You may need to <cy>restart the game</c> "
-        "for the mod to take full effect). <co>Would you also like to delete the mod's "
+        "Mod was succesfully uninstalled! :) "
+        "(You may need to <cy>restart the game</c> "
+        "for the mod to take full effect). "
+        "<co>Would you also like to delete the mod's "
         "save data?</c>",
         "Cancel", "Delete", 350.f
     );
@@ -549,17 +585,10 @@ void ModInfoLayer::onInfo(CCObject*) {
     FLAlertLayer::create(
         nullptr,
         ("About " + m_info.m_name).c_str(),
-        // fmt::format(
-        //     "<cr>ID: {}</c>\n"
-        //     "<cg>Version: {}</c>\n"
-        //     "<cp>Developer: {}</c>\n"
-        //     "<cb>Path: {}</c>",
-        //     m_info.m_id,
-        //     m_info.m_version.toString(),
-        //     m_info.m_developer,
-        //     m_info.m_path.string()
-        // ),
-        "",
+        "<cr>ID: " + m_info.m_id + "</c>\n"
+        "<cg>Version: " + m_info.m_version.toString() + "</c>\n"
+        "<cp>Developer: " + m_info.m_developer + "</c>\n"
+        "<cb>Path: " + m_info.m_path.string() + "</c>\n",
         "OK", nullptr, 400.f
     )->show();
 }
@@ -600,17 +629,21 @@ ModInfoLayer* ModInfoLayer::create(ModObject* obj, ModListView* list) {
 
 CCNode* ModInfoLayer::createLogoSpr(ModObject* modObj) {
     switch (modObj->m_type) {
-        case ModObjectType::Mod:
+        case ModObjectType::Mod: {
             return ModInfoLayer::createLogoSpr(modObj->m_mod);
+        } break;
         
-        case ModObjectType::Index:
+        case ModObjectType::Index: {
             return ModInfoLayer::createLogoSpr(modObj->m_index);
+        } break;
         
         default: {
-            CCNode* spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
-            if (!spr) { spr = CCLabelBMFont::create("OwO", "goldFont.fnt"); }
+            auto spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
+            if (!spr) {
+                return CCLabelBMFont::create("OwO", "goldFont.fnt");
+            }
             return spr;
-        }
+        } break;
     }
 }
 
@@ -619,10 +652,15 @@ CCNode* ModInfoLayer::createLogoSpr(Mod* mod) {
     if (mod == Loader::getInternalMod()) {
         spr = CCSprite::create("com.geode.api.png");
     } else {
-        spr = CCSprite::create(CCString::createWithFormat("%s.png", mod->getID().c_str())->getCString());
+        spr = CCSprite::create(
+            CCString::createWithFormat(
+                "%s.png",
+                mod->getID().c_str()
+            )->getCString()
+        );
     }
-    if (!spr) { spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr); }
-    if (!spr) { spr = CCLabelBMFont::create("OwO", "goldFont.fnt"); }
+    if (!spr) spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
+    if (!spr) spr = CCLabelBMFont::create("OwO", "goldFont.fnt");
     return spr;
 }
 
@@ -630,7 +668,7 @@ CCNode* ModInfoLayer::createLogoSpr(IndexItem const& item) {
     CCNode* spr = nullptr;
     auto logoPath = ghc::filesystem::absolute(item.m_path / "logo.png");
     spr = CCSprite::create(logoPath.string().c_str());
-    if (!spr) { spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr); }
-    if (!spr) { spr = CCLabelBMFont::create("OwO", "goldFont.fnt"); }
+    if (!spr) spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
+    if (!spr) spr = CCLabelBMFont::create("OwO", "goldFont.fnt");
     return spr;
 }

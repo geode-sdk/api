@@ -59,7 +59,7 @@ void IconButtonSprite::updateLayout() {
     if (m_icon) {
         m_label->setPosition(
             size.height / 2 + m_icon->getScaledContentSize().width / 2 + PAD,
-            size.height / 2
+            size.height / 2 + 1.f
         );
         m_icon->setPosition(size.height / 2, size.height / 2);
     } else {

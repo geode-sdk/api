@@ -52,6 +52,7 @@ protected:
     std::vector<std::string> m_installList;
     mutable std::mutex m_cancelMutex;
     bool m_cancelling = false;
+    bool m_replaceFiles = true;
     size_t m_installIndex = 0;
     Index* m_index;
 

@@ -456,6 +456,7 @@ Result<InstallTicket*> Index::installItem(
 }
 
 bool Index::isUpdateAvailableForItem(std::string const& id) const {
+    return true;
     if (!Loader::get()->isModInstalled(id)) {
         return false;
     }

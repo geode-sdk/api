@@ -67,7 +67,9 @@ void ModCell::setupUnloaded() {
     titleLabel->setPosition(m_height / 2, m_height / 2 + 7.f);
     m_mainLayer->addChild(titleLabel);
     
-    auto pathLabel = CCLabelBMFont::create(m_obj->m_info.m_file.c_str(), "chatFont.fnt");
+    auto pathLabel = CCLabelBMFont::create(
+        m_obj->m_info.m_file.c_str(), "chatFont.fnt"
+    );
     pathLabel->setAnchorPoint({ .0f, .5f });
     pathLabel->setScale(.43f);
     pathLabel->setPosition(m_height / 2, m_height / 2 - 7.f);
@@ -99,7 +101,10 @@ void ModCell::setupLoadedButtons() {
     );
     m_menu->addChild(viewBtn);
 
-    if (m_obj->m_mod->wasSuccesfullyLoaded() && m_obj->m_mod->supportsDisabling()) {
+    if (
+        m_obj->m_mod->wasSuccesfullyLoaded() &&
+        m_obj->m_mod->supportsDisabling()
+    ) {
         m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
             this, menu_selector(ModCell::onEnable), .7f
         );
@@ -132,7 +137,9 @@ void ModCell::setupLoadedButtons() {
 }
 
 void ModCell::setupIndexButtons() {
-    auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
+    auto viewSpr = ButtonSprite::create(
+        "View", "bigFont.fnt", "GJ_button_01.png", .8f
+    );
     viewSpr->setScale(.65f);
 
     auto viewBtn = CCMenuItemSpriteExtra::create(
@@ -181,7 +188,9 @@ void ModCell::loadFromObject(ModObject* modobj) {
     titleLabel->limitLabelWidth(m_width / 2 - 30.f, .5f, .1f);
     m_mainLayer->addChild(titleLabel);
 
-    auto versionLabel = CCLabelBMFont::create(info.m_version.toString().c_str(), "bigFont.fnt");
+    auto versionLabel = CCLabelBMFont::create(
+        info.m_version.toString().c_str(), "bigFont.fnt"
+    );
     versionLabel->setAnchorPoint({ .0f, .5f });
     versionLabel->setScale(.3f);
     versionLabel->setPosition(
@@ -192,7 +201,9 @@ void ModCell::loadFromObject(ModObject* modobj) {
     m_mainLayer->addChild(versionLabel);
     
     auto creatorStr = "by " + info.m_developer;
-    auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
+    auto creatorLabel = CCLabelBMFont::create(
+        creatorStr.c_str(), "goldFont.fnt"
+    );
     creatorLabel->setAnchorPoint({ .0f, .5f });
     creatorLabel->setScale(.43f);
     creatorLabel->setPosition(m_height / 2 + logoSize, m_height / 2 - 7.f);
@@ -273,9 +284,13 @@ void ModCell::onEnable(CCObject* pSender) {
 }
 
 void ModCell::onUnresolvedInfo(CCObject* pSender) {
-    std::string info = "This mod has the following <cr>unresolved dependencies</c>: ";
+    std::string info =
+        "This mod has the following "
+        "<cr>unresolved dependencies</c>: ";
     for (auto const& dep : m_obj->m_mod->getUnresolvedDependencies()) {
-        info += "<cg>" + dep.m_id + "</c> (<cy>" + dep.m_version.toString() + "</c>), ";
+        info +=
+            "<cg>" + dep.m_id + "</c> "
+            "(<cy>" + dep.m_version.toString() + "</c>), ";
     }
     info.pop_back();
     info.pop_back();

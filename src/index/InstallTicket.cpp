@@ -140,18 +140,22 @@ void InstallTicket::installNext() {
 
         // move temp file to geode directory
         try {
-            // find valid filename that doesn't exist yet
             auto modDir = Loader::get()->getGeodeDirectory() / "mods";
             auto targetFile = modDir / download.m_filename;
-            auto filename = ghc::filesystem::path(
-                download.m_filename
-            ).replace_extension("").string();
 
-            size_t number = 0;
-            while (ghc::filesystem::exists(targetFile)) {
-                targetFile = modDir / (filename + std::to_string(number) + ".geode");
-                number++;
+            // find valid filename that doesn't exist yet
+            if (!m_replaceFiles) {
+                auto filename = ghc::filesystem::path(
+                    download.m_filename
+                ).replace_extension("").string();
+
+                size_t number = 0;
+                while (ghc::filesystem::exists(targetFile)) {
+                    targetFile = modDir / (filename + std::to_string(number) + ".geode");
+                    number++;
+                }
             }
+
             // move file
             ghc::filesystem::rename(tempFile, targetFile);
         } catch(std::exception& e) {

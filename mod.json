@@ -1,7 +1,7 @@
 {
     "geode":        "v0.1.0",
 	"version":      "v1.0.0",
-	"id":           "com.geode.api",
+	"id":           "geode.api",
     "name":         "Geode API",
     "developer":    "Geode Team",
     "description":  "Shared API utilities",
