@@ -5,6 +5,7 @@
 #include "../dispatch/ExtMouseDispatcher.hpp"
 #include "SceneManager.hpp"
 #include <chrono>
+#include "Ref.hpp"
 
 namespace geode {
     enum class NotificationLocation {
@@ -32,8 +33,9 @@ namespace geode {
         std::string m_title = "";
         std::string m_text = "";
         std::string m_icon = "GJ_infoIcon_001.png";
-        cocos2d::CCNode* m_iconNode = nullptr;
+        Ref<cocos2d::CCNode> m_iconNode = nullptr;
         std::string m_bg = "GJ_square02.png";
+        std::function<void(Notification*)> m_callback = nullptr;
         float m_time = DEFAULT_NOTIFICATION_TIME;
         NotificationLocation m_location = PLATFORM_NOTIFICATION_LOCATION;
 
@@ -60,11 +62,12 @@ namespace geode {
             return *this;
         }
         inline NotificationBuilder& loading() {
-            auto loadingCircle = cocos2d::CCSprite::create("loadingCircle.png");
-            loadingCircle->runAction(cocos2d::CCRepeat::create(
+            m_icon = "";
+            m_iconNode = cocos2d::CCSprite::create("loadingCircle.png");
+            m_iconNode->runAction(cocos2d::CCRepeat::create(
                 cocos2d::CCRotateBy::create(1.f, 360.f), 40000
             ));
-            return this->icon(loadingCircle);
+            return *this;
         }
         inline NotificationBuilder& bg(std::string const& bg) {
             m_bg = bg;
@@ -82,14 +85,17 @@ namespace geode {
             m_time = .0f;
             return *this;
         }
+        inline NotificationBuilder& clicked(std::function<void(Notification*)> cb) {
+            m_callback = cb;
+            return *this;
+        }
         Notification* show();
     };
 
     class GEODE_API_DLL Notification : public cocos2d::CCLayer {
     protected:
         Mod* m_owner;
-        cocos2d::CCObject* m_target = nullptr;
-        cocos2d::SEL_MenuHandler m_selector = nullptr;
+        std::function<void(Notification*)> m_callback = nullptr;
         cocos2d::extension::CCScale9Sprite* m_bg;
         cocos2d::CCNode* m_icon = nullptr;
         cocos2d::CCLabelBMFont* m_title = nullptr;
@@ -107,7 +113,8 @@ namespace geode {
             std::string const& title,
             std::string const& text,
             cocos2d::CCNode* icon,
-            const char* bg
+            const char* bg,
+            std::function<void(Notification*)> callback
         );
 
         Notification();
@@ -134,7 +141,8 @@ namespace geode {
             std::string const& title,
             std::string const& text,
             cocos2d::CCNode* icon,
-            const char* bg
+            const char* bg,
+            std::function<void(Notification*)> callback
         );
         static NotificationBuilder build();
 
@@ -147,7 +155,7 @@ namespace geode {
 
     class NotificationManager {
     protected:
-        std::unordered_map<NotificationLocation, std::vector<Notification*>> m_notifications;
+        std::unordered_map<NotificationLocation, std::vector<Ref<Notification>>> m_notifications;
 
         void push(Notification*);
         void pop(Notification*);

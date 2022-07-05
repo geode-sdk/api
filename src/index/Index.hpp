@@ -2,6 +2,7 @@
 
 #include <Geode.hpp>
 #include <mutex>
+#include <events/Event.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -30,16 +31,7 @@ enum class UpdateStatus {
     Finished,
 };
 
-using SEL_IndexUpdateProgress = void(CCObject::*)(
-    UpdateStatus, std::string const&, uint8_t
-);
-#define indexupdateprogress_selector(_SELECTOR)\
-    (SEL_IndexUpdateProgress)(&_SELECTOR)
-
-struct IndexUpdateDelegate {
-    CCObject* m_target;
-    SEL_IndexUpdateProgress m_progress;
-};
+using IndexUpdateCallback = std::function<void(UpdateStatus, std::string const&, uint8_t)>;
 
 using SEL_ModInstallProgress = void(CCObject::*)(
     InstallTicket*, UpdateStatus, std::string const&, uint8_t
@@ -91,8 +83,8 @@ class Index : public CCObject {
 protected:
     bool m_upToDate = false;
     bool m_updating = false;
-    mutable std::mutex m_delegatesMutex;
-    std::vector<IndexUpdateDelegate> m_delegates;
+    mutable std::mutex m_callbacksMutex;
+    std::vector<IndexUpdateCallback> m_callbacks;
     std::vector<IndexItem> m_items;
 
     void indexUpdateProgress(
@@ -121,9 +113,5 @@ public:
     bool areUpdatesAvailable() const;
 
     bool isIndexUpdated() const;
-    void updateIndex(
-        CCObject* target = nullptr,
-        SEL_IndexUpdateProgress progress = nullptr,
-        bool force = false
-    );
+    void updateIndex(IndexUpdateCallback callback, bool force = false);
 };

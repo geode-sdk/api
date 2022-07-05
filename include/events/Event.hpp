@@ -15,6 +15,7 @@ namespace geode {
 
 	struct GEODE_API_DLL BasicEventHandler {
 		virtual PassThrough passThrough(Event*) = 0;
+		virtual ~BasicEventHandler() = default;
 
 		bool addToHandlers();
 		void removeFromHandlers();

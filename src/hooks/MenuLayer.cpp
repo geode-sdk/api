@@ -12,15 +12,31 @@
 // 	}
 // };
 
-static Notification* INDEX_UPDATE_NOTIF = nullptr;
+class CustomMenuLayer;
+
+static Notification* g_indexUpdateNotif = nullptr;
+static Ref<CCSprite> g_geodeButton = nullptr;
+
+static void addUpdateIcon() {
+	if (g_geodeButton && Index::get()->areUpdatesAvailable()) {
+		auto updateIcon = CCSprite::createWithSpriteFrameName("update.png"_spr);
+		updateIcon->setPosition(g_geodeButton->getContentSize() - CCSize { 10.f, 10.f });
+		updateIcon->setZOrder(99);
+		updateIcon->setScale(.5f);
+		g_geodeButton->addChild(updateIcon);
+	}
+}
 
 class $modify(CustomMenuLayer, MenuLayer) {
-	CCSprite* m_geodeButtonSpr = nullptr;
+	void destructor() {
+		g_geodeButton = nullptr;
+		MenuLayer::~MenuLayer();
+	}
 
 	bool init() {
 		if (!MenuLayer::init())
 			return false;
-		
+
 		CCMenu* bottomMenu = nullptr;
 
 		size_t indexCounter = 0;
@@ -50,18 +66,18 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		
 		auto y = getChild<>(bottomMenu, 0)->getPositionY();
 
-		m_fields->m_geodeButtonSpr = CircleButtonSprite::createWithSpriteFrameName(
+		g_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
 			"geode-logo-outline-gold.png"_spr,
 			1.0f,
 			CircleBaseColor::Green,
 			CircleBaseSize::Medium2
 		);
-		if (!m_fields->m_geodeButtonSpr) {
-			m_fields->m_geodeButtonSpr = ButtonSprite::create("!!");
+		if (!g_geodeButton) {
+			g_geodeButton = ButtonSprite::create("!!");
 		}
-		this->addUpdateIcon();
+		addUpdateIcon();
 		auto btn = CCMenuItemSpriteExtra::create(
-			m_fields->m_geodeButtonSpr, this, menu_selector(CustomMenuLayer::onGeode)
+			g_geodeButton.data(), this, menu_selector(CustomMenuLayer::onGeode)
 		);
 		bottomMenu->addChild(btn);
 
@@ -90,54 +106,52 @@ class $modify(CustomMenuLayer, MenuLayer) {
 			layer->show();
         }
 
-		if (!INDEX_UPDATE_NOTIF && !Index::get()->isIndexUpdated()) {
-			INDEX_UPDATE_NOTIF = NotificationBuilder()
+		if (!g_indexUpdateNotif && !Index::get()->isIndexUpdated()) {
+			g_indexUpdateNotif = NotificationBuilder()
 				.title("Index Update")
 				.text("Updating index...")
 				.loading()
 				.stay()
 				.show();
 
-			Index::get()->updateIndex(
-				this, indexupdateprogress_selector(CustomMenuLayer::onIndexUpdate)
-			);
+			Index::get()->updateIndex([](
+				UpdateStatus status,
+				std::string const& info,
+				uint8_t progress
+			) -> void {
+				if (status == UpdateStatus::Failed) {
+					g_indexUpdateNotif->hide();
+					g_indexUpdateNotif = nullptr;
+					NotificationBuilder()
+						.title("Index Update")
+						.text("Index update failed :(")
+						.icon("info-alert.png"_spr)
+						.show();
+				}
+
+				if (status == UpdateStatus::Finished) {
+					g_indexUpdateNotif->hide();
+					g_indexUpdateNotif = nullptr;
+					if (Index::get()->areUpdatesAvailable()) {
+						NotificationBuilder()
+							.title("Updates available")
+							.text("Some mods have updates available!")
+							.icon("update.png"_spr)
+							.clicked([](auto) -> void {
+								FLAlertLayer::create(
+									"Hi",
+									"Hi",
+									"Hi"
+								)->show();
+							})
+							.show();
+						addUpdateIcon();
+					}
+				}
+			});
 		}
 
 		return true;
-	}
-
-	void addUpdateIcon() {
-		if (Index::get()->areUpdatesAvailable()) {
-            auto updateIcon = CCSprite::createWithSpriteFrameName("update.png"_spr);
-            updateIcon->setPosition(m_fields->m_geodeButtonSpr->getContentSize() - CCSize { 10.f, 10.f });
-            updateIcon->setZOrder(99);
-            updateIcon->setScale(.5f);
-            m_fields->m_geodeButtonSpr->addChild(updateIcon);
-		}
-	}
-
-	void onIndexUpdate(UpdateStatus status, std::string const& info, uint8_t progress) {
-		if (status == UpdateStatus::Failed) {
-			INDEX_UPDATE_NOTIF->hide();
-			INDEX_UPDATE_NOTIF = nullptr;
-			NotificationBuilder()
-				.title("Index Update")
-				.text("Index update failed :(")
-				.icon("info-alert.png"_spr)
-				.show();
-		}
-		if (status == UpdateStatus::Finished) {
-			INDEX_UPDATE_NOTIF->hide();
-			INDEX_UPDATE_NOTIF = nullptr;
-			if (Index::get()->areUpdatesAvailable()) {
-				NotificationBuilder()
-					.title("Updates available")
-					.text("Some mods have updates available!")
-					.icon("update.png"_spr)
-					.show();
-				this->addUpdateIcon();
-			}
-		}
 	}
 
 	void onGeode(CCObject*) {

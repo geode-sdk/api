@@ -26,7 +26,7 @@ protected:
 	LoadingCircle* m_loadingCircle = nullptr;
 	int m_searchFlags = ModListView::s_allFlags;
 
-	~ModListLayer() override;
+	virtual ~ModListLayer();
 
 	bool init() override;
 

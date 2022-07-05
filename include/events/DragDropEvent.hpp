@@ -39,7 +39,7 @@ namespace geode {
             std::function<PassThrough(DragDropEvent*)> callback
         );
 
-        ~DragDropHandler();
+        virtual ~DragDropHandler();
     };
 
 

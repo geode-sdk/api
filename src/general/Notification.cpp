@@ -4,6 +4,11 @@
 
 USE_GEODE_NAMESPACE();
 
+// todo: make sure notifications dont disappear 
+// off the screen if the user happens to switch 
+// scenes or smth that causes actions from being 
+// run / completed
+
 Notification::Notification() {}
 
 Notification::~Notification() {
@@ -121,8 +126,8 @@ void Notification::ccTouchEnded(CCTouch* touch, CCEvent* event) {
 }
 
 void Notification::clicked() {
-    if (m_target && m_selector) {
-        (m_target->*m_selector)(this);
+    if (m_callback) {
+        m_callback(this);
     }
 }
 
@@ -131,12 +136,14 @@ bool Notification::init(
     std::string const& title,
     std::string const& text,
     CCNode* icon,
-    const char* bg
+    const char* bg,
+    std::function<void(Notification*)> callback
 ) {
     if (!CCNode::init())
         return false;
     
     m_owner = owner;
+    m_callback = callback;
 
     m_labels = CCArray::create();
     m_labels->retain();
@@ -207,10 +214,11 @@ Notification* Notification::create(
     std::string const& title,
     std::string const& text,
     CCNode* icon,
-    const char* bg
+    const char* bg,
+    std::function<void(Notification*)> callback
 ) {
     auto ret = new Notification();
-    if (ret && ret->init(owner, title, text, icon, bg)) {
+    if (ret && ret->init(owner, title, text, icon, bg, callback)) {
         ret->autorelease();
         return ret;
     }
@@ -219,6 +227,9 @@ Notification* Notification::create(
 }
 
 void Notification::showForReal() {
+    if (!m_pParent) {
+        CCDirector::sharedDirector()->getRunningScene()->addChild(this);
+    }
     SceneManager::get()->keepAcrossScenes(this);
     // haha i am incredibly mature
     this->setZOrder(0xB00B1E5);
@@ -315,10 +326,6 @@ void Notification::animateOut() {
 }
 
 void Notification::show(NotificationLocation location, float time) {
-    if (!this->getParent()) {
-        CCDirector::sharedDirector()->getRunningScene()->addChild(this);
-    }
-
     if (location == NotificationLocation::TopCenter) {
         // the notification is larger at top center to 
         // be more easily readable on mobile
@@ -349,7 +356,7 @@ Notification* NotificationBuilder::show() {
         if (!icon) icon = CCSprite::createWithSpriteFrameName(m_icon.c_str());
     }
     auto notif = Notification::create(
-        m_owner, m_title, m_text, icon, m_bg.c_str()
+        m_owner, m_title, m_text, icon, m_bg.c_str(), m_callback
     );
     notif->show(m_location, m_time);
     return notif;
@@ -369,7 +376,9 @@ void NotificationManager::push(Notification* notification) {
 void NotificationManager::pop(Notification* notification) {
     auto location = notification->m_location;
     if (m_notifications.count(location)) {
-        vector_utils::erase(m_notifications.at(location), notification);
+        vector_utils::erase(
+            m_notifications.at(location), Ref(notification)
+        );
         if (!m_notifications.at(location).size()) {
             m_notifications.erase(location);
         } else {

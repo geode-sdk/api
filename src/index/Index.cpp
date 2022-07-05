@@ -34,30 +34,26 @@ void Index::indexUpdateProgress(
     uint8_t percentage
 ) {
     Loader::get()->queueInGDThread([this, status, info, percentage]() -> void {
-        m_delegatesMutex.lock();
-        for (auto& d : m_delegates) {
-            (d.m_target->*d.m_progress)(status, info, percentage);
+        m_callbacksMutex.lock();
+        for (auto& d : m_callbacks) {
+            d(status, info, percentage);
         }
         if (
             status == UpdateStatus::Finished ||
             status == UpdateStatus::Failed
         ) {
-            m_delegates.clear();
+            m_callbacks.clear();
         }
-        m_delegatesMutex.unlock();
+        m_callbacksMutex.unlock();
     });
 }
 
-void Index::updateIndex(
-    CCObject* target,
-    SEL_IndexUpdateProgress progress,
-    bool force
-) {
+void Index::updateIndex(IndexUpdateCallback callback, bool force) {
     // if already updated and no force, let 
     // delegate know
     if (!force && m_upToDate) {
-        if (target && progress) {
-            (target->*progress)(
+        if (callback) {
+            callback(
                 UpdateStatus::Finished,
                 "Index already updated",
                 100
@@ -68,24 +64,17 @@ void Index::updateIndex(
 
     // add delegate thread-safely if it's not 
     // added already
-    if (target && progress) {
-        m_delegatesMutex.lock();
-        if (!vector_utils::contains<IndexUpdateDelegate>(
-            m_delegates,
-            [progress](IndexUpdateDelegate d) -> bool {
-                return d.m_progress == progress;
-            }
-        )) {
-            m_delegates.push_back({ target, progress });
-        }
-        m_delegatesMutex.unlock();
+    if (callback) {
+        m_callbacksMutex.lock();
+        m_callbacks.push_back(callback);
+        m_callbacksMutex.unlock();
     }
 
     // if already updating, let delegate know 
     // and return
     if (m_updating) {
-        if (target && progress) {
-            (target->*progress)(
+        if (callback) {
+            callback(
                 UpdateStatus::Progress,
                 "Waiting for update info",
                 0

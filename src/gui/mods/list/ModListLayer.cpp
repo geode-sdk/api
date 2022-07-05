@@ -3,12 +3,13 @@
 #include "SearchFilterPopup.hpp"
 #include <general/Notification.hpp>
 
-ModListType g_tab = ModListType::Installed;
+static ModListType g_tab = ModListType::Installed;
+static ModListLayer* g_instance = nullptr;
 
 bool ModListLayer::init() {
 	if (!CCLayer::init())
 		return false;
-	
+
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 	
 	// create background
@@ -193,16 +194,26 @@ void ModListLayer::indexUpdateProgress(
 	std::string const& info,
 	uint8_t percentage
 ) {
+	// if we have a check for updates button 
+	// visible, disable it from being clicked 
+	// again
 	if (m_checkForUpdatesBtn) {
 		m_checkForUpdatesBtn->setEnabled(false);
 		as<ButtonSprite*>(
 			m_checkForUpdatesBtn->getNormalImage()
 		)->setString("Updating Index");
 	}
+
+	// if finished, refresh list
 	if (status == UpdateStatus::Finished) {
 		m_indexUpdateLabel->setVisible(false);
 		this->reloadList();
-	} else {
+
+		// make sure to release global instance
+		// and set it back to null
+		CC_SAFE_RELEASE_NULL(g_instance);
+	}
+	else {
 		m_indexUpdateLabel->setVisible(true);
 		m_indexUpdateLabel->setString(info.c_str());
 	}
@@ -212,6 +223,10 @@ void ModListLayer::indexUpdateProgress(
 			"Error Updating Index",
 			info, "OK"
 		)->show();
+
+		// make sure to release global instance
+		// and set it back to null
+		CC_SAFE_RELEASE(g_instance);
 	}
 }
 
@@ -259,9 +274,7 @@ void ModListLayer::reloadList() {
 
 			m_loadingCircle->show();
 		}
-		Index::get()->updateIndex(
-			this, indexupdateprogress_selector(ModListLayer::indexUpdateProgress)
-		);
+		this->onCheckForUpdates(nullptr);
 	} else {
 		if (m_loadingCircle) {
 			m_loadingCircle->fadeAndRemove();
@@ -335,8 +348,23 @@ void ModListLayer::reloadList() {
 }
 
 void ModListLayer::onCheckForUpdates(CCObject*) {
+	// store instance in a global so the 
+	// layer stays in memory even if the 
+	// user leaves the layer and we don't
+	// end up trying to update the UI of 
+	// a deleted layer
+	g_instance = this;
+	g_instance->retain();
+	
+	// update index
 	Index::get()->updateIndex(
-		this, indexupdateprogress_selector(ModListLayer::indexUpdateProgress)
+		[](
+			UpdateStatus status,
+			std::string const& info,
+			uint8_t progress
+		) -> void {
+			g_instance->indexUpdateProgress(status, info, progress);
+		}
 	);
 }
 
@@ -399,6 +427,11 @@ void ModListLayer::onSearchFilters(CCObject*) {
 }
 
 ModListLayer* ModListLayer::create() {
+	// return global instance if one exists
+	if (g_instance) return g_instance;
+
+	// otherwise create new instance like a 
+	// normal person
 	auto ret = new ModListLayer();
 	if (ret && ret->init()) {
 		ret->autorelease();
