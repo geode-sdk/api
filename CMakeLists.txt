@@ -23,7 +23,6 @@ file(GLOB_RECURSE HEADERS
 add_library(${PROJECT_NAME} SHARED
 	${CORE_SOURCES}
 	src/hooks/objcHook.mm
-    src/dispatch/MacMouseEvent.mm
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

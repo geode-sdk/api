@@ -40,5 +40,6 @@ namespace geode {
 		}
 
 		EventHandler(std::function<bool(T*)> cb) : m_callback(cb) {}
+		EventHandler() {}
 	};
 }

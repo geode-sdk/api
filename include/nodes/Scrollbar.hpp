@@ -2,12 +2,11 @@
 
 #include <Geode.hpp>
 #include "../APIMacros.hpp"
-#include "../dispatch/ExtMouseManager.hpp"
 
 namespace geode {
     class GEODE_API_DLL Scrollbar :
-        public cocos2d::CCLayer,
-        public ExtMouseDelegate
+        public cocos2d::CCLayer
+        //public ExtMouseDelegate
     {
     protected:
         CCScrollLayerExt* m_target = nullptr;
@@ -19,10 +18,10 @@ namespace geode {
         bool m_trackIsRotated;
         bool m_hoverHighlight;
 
-        bool mouseDownExt(MouseEvent, cocos2d::CCPoint const&) override;
+        /*bool mouseDownExt(MouseEvent, cocos2d::CCPoint const&) override;
         bool mouseUpExt(MouseEvent, cocos2d::CCPoint const&) override;
         void mouseMoveExt(cocos2d::CCPoint const&) override;
-        bool mouseScrollExt(float y, float x) override;
+        bool mouseScrollExt(float y, float x) override;*/
     
         void draw() override;
 

@@ -4,72 +4,13 @@
 #if defined(GEODE_IS_MACOS)
 
 #import <Cocoa/Cocoa.h>
-#include <dispatch/MacMouseEvent.hmm>
 #include <DragDropEvent.hpp>
+#include <MouseEvent.hpp>
 
-// Code taken from https://cocoawithlove.com/2008/03/supersequent-implementation.html
-/*
-#define invokeSupersequent(...) \
-    ([self getImplementationOf:_cmd \
-        after:impOfCallingMethod(self, _cmd)]) \
-            (self, _cmd, ##__VA_ARGS__)
-
-#define invokeSupersequentNoParameters() \
-   ([self getImplementationOf:_cmd \
-      after:impOfCallingMethod(self, _cmd)]) \
-         (self, _cmd)
-
-@implementation NSObject (SupersequentImplementation)
-
-// Lookup the next implementation of the given selector after the
-// default one. Returns nil if no alternate implementation is found.
-- (IMP)getImplementationOf:(SEL)lookup after:(IMP)skip
-{
-    BOOL found = NO;
-    
-    Class currentClass = object_getClass(self);
-    while (currentClass)
-    {
-        // Get the list of methods for this class
-        unsigned int methodCount;
-        Method *methodList = class_copyMethodList(currentClass, &methodCount);
-        
-        // Iterate over all methods
-        unsigned int i;
-        for (i = 0; i < methodCount; i++)
-        {
-            // Look for the selector
-            if (method_getName(methodList[i]) != lookup)
-            {
-                continue;
-            }
-            
-            IMP implementation = method_getImplementation(methodList[i]);
-            
-            // Check if this is the "skip" implementation
-            if (implementation == skip)
-            {
-                found = YES;
-            }
-            else if (found)
-            {
-                // Return the match.
-                free(methodList);
-                return implementation;
-            }
-        }
-    
-        // No match found. Traverse up through super class' methods.
-        free(methodList);
-
-        currentClass = class_getSuperclass(currentClass);
-    }
-    return nil;
-}
-
+@interface NSView(EAGLView)
+ - (float)frameZoomFactor;
+ - (float)getHeight;
 @end
-*/
-// end code snippet
 
 @implementation NSWindow(GeodeHook)
 	- (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
@@ -100,6 +41,64 @@
 	    }
 	    return NO;
 	}
+
+    - (void)mouseDown:(NSEvent*)ev {
+        MouseState& state = MouseState::globalStateMut();
+        switch (ev.type) {
+            case NSEventTypeLeftMouseDown:
+                state.buttons = state.buttons | MouseButtons::ButtonLeft;
+                break;
+            case NSEventTypeRightMouseDown:
+                state.buttons = state.buttons | MouseButtons::ButtonRight;
+                break;
+            case NSEventTypeOtherMouseDown:
+                state.buttons = state.buttons | MouseButtons::ButtonMiddle;
+                break;
+            default:
+                break;
+        }
+
+        [self.nextResponder mouseDown:ev];
+    }
+
+    - (void)mouseUp:(NSEvent*)ev {
+        MouseState& state = MouseState::globalStateMut();
+        switch (ev.type) {
+            case NSEventTypeLeftMouseUp:
+                state.buttons = (state.buttons | MouseButtons::ButtonLeft) - MouseButtons::ButtonLeft;
+                break;
+            case NSEventTypeRightMouseUp:
+                state.buttons = (state.buttons | MouseButtons::ButtonRight) - MouseButtons::ButtonRight;
+                break;
+            case NSEventTypeOtherMouseUp:
+                state.buttons = (state.buttons | MouseButtons::ButtonMiddle) - MouseButtons::ButtonMiddle;
+                break;
+            default:
+                break;
+        }
+
+        [self.nextResponder mouseUp: ev];
+    }
+
+    - (void)mouseMoved:(NSEvent*)ev {
+        NSPoint point = [self.contentView convertPoint:[ev locationInWindow] fromView:nil];
+        float zoom = [self.contentView frameZoomFactor];
+
+        float x = point.x / zoom;
+        float y = ([self.contentView getHeight] - point.y) / zoom;
+
+        MouseState::globalStateMut().position = ccp(x, y);
+
+        [self.nextResponder mouseMoved: ev];
+    }
+
+    - (void)scrollWheel:(NSEvent*)ev {
+        MouseState& state = MouseState::globalStateMut();
+        state.scrollX = ev.scrollingDeltaX;
+        state.scrollY = ev.scrollingDeltaY;
+
+        [self.nextResponder scrollWheel:ev];
+    }
 @end
 
 __attribute__((constructor)) void nswindowHook() {

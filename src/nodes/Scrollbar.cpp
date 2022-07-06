@@ -6,7 +6,9 @@
 
 USE_GEODE_NAMESPACE();
 
-bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {
+#pragma message("replace ExtMouseManager with MouseHandler")
+
+/*bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {
     if (!m_target) return false;
 
     ExtMouseManager::get()->captureMouse(this);
@@ -44,7 +46,8 @@ bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {
 }
 
 bool Scrollbar::mouseUpExt(MouseEvent, cocos2d::CCPoint const&) {
-    ExtMouseManager::get()->releaseCapture(this);
+    //ExtMouseManager::get()->releaseCapture(this);
+
     return true;
 }
 
@@ -81,12 +84,12 @@ bool Scrollbar::mouseScrollExt(float y, float x) {
         return false;
     m_target->scrollWheel(x, y);
     return true;
-}
+}*/
 
 void Scrollbar::draw() {
     CCLayer::draw();
 
-    if (!m_target) return;
+    /*if (!m_target) return;
 
     auto contentHeight = m_target->m_contentLayer->getScaledContentSize().height;
     auto targetHeight = m_target->getScaledContentSize().height;
@@ -152,7 +155,7 @@ void Scrollbar::draw() {
     m_thumb->setPosition(0.f, thumbPosY);
     if (m_resizeThumb) {
         m_thumb->setContentSize({ m_width, thumbHeight });
-    }
+    }*/
 }
 
 void Scrollbar::setTarget(CCScrollLayerExt* target) {
