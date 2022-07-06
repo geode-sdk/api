@@ -26,7 +26,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 
     auto mouseHandle = MouseHandler::create();
 
-    mouseHandle->setClickCallback([](auto) {
+    mouseHandle->setClickCallback<MouseButtons::ButtonRight>([](auto) {
         Log::get() << "clicked...";
     });
 
