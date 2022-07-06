@@ -14,7 +14,7 @@
 
 class CustomMenuLayer;
 
-static Notification* g_indexUpdateNotif = nullptr;
+static Ref<Notification> g_indexUpdateNotif = nullptr;
 static Ref<CCSprite> g_geodeButton = nullptr;
 
 static void addUpdateIcon() {

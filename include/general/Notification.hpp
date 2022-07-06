@@ -99,14 +99,16 @@ namespace geode {
         cocos2d::extension::CCScale9Sprite* m_bg;
         cocos2d::CCNode* m_icon = nullptr;
         cocos2d::CCLabelBMFont* m_title = nullptr;
-        cocos2d::CCArray* m_labels = nullptr;
+        Ref<cocos2d::CCArray> m_labels = nullptr;
         cocos2d::CCPoint m_showDest;
         cocos2d::CCPoint m_hideDest;
         cocos2d::CCPoint m_posAtTouchStart;
-        std::chrono::system_clock::time_point m_touchTime;
         NotificationLocation m_location;
         float m_time;
         bool m_hiding;
+        bool m_clicking;
+        bool m_hovered;
+        float m_targetScale = 1.f;
 
         bool init(
             Mod* owner,
@@ -129,6 +131,8 @@ namespace geode {
 
         void animateIn();
         void animateOut();
+        void animateOutClicked();
+        void animateClicking();
 
         void hidden();
         void showForReal();
@@ -159,6 +163,8 @@ namespace geode {
 
         void push(Notification*);
         void pop(Notification*);
+
+        bool isInQueue(Notification*);
 
         friend class Notification;
     

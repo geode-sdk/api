@@ -58,22 +58,6 @@ bool ModListLayer::init() {
 	this->m_menu->addChild(openBtn);
 
 
-	// todo: remove
-	for (int i = 0; i <= static_cast<int>(NotificationLocation::BottomRight); i++) {
-		auto testSpr = CCLabelBMFont::create(std::to_string(i).c_str(), "bigFont.fnt");
-		testSpr->setScale(.8f);
-		auto testBtn = CCMenuItemSpriteExtra::create(
-			testSpr, this, menu_selector(ModListLayer::onTest)
-		);
-		testBtn->setPosition(
-			-winSize.width / 2 + 65.0f,
-			-winSize.height / 2 + 75.0f + 25 * i
-		);
-		testBtn->setTag(i);
-		m_menu->addChild(testBtn);
-	}
-
-
 	// add list status label	
     m_listLabel = CCLabelBMFont::create("", "bigFont.fnt");
 
@@ -228,15 +212,6 @@ void ModListLayer::indexUpdateProgress(
 		// and set it back to null
 		CC_SAFE_RELEASE(g_instance);
 	}
-}
-
-void ModListLayer::onTest(CCObject* sender) {
-	Notification::build()
-		.title("Gay sex")
-		.text("Have you ever like uhh and the uhhh yeah uhhhh like that yeah")
-		.time(0)
-		.location(static_cast<NotificationLocation>(sender->getTag()))
-		.show();
 }
 
 void ModListLayer::reloadList() {
