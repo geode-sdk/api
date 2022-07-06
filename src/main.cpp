@@ -1,6 +1,7 @@
 #include <Geode.hpp>
 #include "APIInternal.hpp"
 #include <DragDropEvent.hpp>
+#include <MouseEvent.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -22,6 +23,14 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
 
         return false;
     })->addToHandlers();
+
+    auto mouseHandle = MouseHandler::create();
+
+    mouseHandle->setClickCallback([](auto) {
+        Log::get() << "clicked...";
+    });
+
+    mouseHandle->addToHandlers();
 
     return true;
 }

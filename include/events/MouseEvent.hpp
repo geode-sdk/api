@@ -82,6 +82,8 @@ namespace geode {
 	 	bool justPressedButton(MouseButtons btn);
 	 	bool justReleasedButton(MouseButtons btn);
 	 	cocos2d::CCPoint distanceScrolled();
+
+	 	void post();
 	};
 
 	using MouseCallback = std::optional<std::function<void(MouseEvent*)>>;

@@ -51,6 +51,12 @@ CCPoint MouseEvent::distanceScrolled() {
 	return ccp(m_newState.scrollX, m_newState.scrollY);
 }
 
+void MouseEvent::post() {
+	Event::post();
+	MouseState& state = MouseState::globalStateMut();
+	state = m_newState;
+}
+
 MouseHandler::MouseHandler() {
 
 }
@@ -89,7 +95,8 @@ bool MouseHandler::handle(MouseEvent* ev) {
 	if (ev->distanceMoved() != CCPointZero) // mouse moved
 		callOpt(m_moveFn, ev);
 
-	for (auto [btn, btnData] : m_btnFns) { // evaluate per-button
+	for (auto& [btn, btnData] : m_btnFns) { // evaluate per-button
+
 		auto timeOfFire = std::chrono::high_resolution_clock::now();
 		float duration = std::chrono::duration<float, std::nano>(timeOfFire - btnData.timeOfFire).count() / 1000000000.f;
 
@@ -101,18 +108,17 @@ bool MouseHandler::handle(MouseEvent* ev) {
 			if (ev->justPressedButton(btn)) { // button was just pressed
 				btnData.clickCount += 1;
 				btnData.timeOfFire = timeOfFire;
-			}
-
-			if (duration >= m_holdDelay && btnData.clickCount == 1) { // multi-clicks take priority over hold
+			} else if (duration >= m_holdDelay && btnData.clickCount == 1) { // multi-clicks take priority over hold
 				callOpt(btnData.hold, ev);
 				btnData.holdOn = true;
 				btnData.clickCount = 0; // can't multi-click with a hold
 			}
+		} else if (btnData.holdOn) {
+			callOpt(btnData.release, ev);
+			btnData.holdOn = false;
+			btnData.timeOfFire = timeOfFire;
 		} else if (btnData.clickCount > 0) { // button was just released
-			if (btnData.holdOn) {
-				callOpt(btnData.release, ev);
-				btnData.holdOn = false;
-			} else if (duration >= m_multiClickDelay || btnData.clickCount == btnData.clicks.rbegin()->first) { // multi support
+			if (duration >= m_multiClickDelay || btnData.clickCount == btnData.clicks.rbegin()->first) { // multi support
 				callOpt(btnData.clicks[btnData.clickCount], ev);
 				btnData.clickCount = 0;
 			}
