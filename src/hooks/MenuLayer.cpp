@@ -19,7 +19,7 @@ static Ref<CCSprite> g_geodeButton = nullptr;
 
 static void addUpdateIcon() {
 	if (g_geodeButton && Index::get()->areUpdatesAvailable()) {
-		auto updateIcon = CCSprite::createWithSpriteFrameName("update.png"_spr);
+		auto updateIcon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
 		updateIcon->setPosition(g_geodeButton->getContentSize() - CCSize { 10.f, 10.f });
 		updateIcon->setZOrder(99);
 		updateIcon->setScale(.5f);
@@ -136,7 +136,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 						NotificationBuilder()
 							.title("Updates available")
 							.text("Some mods have updates available!")
-							.icon("update.png"_spr)
+							.icon("updates-available.png"_spr)
 							.clicked([](auto) -> void {
 								FLAlertLayer::create(
 									"Hi",

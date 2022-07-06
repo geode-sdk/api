@@ -127,7 +127,7 @@ void ModCell::setupLoadedButtons() {
         if (Index::get()->isUpdateAvailableForItem(m_obj->m_mod->getID())) {
             viewSpr->updateBGImage("GE_button_01.png"_spr);
 
-            auto updateIcon = CCSprite::createWithSpriteFrameName("update.png"_spr);
+            auto updateIcon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
             updateIcon->setPosition(viewSpr->getContentSize() - CCSize { 2.f, 2.f });
             updateIcon->setZOrder(99);
             updateIcon->setScale(.5f);
@@ -402,6 +402,33 @@ bool ModListView::filter(ModInfo const& info, const char* searchFilter, int sear
     return false;
 }
 
+static void sortInstalledMods(std::vector<Mod*>& mods) {
+    if (!mods.size()) return;
+    // keep track of first object 
+    size_t frontIndex = 0;
+    auto front = mods.front();
+    for (auto mod = mods.begin(); mod != mods.end(); mod++) {
+        // move mods with updates to front
+        if (Index::get()->isUpdateAvailableForItem((*mod)->getID())) {
+            // swap first object and updatable mod
+            // if the updatable mod is the first object, 
+            // nothing changes
+            std::rotate(mods.begin(), mod, mod + 1);
+
+            // get next object at front for next mod 
+            // to sort
+            frontIndex++;
+            front = mods[frontIndex];
+        }
+    }
+}
+
+static std::vector<Mod*> sortedInstalledMods() {
+    auto mods = Loader::get()->getAllMods();
+    sortInstalledMods(mods);
+    return std::move(mods);
+}
+
 bool ModListView::init(
     CCArray* mods,
     ModListType type,
@@ -414,14 +441,20 @@ bool ModListView::init(
         switch (type) {
             case ModListType::Installed: {
                 mods = CCArray::create();
+                // failed mods first
                 for (auto const& mod : Loader::get()->getFailedMods()) {
                     mods->addObject(new ModObject(mod));
                 }
+                // internal geode representation always at the top
                 auto imod = Loader::getInternalMod();
                 if (this->filter(imod->getModInfo(), searchFilter, searchFlags)) {
                     mods->addObject(new ModObject(imod));
                 }
-                for (auto const& mod : Loader::get()->getAllMods()) {
+                // then other mods
+                for (auto const& mod : sortedInstalledMods()) {
+                    // if the mod is no longer installed nor 
+                    // loaded, it's as good as not existing
+                    // (because it doesn't)
                     if (mod->isUninstalled() && !mod->isLoaded()) continue;
                     if (this->filter(mod->getModInfo(), searchFilter, searchFlags)) {
                         mods->addObject(new ModObject(mod));

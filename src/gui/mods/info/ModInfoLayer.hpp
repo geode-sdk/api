@@ -34,6 +34,7 @@ protected:
     DownloadStatusNode* m_installStatus = nullptr;
     IconButtonSprite* m_installBtnSpr;
     CCMenuItemSpriteExtra* m_installBtn;
+    CCLabelBMFont* m_updateVersionLabel = nullptr;
     InstallTicket* m_ticket = nullptr;
 
     void onHooks(CCObject*);

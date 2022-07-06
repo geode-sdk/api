@@ -146,6 +146,18 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         winSize.width / 2 - logoTitleWidth / 2 + logoSize + logoOffset,
         winSize.height / 2 + 105.f
     );
+    
+    auto versionLabel = CCLabelBMFont::create(
+        m_info.m_version.toString().c_str(), "bigFont.fnt"
+    );
+    versionLabel->setAnchorPoint({ .0f, .5f });
+    versionLabel->setScale(.4f);
+    versionLabel->setPosition(
+        nameLabel->getPositionX() + nameLabel->getScaledContentSize().width + 5.f,
+        winSize.height / 2 + 125.f
+    );
+    versionLabel->setColor({ 0, 255, 0 });
+    m_mainLayer->addChild(versionLabel);
 
 
     CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
@@ -155,7 +167,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         m_info.m_details.size() ?
             m_info.m_details :
             "### No description provided.",
-        { 350.f, 147.f}
+        { 350.f, 137.5f }
     );
     details->setPosition(
         winSize.width / 2 - details->getScaledContentSize().width / 2,
@@ -282,6 +294,20 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
                 );
                 m_installStatus->setVisible(false);
                 m_mainLayer->addChild(m_installStatus);
+
+                auto incomingVersion = Index::get()->getKnownItem(m_info.m_id).m_info.m_version.toString();
+
+                m_updateVersionLabel = CCLabelBMFont::create(
+                    ("Available: " + incomingVersion).c_str(), "bigFont.fnt"
+                );
+                m_updateVersionLabel->setScale(.35f);
+                m_updateVersionLabel->setAnchorPoint({ .0f, .5f });
+                m_updateVersionLabel->setColor({ 94, 219, 255 });
+                m_updateVersionLabel->setPosition(
+                    winSize.width / 2 + 35.f,
+                    winSize.height / 2 + 75.f
+                );
+                m_mainLayer->addChild(m_updateVersionLabel);
             }
         }
     } else {
@@ -408,6 +434,9 @@ void ModInfoLayer::onCancelInstall(CCObject*) {
     if (m_ticket) {
         m_ticket->cancel();
     }
+    if (m_updateVersionLabel) {
+        m_updateVersionLabel->setVisible(true);
+    }
 }
 
 void ModInfoLayer::onUninstall(CCObject*) {
@@ -518,6 +547,9 @@ void ModInfoLayer::modInstallProgress(
 
 void ModInfoLayer::install() {
     if (m_ticket) {
+        if (m_updateVersionLabel) {
+            m_updateVersionLabel->setVisible(false);
+        }
         this->updateInstallStatus("Starting install", 0);
 
         m_installBtn->setTarget(
@@ -650,7 +682,7 @@ CCNode* ModInfoLayer::createLogoSpr(ModObject* modObj) {
 CCNode* ModInfoLayer::createLogoSpr(Mod* mod) {
     CCNode* spr = nullptr;
     if (mod == Loader::getInternalMod()) {
-        spr = CCSprite::create("com.geode.api.png");
+        spr = CCSprite::create("geode.api.png");
     } else {
         spr = CCSprite::create(
             CCString::createWithFormat(

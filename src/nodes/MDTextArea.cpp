@@ -446,6 +446,8 @@ struct MDParser {
             } break;
 
             case MD_BLOCKTYPE::MD_BLOCK_LI: {} break;
+            
+            case MD_BLOCKTYPE::MD_BLOCK_HR: {} break;
 
             default: {
                 Log::get() << Severity::Warning << "Unhandled block leave type " << type;
