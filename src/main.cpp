@@ -10,7 +10,7 @@ GEODE_API bool GEODE_CALL geode_load(Mod* mod) {
     DragDropHandler::create("geode", [](DragDropEvent* event) {
         auto path = event->path();
 
-        auto to_file = Loader::get()->getGeodeDirectory() / geodeModDirectory / path.filename();
+        auto to_file = Loader::get()->getGeodeDirectory() / GEODE_MOD_DIRECTORY / path.filename();
 
         if (to_file == path) {
             FLAlertLayer::create("Oops!", "<cr>" + path.stem().u8string() + "</c> is already installed!", "OK")->show();
