@@ -62,12 +62,12 @@ namespace geode {
             return *this;
         }
         inline NotificationBuilder& loading() {
-            m_icon = "";
-            m_iconNode = cocos2d::CCSprite::create("loadingCircle.png");
-            m_iconNode->runAction(cocos2d::CCRepeat::create(
+            auto spr = cocos2d::CCSprite::create("loadingCircle.png");
+            spr->runAction(cocos2d::CCRepeat::create(
                 cocos2d::CCRotateBy::create(1.f, 360.f), 40000
             ));
-            return *this;
+            spr->setBlendFunc({ GL_ONE, GL_ONE });
+            return this->icon(spr);
         }
         inline NotificationBuilder& bg(std::string const& bg) {
             m_bg = bg;

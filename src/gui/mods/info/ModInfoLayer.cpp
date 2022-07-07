@@ -404,8 +404,9 @@ void ModInfoLayer::onEnableMod(CCObject* pSender) {
 void ModInfoLayer::onInstallMod(CCObject*) {
     auto ticketRes = Index::get()->installItem(
         Index::get()->getKnownItem(m_info.m_id),
-        this,
-        modinstallprogress_selector(ModInfoLayer::modInstallProgress)
+        [this](InstallTicket* ticket, UpdateStatus status, std::string const& info, uint8_t progress) -> void {
+            this->modInstallProgress(ticket, status, info, progress);
+        }
     );
     if (!ticketRes) {
         return FLAlertLayer::create(
@@ -520,6 +521,8 @@ void ModInfoLayer::modInstallProgress(
             );
             m_installBtnSpr->setString("Install");
             m_installBtnSpr->setBG("GE_button_01.png"_spr, false);
+
+            m_ticket = nullptr;
         } break;
 
         case UpdateStatus::Finished: {

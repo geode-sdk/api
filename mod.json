@@ -8,6 +8,10 @@
     "repository":   "https://github.com/geode-sdk/api",
 	"dependencies": null,
     "binary":       "GeodeAPI",
+    "datastore": {
+        "enable-auto-updates": true,
+        "disable-auto-for": []
+    },
     "resources": {
         "fonts": {
             "mdFont": {

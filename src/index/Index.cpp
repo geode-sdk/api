@@ -5,7 +5,7 @@
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 
-Result<nlohmann::json> readJSON(ghc::filesystem::path const& path) {
+static Result<nlohmann::json> readJSON(ghc::filesystem::path const& path) {
     auto indexJsonData = file_utils::readString(path);
     if (!indexJsonData) {
         return Err("Unable to read " + path.string());
@@ -436,7 +436,9 @@ static void getUninstalledDependenciesRecursive(
     }
 }
 
-Result<std::vector<std::string>> Index::checkDependenciesForItem(IndexItem const& item) {
+Result<std::vector<std::string>> Index::checkDependenciesForItem(
+    IndexItem const& item
+) {
     // todo: check versions
     std::vector<UninstalledDependency> deps;
     getUninstalledDependenciesRecursive(item.m_info, deps);
@@ -472,9 +474,7 @@ Result<std::vector<std::string>> Index::checkDependenciesForItem(IndexItem const
 }
 
 Result<InstallTicket*> Index::installItem(
-    IndexItem const& item,
-    CCObject* target,
-    SEL_ModInstallProgress progress
+    IndexItem const& item, ItemInstallCallback progress
 ) {
     if (!item.m_download.count(GEODE_PLATFORM_TARGET)) {
         return Err(
@@ -505,9 +505,7 @@ Result<InstallTicket*> Index::installItem(
     if (!list) {
         return Err(list.error());
     }
-    auto ticket = InstallTicket::create(this, list.value(), target, progress);
-    CC_SAFE_RETAIN(ticket);
-    return Ok(ticket);
+    return Ok(new InstallTicket(this, list.value(), progress));
 }
 
 bool Index::isUpdateAvailableForItem(std::string const& id) const {
@@ -522,6 +520,15 @@ bool Index::isUpdateAvailableForItem(std::string const& id) const {
         Loader::get()->getInstalledMod(id)->getVersion();
 }
 
+bool Index::isUpdateAvailableForItem(IndexItem const& item) const {
+    if (!Loader::get()->isModInstalled(item.m_info.m_id)) {
+        return false;
+    }
+    return
+        item.m_info.m_version > 
+        Loader::get()->getInstalledMod(item.m_info.m_id)->getVersion();
+}
+
 bool Index::areUpdatesAvailable() const {
     for (auto& item : m_items) {
         if (this->isUpdateAvailableForItem(item.m_info.m_id)) {
@@ -529,4 +536,127 @@ bool Index::areUpdatesAvailable() const {
         }
     }
     return false;
+}
+
+Result<> Index::installUpdates(
+    IndexUpdateCallback callback, bool force
+) {
+    // find items that need updating
+
+    // needs to be allocated on the stack 
+    // so they don't get scope destroyed at the 
+    // end of the function and are still usable 
+    // across the ticket install stuff
+    auto itemsToUpdate = new std::vector<IndexItem>();
+    for (auto& item : m_items) {
+        if (this->isUpdateAvailableForItem(item)) {
+            itemsToUpdate->push_back(item);
+        }
+    }
+
+    // mutex is to make sure all the different 
+    // installations happening across threads 
+    // don't cause race conditions on the mutable 
+    // variables
+    auto progressMutex = new std::mutex();
+    auto progresses = new std::unordered_map<std::string, uint8_t>();
+    auto tickets = new std::vector<InstallTicket*>();
+    auto failedInfo = new std::vector<std::string>();
+    auto updated = new std::vector<std::string>();
+
+    // generate tickets
+    for (auto& item : *itemsToUpdate) {
+        auto t = this->installItem(item, [
+            progressMutex, failedInfo, updated, tickets,
+            itemsToUpdate, progresses, item, callback
+        ](
+            InstallTicket* ticket,
+            UpdateStatus status,
+            std::string const& info,
+            uint8_t progress
+        ) -> void {
+            progressMutex->lock();
+            // if this ticket failed, save the error 
+            // and remove this ticket from the list 
+            // of tickets
+            if (status == UpdateStatus::Failed) {
+                failedInfo->push_back(item.m_info.m_id + ": " + info);
+                vector_utils::erase(*tickets, ticket);
+                progressMutex->unlock();
+                return;
+            }
+            (*progresses)[item.m_info.m_id] = progress;
+            auto totalProgress = vector_utils::reduce<int, uint8_t>(
+                map_utils::getValues(*progresses),
+                [](int acc, uint8_t prog) { acc += prog; }
+            );
+            auto prog = static_cast<uint8_t>(
+                totalProgress / itemsToUpdate->size()
+            );
+            if (callback) {
+                callback(UpdateStatus::Progress, info, prog);
+            }
+            bool unlockProgress = true;
+            if (status == UpdateStatus::Finished) {
+                vector_utils::erase(*tickets, ticket);
+                updated->push_back(item.m_info.m_name + " (" + item.m_info.m_id + ")");
+
+                std::cout << "finished " << item.m_info.m_id << "\n";
+
+                // are all tickets done?
+                if (!tickets->size()) {
+                    if (callback) {
+                        if (failedInfo->size()) {
+                            callback(
+                                UpdateStatus::Failed,
+                                "Some mods failed to update: \n" + 
+                                    vector_utils::join(*failedInfo, "\n") + "\n" + 
+                                (updated->size() ?
+                                    "Updates were succesful for: " +
+                                    vector_utils::join(*updated, "\n") :
+                                    ""
+                                ),
+                                prog
+                            );
+                        } else {
+                            callback(
+                                UpdateStatus::Finished,
+                                "Updated the following mods: " +
+                                    vector_utils::join(*updated, "\n"),
+                                prog
+                            );
+                        }
+                    }
+                    delete updated;
+                    delete failedInfo;
+                    delete tickets;
+                    delete progresses;
+                    delete progressMutex;
+                    delete itemsToUpdate;
+                    unlockProgress = false;
+                }
+            }
+            if (unlockProgress) {
+                progressMutex->unlock();
+            }
+        });
+        if (!t) {
+            // make sure we don't leak memory
+            delete updated;
+            delete failedInfo;
+            delete tickets;
+            delete progresses;
+            delete progressMutex;
+            delete itemsToUpdate;
+            return Err(t.error());
+        }
+        tickets->push_back(t.value());
+    }
+
+    // start tickets
+    for (auto& ticket : *tickets) {
+        ticket->start();
+    }
+
+    return Ok();
 }

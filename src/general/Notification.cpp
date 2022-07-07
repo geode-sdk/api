@@ -325,7 +325,9 @@ void Notification::showForReal() {
 }
 
 void Notification::hide() {
-    if (!NotificationManager::get()->isInQueue(this)) {
+    // if this notification has already been hidden, 
+    // don't do anything
+    if (m_hiding || !NotificationManager::get()->isInQueue(this)) {
         return;
     }
     GameSoundManager::sharedManager()->playEffect(

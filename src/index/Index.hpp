@@ -3,6 +3,7 @@
 #include <Geode.hpp>
 #include <mutex>
 #include <events/Event.hpp>
+#include <general/Ref.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -11,6 +12,15 @@ struct ModInstallUpdate;
 class InstallTicket;
 
 // todo: make index use events
+
+enum class UpdateStatus {
+    Progress,
+    Failed,
+    Finished,
+};
+
+using ItemInstallCallback = std::function<void(InstallTicket*, UpdateStatus, std::string const&, uint8_t)>;
+using IndexUpdateCallback = std::function<void(UpdateStatus, std::string const&, uint8_t)>;
 
 struct IndexItem {
     struct Download {
@@ -25,29 +35,28 @@ struct IndexItem {
     std::string m_installFailed;
 };
 
-enum class UpdateStatus {
-    Progress,
-    Failed,
-    Finished,
+enum class InstallMode {
+    Order,      // download & install one-by-one
+    Concurrent, // download & install all simultaneously
 };
 
-using IndexUpdateCallback = std::function<void(UpdateStatus, std::string const&, uint8_t)>;
-
-using SEL_ModInstallProgress = void(CCObject::*)(
-    InstallTicket*, UpdateStatus, std::string const&, uint8_t
-);
-#define modinstallprogress_selector(_SELECTOR)\
-    (SEL_ModInstallProgress)(&_SELECTOR)
-
-class InstallTicket : public CCObject {
+/**
+ * Used for working with a currently 
+ * happening mod installation from 
+ * the index. Note that once the 
+ * installation is finished / failed, 
+ * the ticket will free its own memory, 
+ * so make sure to let go of any 
+ * pointers you may have to it.
+ */
+class InstallTicket {
 protected:
-    CCObject* m_target;
-    SEL_ModInstallProgress m_progress;
-    std::vector<std::string> m_installList;
+    ItemInstallCallback m_progress;
+    const std::vector<std::string> m_installList;
     mutable std::mutex m_cancelMutex;
     bool m_cancelling = false;
+    bool m_installing = false;
     bool m_replaceFiles = true;
-    size_t m_installIndex = 0;
     Index* m_index;
 
     void postProgress(
@@ -55,31 +64,47 @@ protected:
         std::string const& info = "",
         uint8_t progress = 0
     );
-    void installNext();
+    void install(std::string const& id);
 
-    bool init(
-        Index* index,
-        std::vector<std::string> const& list,
-        CCObject* target,
-        SEL_ModInstallProgress progress
-    );
-    
     friend class Index;
 
 public:
-    static InstallTicket* create(
+    /**
+     * Create a new ticket for installing a list of mods. This method 
+     * should not be called manually; instead, you should always use 
+     * `Index::installItem`. Note that once the installation is 
+     * finished / failed, the ticket will free its own memory, so make 
+     * sure to let go of any pointers you may have to it.
+     */
+    InstallTicket(
         Index* index,
         std::vector<std::string> const& list,
-        CCObject* target,
-        SEL_ModInstallProgress progress
+        ItemInstallCallback progress
     );
 
-    std::vector<std::string> getInstallList() const;
+    /**
+     * Get list of mods to install
+     */
+    std::vector<std::string> const& getInstallList() const;
+
+    /**
+     * Cancel all pending installations and revert finished ones. This 
+     * function is thread-safe
+     */
     void cancel();
-    void start();
+
+    /**
+     * Begin installation. Note that this function is *not* 
+     * thread-safe
+     * @param mode Whether to install the list of mods 
+     * provided concurrently or in order
+     * @note Use InstallTicket::cancel to cancel the 
+     * installation
+     */
+    void start(InstallMode mode = InstallMode::Concurrent);
 };
 
-class Index : public CCObject {
+class Index {
 protected:
     bool m_upToDate = false;
     bool m_updating = false;
@@ -106,11 +131,12 @@ public:
     IndexItem getKnownItem(std::string const& id) const;
     Result<InstallTicket*> installItem(
         IndexItem const& item,
-        CCObject* target = nullptr,
-        SEL_ModInstallProgress progress = nullptr
+        ItemInstallCallback progress = nullptr
     );
     bool isUpdateAvailableForItem(std::string const& id) const;
+    bool isUpdateAvailableForItem(IndexItem const& item) const;
     bool areUpdatesAvailable() const;
+    Result<> installUpdates(IndexUpdateCallback callback, bool force = false);
 
     bool isIndexUpdated() const;
     void updateIndex(IndexUpdateCallback callback, bool force = false);
