@@ -39,7 +39,6 @@ void InstallTicket::install(std::string const& id) {
     auto indexDir = Loader::get()->getGeodeDirectory() / "index";
 
     auto item = m_index->getKnownItem(id);
-
     auto download = item.m_download.at(GEODE_PLATFORM_TARGET);
 
     this->postProgress(UpdateStatus::Progress, "Checking status", 0);
@@ -55,7 +54,7 @@ void InstallTicket::install(std::string const& id) {
             // check if cancelled
             m_cancelMutex.lock();
             if (m_cancelling) {
-                ghc::filesystem::remove(tempFile);
+                try { ghc::filesystem::remove(tempFile); } catch(...) {}
                 m_cancelMutex.unlock();
                 return 1;
             }
@@ -64,13 +63,13 @@ void InstallTicket::install(std::string const& id) {
             this->postProgress(
                 UpdateStatus::Progress,
                 "Downloading binary",
-                static_cast<uint8_t>(now / total)
+                static_cast<uint8_t>(now / total * 100.0)
             );
             return 0;
         }
     );
     if (!res) {
-        ghc::filesystem::remove(tempFile);
+        try { ghc::filesystem::remove(tempFile); } catch(...) {}
         return this->postProgress(
             UpdateStatus::Failed,
             "Downloading failed: " + res.error()
@@ -89,7 +88,7 @@ void InstallTicket::install(std::string const& id) {
     // check for 404
     auto notFound = file_utils::readString(tempFile);
     if (notFound && notFound.value() == "Not Found") {
-        ghc::filesystem::remove(tempFile);
+        try { ghc::filesystem::remove(tempFile); } catch(...) {}
         return this->postProgress(
             UpdateStatus::Failed,
             "Binary file download returned \"Not found\". Report "
@@ -99,10 +98,11 @@ void InstallTicket::install(std::string const& id) {
 
     // verify checksum
     this->postProgress(UpdateStatus::Progress, "Verifying", 100);
+
     auto checksum = ::calculateHash(tempFile.string());
 
     if (checksum != download.m_hash) {
-        ghc::filesystem::remove(tempFile);
+        try { ghc::filesystem::remove(tempFile); } catch(...) {}
         return this->postProgress(
             UpdateStatus::Failed,
             "Checksum mismatch! (Downloaded file did not match what "
@@ -124,7 +124,8 @@ void InstallTicket::install(std::string const& id) {
 
             size_t number = 0;
             while (ghc::filesystem::exists(targetFile)) {
-                targetFile = modDir / (filename + std::to_string(number) + ".geode");
+                targetFile = modDir /
+                    (filename + std::to_string(number) + ".geode");
                 number++;
             }
         }
@@ -132,7 +133,7 @@ void InstallTicket::install(std::string const& id) {
         // move file
         ghc::filesystem::rename(tempFile, targetFile);
     } catch(std::exception& e) {
-        ghc::filesystem::remove(tempFile);
+        try { ghc::filesystem::remove(tempFile); } catch(...) {}
         return this->postProgress(
             UpdateStatus::Failed,
             "Unable to move downloaded file to mods directory: \"" + 
@@ -168,14 +169,28 @@ void InstallTicket::cancel() {
     m_cancelMutex.unlock();
 }
 
-void InstallTicket::start() {
+void InstallTicket::start(InstallMode mode) {
     if (m_installing) return;
     // make sure we have stuff to install
     if (!m_installList.size()) {
-        return this->postProgress(UpdateStatus::Failed, "Nothing to install", 0);
+        return this->postProgress(
+            UpdateStatus::Failed, "Nothing to install", 0
+        );
     }
     m_installing = true;
-    for (auto& id : m_installList) {
-        std::thread(&InstallTicket::install, this, id).detach();
+    switch (mode) {
+        case InstallMode::Concurrent: {
+            for (auto& id : m_installList) {
+                std::thread(&InstallTicket::install, this, id).detach();
+            }
+        } break;
+
+        case InstallMode::Order: {
+            std::thread([this]() -> void {
+                for (auto& id : m_installList) {
+                    this->install(id);
+                }
+            }).detach();
+        } break;
     }
 }

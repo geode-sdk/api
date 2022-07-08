@@ -17,6 +17,61 @@ static Result<nlohmann::json> readJSON(ghc::filesystem::path const& path) {
     }
 }
 
+static Result<> unzipTo(
+    ghc::filesystem::path const& from,
+    ghc::filesystem::path const& to
+) {
+    // unzip downloaded
+    auto unzip = ZipFile(from.string());
+    if (!unzip.isLoaded()) {
+        return Err("Unable to unzip index.zip");
+    }
+
+    for (auto file : unzip.getAllFiles()) {
+        // this is a very bad check for seeing 
+        // if file is a directory. it seems to 
+        // work on windows at least. idk why 
+        // getAllFiles returns the directories 
+        // aswell now
+        if (
+            string_utils::endsWith(file, "\\") ||
+            string_utils::endsWith(file, "/")
+        ) continue;
+
+        auto zipPath = file;
+
+        // dont include the github repo folder
+        file = file.substr(file.find_first_of("/") + 1);
+
+        auto path = ghc::filesystem::path(file);
+        if (path.has_parent_path()) {
+            if (
+                !ghc::filesystem::exists(to / path.parent_path()) &&
+                !ghc::filesystem::create_directories(to / path.parent_path())
+            ) {
+                return Err(
+                    "Unable to create directories \"" + 
+                    path.parent_path().string() + "\""
+                );
+            }
+        }
+        unsigned long size;
+        auto data = unzip.getFileData(zipPath, &size);
+        if (!data || !size) {
+            return Err("Unable to read \"" + std::string(zipPath) + "\"");
+        }
+        auto wrt = file_utils::writeBinary(
+            to / file,
+            byte_array(data, data + size)
+        );
+        if (!wrt) {
+            return Err("Unable to write \"" + file + "\": " + wrt.error());
+        }
+    }
+
+    return Ok();
+}
+
 
 Index* Index::get() {
     static auto ret = new Index();
@@ -27,6 +82,138 @@ bool Index::isIndexUpdated() const {
     return m_upToDate;
 }
 
+
+void Index::updateIndexThread(bool force) {
+    auto indexDir = Loader::get()->getGeodeDirectory() / "index";
+
+    // download index
+
+#if GITHUB_DONT_RATE_LIMIT_ME_PLS == 0
+
+    indexUpdateProgress(
+        UpdateStatus::Progress, "Fetching index metadata", 0
+    );
+
+    // get all commits in index repo
+    auto commit = fetchJSON(
+        "https://api.github.com/repos/geode-sdk/mods/commits"
+    );
+    if (!commit) {
+        return indexUpdateProgress(UpdateStatus::Failed, commit.error());
+    }
+    auto json = commit.value();
+    if (
+        json.is_object() &&
+        json.contains("documentation_url") &&
+        json.contains("message")
+    ) {
+        // whoops! got rate limited
+        return indexUpdateProgress(
+            UpdateStatus::Failed,
+            json["message"].get<std::string>()
+        );
+    }
+
+    indexUpdateProgress(
+        UpdateStatus::Progress, "Checking index status", 25
+    );
+
+    // read sha of latest commit
+
+    if (!json.is_array()) {
+        return indexUpdateProgress(
+            UpdateStatus::Failed,
+            "Fetched commits, expected 'array', got '" +
+                std::string(json.type_name()) + "'. "
+            "Report this bug to the Geode developers!"
+        );
+    }
+
+    if (!json.at(0).is_object()) {
+        return indexUpdateProgress(
+            UpdateStatus::Failed,
+            "Fetched commits, expected 'array.object', got 'array." +
+                std::string(json.type_name()) + "'. "
+            "Report this bug to the Geode developers!"
+        );
+    }
+
+    if (!json.at(0).contains("sha")) {
+        return indexUpdateProgress(
+            UpdateStatus::Failed,
+            "Fetched commits, missing '0.sha'. "
+            "Report this bug to the Geode developers!"
+        );
+    }
+
+    auto upcomingCommitSHA = json.at(0)["sha"];
+
+    // read sha of currently installed commit
+    std::string currentCommitSHA = "";
+    if (ghc::filesystem::exists(indexDir / "current")) {
+        auto data = file_utils::readString(indexDir / "current");
+        if (data) {
+            currentCommitSHA = data.value();
+        }
+    }
+
+    // update if forced or latest commit has 
+    // different sha
+    if (force || currentCommitSHA != upcomingCommitSHA) {
+        // save new sha in file
+        file_utils::writeString(indexDir / "current", upcomingCommitSHA);
+
+        // download latest commit (by downloading 
+        // the repo as a zip)
+
+        indexUpdateProgress(
+            UpdateStatus::Progress,
+            "Downloading index",
+            50
+        );
+        auto gotZip = fetchFile(
+            "https://github.com/geode-sdk/mods/zipball/main",
+            indexDir / "index.zip"
+        );
+        if (!gotZip) {
+            return indexUpdateProgress(
+                UpdateStatus::Failed,
+                gotZip.error()
+            );
+        }
+
+        // delete old index
+        if (ghc::filesystem::exists(indexDir / "index")) {
+            ghc::filesystem::remove_all(indexDir / "index");
+        }
+
+        auto unzip = unzipTo(indexDir / "index.zip", indexDir);
+        if (!unzip) {
+            return indexUpdateProgress(
+                UpdateStatus::Failed, unzip.error()
+            );
+        }
+    }
+#endif
+
+    // update index
+
+    indexUpdateProgress(
+        UpdateStatus::Progress,
+        "Updating index",
+        75
+    );
+    this->updateIndexFromLocalCache();
+
+    m_upToDate = true;
+    m_updating = false;
+
+    indexUpdateProgress(
+        UpdateStatus::Finished,
+        "",
+        100
+    );
+}
 
 void Index::indexUpdateProgress(
     UpdateStatus status,
@@ -91,172 +278,7 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
 
     // update index in another thread to avoid 
     // pausing UI
-    std::thread updateThread([force, this, indexDir]() -> void {
-        #if GITHUB_DONT_RATE_LIMIT_ME_PLS == 0
-
-        indexUpdateProgress(UpdateStatus::Progress, "Fetching index metadata", 0);
-
-        // get all commits in index repo
-        auto commit = fetchJSON("https://api.github.com/repos/geode-sdk/mods/commits");
-        if (!commit) {
-            return indexUpdateProgress(UpdateStatus::Failed, commit.error());
-        }
-        auto json = commit.value();
-        if (json.is_object() && json.contains("documentation_url") && json.contains("message")) {
-            // whoops! got rate limited
-            return indexUpdateProgress(
-                UpdateStatus::Failed,
-                json["message"].get<std::string>()
-            );
-        }
-
-        indexUpdateProgress(UpdateStatus::Progress, "Checking index status", 25);
-
-        // read sha of latest commit
-
-        if (!json.is_array()) {
-            return indexUpdateProgress(
-                UpdateStatus::Failed,
-                "Fetched commits, expected 'array', got '" + std::string(json.type_name()) + "'. "
-                "Report this bug to the Geode developers!"
-            );
-        }
-
-        if (!json.at(0).is_object()) {
-            return indexUpdateProgress(
-                UpdateStatus::Failed,
-                "Fetched commits, expected 'array.object', got 'array." + std::string(json.type_name()) + "'. "
-                "Report this bug to the Geode developers!"
-            );
-        }
-
-        if (!json.at(0).contains("sha")) {
-            return indexUpdateProgress(
-                UpdateStatus::Failed,
-                "Fetched commits, missing '0.sha'. "
-                "Report this bug to the Geode developers!"
-            );
-        }
-
-        auto upcomingCommitSHA = json.at(0)["sha"];
-
-        // read sha of currently installed commit
-        std::string currentCommitSHA = "";
-        if (ghc::filesystem::exists(indexDir / "current")) {
-            auto data = file_utils::readString(indexDir / "current");
-            if (data) {
-                currentCommitSHA = data.value();
-            }
-        }
-
-        // update if forced or latest commit has 
-        // different sha
-        if (force || currentCommitSHA != upcomingCommitSHA) {
-            // save new sha in file
-            file_utils::writeString(indexDir / "current", upcomingCommitSHA);
-
-            // download latest commit (by downloading 
-            // the repo as a zip)
-
-            indexUpdateProgress(
-                UpdateStatus::Progress,
-                "Downloading index",
-                50
-            );
-            auto gotZip = fetchFile(
-                "https://github.com/geode-sdk/mods/zipball/main",
-                indexDir / "index.zip"
-            );
-            if (!gotZip) {
-                return indexUpdateProgress(
-                    UpdateStatus::Failed,
-                    gotZip.error()
-                );
-            }
-
-            // delete old index
-            if (ghc::filesystem::exists(indexDir / "index")) {
-                ghc::filesystem::remove_all(indexDir / "index");
-            }
-
-            // unzip downloaded
-            auto unzip = ZipFile((indexDir / "index.zip").string());
-            if (!unzip.isLoaded()) {
-                return indexUpdateProgress(
-                    UpdateStatus::Failed,
-                    "Unable to unzip index.zip"
-                );
-            }
-
-            for (auto file : unzip.getAllFiles()) {
-                // this is a very bad check for seeing 
-                // if file is a directory. it seems to 
-                // work on windows at least. idk why 
-                // getAllFiles returns the directories 
-                // aswell now
-                if (
-                    string_utils::endsWith(file, "\\") ||
-                    string_utils::endsWith(file, "/")
-                ) continue;
-
-                auto zipPath = file;
-
-                // dont include the github repo folder
-                file = file.substr(file.find_first_of("/") + 1);
-
-                auto path = ghc::filesystem::path(file);
-                if (path.has_parent_path()) {
-                    if (
-                        !ghc::filesystem::exists(indexDir / path.parent_path()) &&
-                        !ghc::filesystem::create_directories(indexDir / path.parent_path())
-                    ) {
-                        return indexUpdateProgress(
-                            UpdateStatus::Failed,
-                            "Unable to create directories \"" + path.parent_path().string() + "\""
-                        );
-                    }
-                }
-                unsigned long size;
-                auto data = unzip.getFileData(zipPath, &size);
-                if (!data || !size) {
-                    return indexUpdateProgress(
-                        UpdateStatus::Failed,
-                        "Unable to read \"" + std::string(zipPath) + "\""
-                    );
-                }
-                auto wrt = file_utils::writeBinary(
-                    indexDir / file,
-                    byte_array(data, data + size)
-                );
-                if (!wrt) {
-                    return indexUpdateProgress(
-                        UpdateStatus::Failed,
-                        "Unable to write \"" + file + "\": " + wrt.error()
-                    );
-                }
-            }
-        }
-        #endif
-
-        // update index
-
-        indexUpdateProgress(
-            UpdateStatus::Progress,
-            "Updating index",
-            75
-        );
-        this->updateIndexFromLocalCache();
-
-        m_upToDate = true;
-        m_updating = false;
-
-        indexUpdateProgress(
-            UpdateStatus::Finished,
-            "",
-            100
-        );
-    });
-    updateThread.detach();
+    std::thread(&Index::updateIndexThread, this, force).detach();
 }
 
 PlatformID platformFromString(std::string const& str) {
@@ -271,110 +293,131 @@ PlatformID platformFromString(std::string const& str) {
     }
 }
 
+void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
+    if (ghc::filesystem::exists(dir / "index.json")) {
+
+        auto readJson = readJSON(dir / "index.json");
+        if (!readJson) {
+            Log::get() << Severity::Warning
+                << "Error reading index.json: "
+                << readJson.error() << ", skipping";
+            return;
+        }
+        auto json = readJson.value();
+        if (!json.is_object()) {
+            Log::get() << Severity::Warning
+                << "[index.json] is not an object, skipping";
+            return;
+        }
+
+        auto readModJson = readJSON(dir / "mod.json");
+        if (!readModJson) {
+            Log::get() << Severity::Warning
+                << "Error reading mod.json: "
+                << readModJson.error() << ", skipping";
+            return;
+        }
+        auto info = ModInfo::create(readModJson.value());
+        if (!info) {
+            Log::get() << Severity::Warning
+                << info.error() << ", skipping";
+            return;
+        }
+
+        IndexItem item;
+
+        item.m_path = dir;
+        item.m_info = info.value();
+
+        if (json.contains("download") && json["download"].is_object()) {
+            auto download = json["download"];
+            std::set<PlatformID> unsetPlatforms = {
+                PlatformID::Windows,
+                PlatformID::MacOS,
+                PlatformID::iOS,
+                PlatformID::Android,
+                PlatformID::Linux,
+            };
+            for (auto& key : std::initializer_list<std::string> {
+                "windows",
+                "macos",
+                "android",
+                "ios",
+                "*",
+            }) {
+                if (download.contains(key)) {
+                    auto platformDownload = download[key];
+                    if (!platformDownload.is_object()) {
+                        Log::get() << Severity::Warning
+                            << "[index.json].download."
+                            << key
+                            << " is not an object, skipping";
+                        return;
+                    }
+                    if (
+                        !platformDownload.contains("url") ||
+                        !platformDownload["url"].is_string()
+                    ) {
+                        Log::get() << Severity::Warning
+                            << "[index.json].download."
+                            << key
+                            << ".url is not a string, skipping";
+                        return;
+                    }
+                    if (
+                        !platformDownload.contains("name") ||
+                        !platformDownload["name"].is_string()
+                    ) {
+                        Log::get() << Severity::Warning
+                            << "[index.json].download."
+                            << key
+                            << ".name is not a string, skipping";
+                        return;
+                    }
+                    if (
+                        !platformDownload.contains("hash") ||
+                        !platformDownload["hash"].is_string()
+                    ) {
+                        Log::get() << Severity::Warning
+                            << "[index.json].download."
+                            << key
+                            << ".hash is not a string, skipping";
+                        return;
+                    }
+                    IndexItem::Download down;
+                    down.m_url = platformDownload["url"];
+                    down.m_filename = platformDownload["name"];
+                    down.m_hash = platformDownload["hash"];
+                    if (key == "*") {
+                        for (auto& platform : unsetPlatforms) {
+                            item.m_download[platform] = down;
+                        }
+                    } else {
+                        auto id = platformFromString(key);
+                        item.m_download[id] = down;
+                        unsetPlatforms.erase(id);
+                    }
+                }
+            }
+        } else {
+            Log::get() << Severity::Warning
+                << "[index.json] is missing \"download\", adding anyway";
+        }
+
+        m_items.push_back(item);
+
+    } else {
+        Log::get() << Severity::Warning << "Index directory "
+            << dir << " is missing index.json, skipping";
+    }
+}
+
 void Index::updateIndexFromLocalCache() {
     m_items.clear();
     auto indexDir = Loader::get()->getGeodeDirectory() / "index" / "index";
     for (auto const& dir : ghc::filesystem::directory_iterator(indexDir)) {
         if (ghc::filesystem::is_directory(dir)) {
-            if (ghc::filesystem::exists(dir / "index.json")) {
-
-                auto readJson = readJSON(dir / "index.json");
-                if (!readJson) {
-                    Log::get() << Severity::Warning
-                        << "Error reading index.json: "
-                        << readJson.error() << ", skipping";
-                    continue;
-                }
-                auto json = readJson.value();
-                if (!json.is_object()) {
-                    Log::get() << Severity::Warning
-                        << "[index.json] is not an object, skipping";
-                    continue;
-                }
-
-                auto readModJson = readJSON(dir / "mod.json");
-                if (!readModJson) {
-                    Log::get() << Severity::Warning
-                        << "Error reading mod.json: "
-                        << readModJson.error() << ", skipping";
-                    continue;
-                }
-                auto info = ModInfo::create(readModJson.value());
-                if (!info) {
-                    Log::get() << Severity::Warning
-                        << info.error() << ", skipping";
-                    continue;
-                }
-
-                IndexItem item;
-
-                item.m_path = dir.path();
-                item.m_info = info.value();
-
-                if (json.contains("download") && json["download"].is_object()) {
-                    auto download = json["download"];
-                    std::set<PlatformID> unsetPlatforms = {
-                        PlatformID::Windows,
-                        PlatformID::MacOS,
-                        PlatformID::iOS,
-                        PlatformID::Android,
-                        PlatformID::Linux,
-                    };
-                    for (auto& key : std::initializer_list<std::string> {
-                        "windows",
-                        "macos",
-                        "android",
-                        "ios",
-                        "*",
-                    }) {
-                        if (download.contains(key)) {
-                            auto platformDownload = download[key];
-                            if (!platformDownload.is_object()) {
-                                Log::get() << Severity::Warning
-                                    << "[index.json].download." + key + " is not an object, skipping";
-                                continue;
-                            }
-                            if (!platformDownload.contains("url") || !platformDownload["url"].is_string()) {
-                                Log::get() << Severity::Warning
-                                    << "[index.json].download." + key + ".url is not a string, skipping";
-                                continue;
-                            }
-                            if (!platformDownload.contains("name") || !platformDownload["name"].is_string()) {
-                                Log::get() << Severity::Warning
-                                    << "[index.json].download." + key + ".name is not a string, skipping";
-                                continue;
-                            }
-                            if (!platformDownload.contains("hash") || !platformDownload["hash"].is_string()) {
-                                Log::get() << Severity::Warning
-                                    << "[index.json].download." + key + ".hash is not a string, skipping";
-                                continue;
-                            }
-                            IndexItem::Download down;
-                            down.m_url = platformDownload["url"].get<std::string>();
-                            down.m_filename = platformDownload["name"].get<std::string>();
-                            down.m_hash = platformDownload["hash"].get<std::string>();
-                            if (key == "*") {
-                                for (auto& platform : unsetPlatforms) {
-                                    item.m_download[platform] = down;
-                                }
-                            } else {
-                                auto id = platformFromString(key);
-                                item.m_download[id] = down;
-                                unsetPlatforms.erase(id);
-                            }
-                        }
-                    }
-                } else {
-                    Log::get() << Severity::Warning
-                        << "[index.json] is missing \"download\", adding anyway";
-                }
-
-                m_items.push_back(item);
-
-            } else {
-                Log::get() << Severity::Warning << "Index directory "
-                    << dir << " is missing index.json, skipping";
-            }
+            this->addIndexItemFromFolder(dir);
         }
     }
 }
@@ -457,9 +500,10 @@ Result<std::vector<std::string>> Index::checkDependenciesForItem(
             list.pop_back();
             list.pop_back();
             return Err(
-                "This mod or its dependencies <cb>depends</c> on the following "
-                "unknown mods: " + list + ". You will have to manually "
-                "install these mods before you can install this one."
+                "This mod or its dependencies <cb>depends</c> on the "
+                "following unknown mods: " + list + ". You will have "
+                "to manually install these mods before you can install "
+                "this one."
             );
         }
         std::vector<std::string> list = {};
@@ -473,39 +517,51 @@ Result<std::vector<std::string>> Index::checkDependenciesForItem(
     }
 }
 
-Result<InstallTicket*> Index::installItem(
-    IndexItem const& item, ItemInstallCallback progress
+Result<InstallTicket*> Index::installItems(
+    std::vector<IndexItem> const& items,
+    ItemInstallCallback progress
 ) {
-    if (!item.m_download.count(GEODE_PLATFORM_TARGET)) {
-        return Err(
-            "This mod is not available on your "
-            "current platform \"" GEODE_PLATFORM_NAME "\" - Sorry! :("
-        );
+    std::vector<std::string> ids {};
+    for (auto& item : items) {
+        if (!item.m_download.count(GEODE_PLATFORM_TARGET)) {
+            return Err(
+                "This mod is not available on your "
+                "current platform \"" GEODE_PLATFORM_NAME "\" - Sorry! :("
+            );
+        }
+        auto download = item.m_download.at(GEODE_PLATFORM_TARGET);
+        if (!download.m_url.size()) {
+            return Err(
+                "Download URL not set! Report this bug to "
+                "the Geode developers - this should not happen, ever."
+            );
+        }
+        if (!download.m_filename.size()) {
+            return Err(
+                "Download filename not set! Report this bug to "
+                "the Geode developers - this should not happen, ever."
+            );
+        }
+        if (!download.m_hash.size()) {
+            return Err(
+                "Checksum not set! Report this bug to "
+                "the Geode developers - this should not happen, ever."
+            );
+        }
+        auto list = checkDependenciesForItem(item);
+        if (!list) {
+            return Err(list.error());
+        }
+        vector_utils::push(ids, list.value());
     }
-    auto download = item.m_download.at(GEODE_PLATFORM_TARGET);
-    if (!download.m_url.size()) {
-        return Err(
-            "Download URL not set! Report this bug to "
-            "the Geode developers - this should not happen, ever."
-        );
-    }
-    if (!download.m_filename.size()) {
-        return Err(
-            "Download filename not set! Report this bug to "
-            "the Geode developers - this should not happen, ever."
-        );
-    }
-    if (!download.m_hash.size()) {
-        return Err(
-            "Checksum not set! Report this bug to "
-            "the Geode developers - this should not happen, ever."
-        );
-    }
-    auto list = checkDependenciesForItem(item);
-    if (!list) {
-        return Err(list.error());
-    }
-    return Ok(new InstallTicket(this, list.value(), progress));
+    return Ok(new InstallTicket(this, ids, progress));
+}
+
+Result<InstallTicket*> Index::installItem(
+    IndexItem const& item,
+    ItemInstallCallback progress
+) {
+    return this->installItems({ item }, progress);
 }
 
 bool Index::isUpdateAvailableForItem(std::string const& id) const {
@@ -538,125 +594,62 @@ bool Index::areUpdatesAvailable() const {
     return false;
 }
 
-Result<> Index::installUpdates(
+Result<InstallTicket*> Index::installUpdates(
     IndexUpdateCallback callback, bool force
 ) {
     // find items that need updating
-
-    // needs to be allocated on the stack 
-    // so they don't get scope destroyed at the 
-    // end of the function and are still usable 
-    // across the ticket install stuff
-    auto itemsToUpdate = new std::vector<IndexItem>();
+    std::vector<IndexItem> itemsToUpdate {};
     for (auto& item : m_items) {
         if (this->isUpdateAvailableForItem(item)) {
-            itemsToUpdate->push_back(item);
+            itemsToUpdate.push_back(item);
         }
     }
 
-    // mutex is to make sure all the different 
-    // installations happening across threads 
-    // don't cause race conditions on the mutable 
-    // variables
-    auto progressMutex = new std::mutex();
-    auto progresses = new std::unordered_map<std::string, uint8_t>();
-    auto tickets = new std::vector<InstallTicket*>();
-    auto failedInfo = new std::vector<std::string>();
-    auto updated = new std::vector<std::string>();
-
-    // generate tickets
-    for (auto& item : *itemsToUpdate) {
-        auto t = this->installItem(item, [
-            progressMutex, failedInfo, updated, tickets,
-            itemsToUpdate, progresses, item, callback
-        ](
-            InstallTicket* ticket,
+    // generate ticket
+    auto ticket = this->installItems(
+        itemsToUpdate,
+        [itemsToUpdate, callback](
+            InstallTicket*,
             UpdateStatus status,
             std::string const& info,
             uint8_t progress
         ) -> void {
-            progressMutex->lock();
-            // if this ticket failed, save the error 
-            // and remove this ticket from the list 
-            // of tickets
-            if (status == UpdateStatus::Failed) {
-                failedInfo->push_back(item.m_info.m_id + ": " + info);
-                vector_utils::erase(*tickets, ticket);
-                progressMutex->unlock();
-                return;
-            }
-            (*progresses)[item.m_info.m_id] = progress;
-            auto totalProgress = vector_utils::reduce<int, uint8_t>(
-                map_utils::getValues(*progresses),
-                [](int acc, uint8_t prog) { acc += prog; }
-            );
-            auto prog = static_cast<uint8_t>(
-                totalProgress / itemsToUpdate->size()
-            );
-            if (callback) {
-                callback(UpdateStatus::Progress, info, prog);
-            }
-            bool unlockProgress = true;
-            if (status == UpdateStatus::Finished) {
-                vector_utils::erase(*tickets, ticket);
-                updated->push_back(item.m_info.m_name + " (" + item.m_info.m_id + ")");
+            switch (status) {
+                case UpdateStatus::Failed: {
+                    callback(
+                        UpdateStatus::Failed,
+                        "Updating failed: " + info,
+                        0
+                    );
+                } break;
 
-                std::cout << "finished " << item.m_info.m_id << "\n";
-
-                // are all tickets done?
-                if (!tickets->size()) {
-                    if (callback) {
-                        if (failedInfo->size()) {
-                            callback(
-                                UpdateStatus::Failed,
-                                "Some mods failed to update: \n" + 
-                                    vector_utils::join(*failedInfo, "\n") + "\n" + 
-                                (updated->size() ?
-                                    "Updates were succesful for: " +
-                                    vector_utils::join(*updated, "\n") :
-                                    ""
-                                ),
-                                prog
-                            );
-                        } else {
-                            callback(
-                                UpdateStatus::Finished,
-                                "Updated the following mods: " +
-                                    vector_utils::join(*updated, "\n"),
-                                prog
-                            );
-                        }
+                case UpdateStatus::Finished: {
+                    std::string updatedStr = "";
+                    for (auto& item : itemsToUpdate) {
+                        updatedStr += item.m_info.m_name + " (" + 
+                            item.m_info.m_id + ")\n";
                     }
-                    delete updated;
-                    delete failedInfo;
-                    delete tickets;
-                    delete progresses;
-                    delete progressMutex;
-                    delete itemsToUpdate;
-                    unlockProgress = false;
-                }
+                    callback(
+                        UpdateStatus::Finished,
+                        "Updated the following mods: " +
+                        updatedStr +
+                        "Please restart to apply changes.",
+                        100
+                    );
+                } break;
+
+                case UpdateStatus::Progress: {
+                    callback(UpdateStatus::Progress, info, progress);
+                } break;
             }
-            if (unlockProgress) {
-                progressMutex->unlock();
-            }
-        });
-        if (!t) {
-            // make sure we don't leak memory
-            delete updated;
-            delete failedInfo;
-            delete tickets;
-            delete progresses;
-            delete progressMutex;
-            delete itemsToUpdate;
-            return Err(t.error());
         }
-        tickets->push_back(t.value());
+    );
+    if (!ticket) {
+        return Err(ticket.error());
     }
 
-    // start tickets
-    for (auto& ticket : *tickets) {
-        ticket->start();
-    }
+    // install updates concurrently
+    ticket.value()->start(InstallMode::Concurrent);
 
-    return Ok();
+    return ticket;
 }

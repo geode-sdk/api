@@ -20,7 +20,9 @@ static Ref<CCSprite> g_geodeButton = nullptr;
 static void addUpdateIcon(const char* icon = "updates-available.png"_spr) {
 	if (g_geodeButton && Index::get()->areUpdatesAvailable()) {
 		auto updateIcon = CCSprite::createWithSpriteFrameName(icon);
-		updateIcon->setPosition(g_geodeButton->getContentSize() - CCSize { 10.f, 10.f });
+		updateIcon->setPosition(
+			g_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
+		);
 		updateIcon->setZOrder(99);
 		updateIcon->setScale(.5f);
 		g_geodeButton->addChild(updateIcon);
@@ -45,9 +47,6 @@ static void updateModsProgress(
 			.show();
 		addUpdateIcon("updates-failed.png"_spr);
 	}
-
-	std::cout << "update mods progress: " << static_cast<int>(progress) << "%\n";
-	std::cout << "status: " << static_cast<int>(status) << "\n";
 
 	if (status == UpdateStatus::Finished) {
 		g_indexUpdateNotif->hide();
@@ -87,13 +86,33 @@ static void updateIndexProgress(
 		g_indexUpdateNotif = nullptr;
 		if (Index::get()->areUpdatesAvailable()) {
 			if (Mod::get()->getDataStore()["enable-auto-updates"]) {
-				g_indexUpdateNotif = NotificationBuilder()
-					.title("Installing updates")
-					.text("Installing updates...")
-					.loading()
-					.stay()
-					.show();
-				Index::get()->installUpdates(updateModsProgress);
+				auto ticket = Index::get()->installUpdates(updateModsProgress);
+				if (!ticket) {
+					NotificationBuilder()
+						.title("Unable to auto-update")
+						.text("Unable to update mods :(")
+						.icon("updates-failed.png"_spr)
+						.show();
+				} else {
+					g_indexUpdateNotif = NotificationBuilder()
+						.title("Installing updates")
+						.text("Installing updates...")
+						.clicked([ticket](auto) -> void {
+							createQuickPopup(
+								"Cancel Updates",
+								"Do you want to <cr>cancel</c> updates?",
+								"Cancel", "Cancel",
+								[ticket](auto, bool btn2) -> void {
+									if (g_indexUpdateNotif && btn2) {
+										ticket.value()->cancel();
+									}
+								}
+							);
+						}, false)
+						.loading()
+						.stay()
+						.show();
+				}
 			} else {
 				NotificationBuilder()
 					.title("Updates available")

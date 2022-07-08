@@ -62,6 +62,14 @@ namespace geode {
             this->removeFromParentAndCleanup(true);
         }
     };
+
+    void GEODE_API_DLL createQuickPopup(
+        const char* title,
+        std::string const& content,
+        const char* btn1,
+        const char* btn2,
+        std::function<void(FLAlertLayer*, bool)> selected
+    );
 }
 
 

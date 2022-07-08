@@ -17,8 +17,8 @@ namespace geode {
         BottomRight,
     };
 
-    static constexpr const float DEFAULT_NOTIFICATION_TIME = 4.f;
-    static constexpr const NotificationLocation PLATFORM_NOTIFICATION_LOCATION = 
+    static constexpr float DEFAULT_NOTIFICATION_TIME = 4.f;
+    static constexpr NotificationLocation PLATFORM_NOTIFICATION_LOCATION = 
     #ifdef GEODE_IS_DESKTOP 
         NotificationLocation::BottomRight;
     #else
@@ -38,6 +38,7 @@ namespace geode {
         std::function<void(Notification*)> m_callback = nullptr;
         float m_time = DEFAULT_NOTIFICATION_TIME;
         NotificationLocation m_location = PLATFORM_NOTIFICATION_LOCATION;
+        bool m_hideOnClick = true;
 
         inline NotificationBuilder& from(Mod* owner) {
             m_owner = owner;
@@ -85,8 +86,12 @@ namespace geode {
             m_time = .0f;
             return *this;
         }
-        inline NotificationBuilder& clicked(std::function<void(Notification*)> cb) {
+        inline NotificationBuilder& clicked(
+            std::function<void(Notification*)> cb,
+            bool hide = true
+        ) {
             m_callback = cb;
+            m_hideOnClick = hide;
             return *this;
         }
         Notification* show();
@@ -105,9 +110,10 @@ namespace geode {
         cocos2d::CCPoint m_posAtTouchStart;
         NotificationLocation m_location;
         float m_time;
-        bool m_hiding;
+        bool m_hiding = false;
         bool m_clicking;
         bool m_hovered;
+        bool m_hideOnClicked = true;
         float m_targetScale = 1.f;
 
         bool init(
@@ -116,15 +122,22 @@ namespace geode {
             std::string const& text,
             cocos2d::CCNode* icon,
             const char* bg,
-            std::function<void(Notification*)> callback
+            std::function<void(Notification*)> callback,
+            bool hideOnClick
         );
 
         Notification();
         virtual ~Notification();
 
-        bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
-        void ccTouchEnded(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
-        void ccTouchMoved(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+        bool ccTouchBegan(
+            cocos2d::CCTouch* touch, cocos2d::CCEvent* event
+        ) override;
+        void ccTouchEnded(
+            cocos2d::CCTouch* touch, cocos2d::CCEvent* event
+        ) override;
+        void ccTouchMoved(
+            cocos2d::CCTouch* touch, cocos2d::CCEvent* event
+        ) override;
         void registerWithTouchDispatcher() override;
 
         void clicked();
@@ -146,7 +159,8 @@ namespace geode {
             std::string const& text,
             cocos2d::CCNode* icon,
             const char* bg,
-            std::function<void(Notification*)> callback
+            std::function<void(Notification*)> callback,
+            bool hideOnClick
         );
         static NotificationBuilder build();
 
@@ -159,7 +173,9 @@ namespace geode {
 
     class NotificationManager {
     protected:
-        std::unordered_map<NotificationLocation, std::vector<Ref<Notification>>> m_notifications;
+        std::unordered_map<
+            NotificationLocation, std::vector<Ref<Notification>>
+        > m_notifications;
 
         void push(Notification*);
         void pop(Notification*);

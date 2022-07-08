@@ -19,8 +19,12 @@ enum class UpdateStatus {
     Finished,
 };
 
-using ItemInstallCallback = std::function<void(InstallTicket*, UpdateStatus, std::string const&, uint8_t)>;
-using IndexUpdateCallback = std::function<void(UpdateStatus, std::string const&, uint8_t)>;
+using ItemInstallCallback = std::function<void(
+    InstallTicket*, UpdateStatus, std::string const&, uint8_t
+)>;
+using IndexUpdateCallback = std::function<void(
+    UpdateStatus, std::string const&, uint8_t
+)>;
 
 struct IndexItem {
     struct Download {
@@ -118,9 +122,13 @@ protected:
         uint8_t percentage = 0
     );
 
+    void updateIndexThread(bool force);
+    void addIndexItemFromFolder(ghc::filesystem::path const& dir);
     void updateIndexFromLocalCache();
 
-    Result<std::vector<std::string>> checkDependenciesForItem(IndexItem const& item);
+    Result<std::vector<std::string>> checkDependenciesForItem(
+        IndexItem const& item
+    );
 
 public:
     static Index* get();
@@ -129,6 +137,10 @@ public:
     std::vector<IndexItem> getUninstalledItems() const;
     bool isKnownItem(std::string const& id) const;
     IndexItem getKnownItem(std::string const& id) const;
+    Result<InstallTicket*> installItems(
+        std::vector<IndexItem> const& item,
+        ItemInstallCallback progress = nullptr
+    );
     Result<InstallTicket*> installItem(
         IndexItem const& item,
         ItemInstallCallback progress = nullptr
@@ -136,7 +148,10 @@ public:
     bool isUpdateAvailableForItem(std::string const& id) const;
     bool isUpdateAvailableForItem(IndexItem const& item) const;
     bool areUpdatesAvailable() const;
-    Result<> installUpdates(IndexUpdateCallback callback, bool force = false);
+    Result<InstallTicket*> installUpdates(
+        IndexUpdateCallback callback = nullptr,
+        bool force = false
+    );
 
     bool isIndexUpdated() const;
     void updateIndex(IndexUpdateCallback callback, bool force = false);

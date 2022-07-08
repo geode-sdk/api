@@ -38,7 +38,9 @@ static bool isHovered(CCNode* node, CCTouch* touch) {
     return false;
 }
 
-static bool shouldHideNotification(CCTouch* touch, NotificationLocation const& location) {
+static bool shouldHideNotification(
+    CCTouch* touch, NotificationLocation const& location
+) {
     static constexpr const float HIDE_THRESHOLD = 20.f;
     auto dist = touch->getLocation() - touch->getStartLocation();
     switch (location) {
@@ -139,7 +141,9 @@ void Notification::ccTouchEnded(CCTouch* touch, CCEvent* event) {
 void Notification::clicked() {
     if (m_callback) {
         m_callback(this);
-        this->animateOutClicked();
+        if (m_hideOnClicked) {
+            this->animateOutClicked();
+        }
     }
 }
 
@@ -149,13 +153,15 @@ bool Notification::init(
     std::string const& text,
     CCNode* icon,
     const char* bg,
-    std::function<void(Notification*)> callback
+    std::function<void(Notification*)> callback,
+    bool hideOnClick
 ) {
     if (!CCLayer::init())
         return false;
     
     m_owner = owner;
     m_callback = callback;
+    m_hideOnClicked = hideOnClick;
 
     // m_labels is Ref so no need to call 
     // retain manually
@@ -189,7 +195,10 @@ bool Notification::init(
             -m_obContentSize.width / 2 + iconSpace / 2,
             .0f
         });
-        limitNodeSize(m_icon, { iconSpace - 8.f, m_obContentSize.height - 8.f }, 1.f, .1f);
+        limitNodeSize(m_icon,
+            { iconSpace - 8.f, m_obContentSize.height - 8.f },
+            1.f, .1f
+        );
         this->addChild(m_icon);
     }
 
@@ -218,7 +227,9 @@ bool Notification::init(
     }
 
     // fit bg to content
-    m_bg->setContentSize(m_obContentSize / m_bg->getScale() + CCSize { 6.f, 6.f });
+    m_bg->setContentSize(
+        m_obContentSize / m_bg->getScale() + CCSize { 6.f, 6.f }
+    );
     m_bg->setPosition(0, 0);
     m_bg->setZOrder(-1);
     this->addChild(m_bg);
@@ -246,10 +257,13 @@ Notification* Notification::create(
     std::string const& text,
     CCNode* icon,
     const char* bg,
-    std::function<void(Notification*)> callback
+    std::function<void(Notification*)> callback,
+    bool hideOnClick
 ) {
     auto ret = new Notification();
-    if (ret && ret->init(owner, title, text, icon, bg, callback)) {
+    if (ret && ret->init(
+        owner, title, text, icon, bg, callback, hideOnClick
+    )) {
         ret->autorelease();
         return ret;
     }
@@ -412,7 +426,8 @@ Notification* NotificationBuilder::show() {
         if (!icon) icon = CCSprite::createWithSpriteFrameName(m_icon.c_str());
     }
     auto notif = Notification::create(
-        m_owner, m_title, m_text, icon, m_bg.c_str(), m_callback
+        m_owner, m_title, m_text, icon,
+        m_bg.c_str(), m_callback, m_hideOnClick
     );
     notif->show(m_location, m_time);
     return notif;
