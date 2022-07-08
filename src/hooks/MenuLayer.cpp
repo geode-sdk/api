@@ -101,7 +101,7 @@ static void updateIndexProgress(
 							createQuickPopup(
 								"Cancel Updates",
 								"Do you want to <cr>cancel</c> updates?",
-								"Cancel", "Cancel",
+								"Don't Cancel", "Cancel Updates",
 								[ticket](auto, bool btn2) -> void {
 									if (g_indexUpdateNotif && btn2) {
 										ticket.value()->cancel();
