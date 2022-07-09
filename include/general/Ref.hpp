@@ -3,6 +3,22 @@
 #include "../APIMacros.hpp"
 
 namespace geode {
+    /**
+     * A smart pointer to a managed CCObject-deriving class. Retains shared 
+     * ownership over the managed instance. Releases the object when the Ref 
+     * is destroyed, or assigned another object or nullptr.
+     * 
+     * Use-cases include, for example, non-CCNode class members, or nodes that 
+     * are not always in the scene tree.
+     * 
+     * @example class MyNode : public CCNode {
+     * protected:
+     *      // no need to manually call retain or 
+     *      // release on this array; Ref manages it 
+     *      // for you :3
+     *      Ref<CCArray> m_list = CCArray::create();
+     * };
+     */
     template<class T>
     class Ref final {
         static_assert(
@@ -13,6 +29,10 @@ namespace geode {
         T* m_obj = nullptr;
 
     public:
+        /**
+         * Construct a Ref of an object. The object will be retained and 
+         * managed until Ref goes out of scope
+         */
         Ref(T* obj) : m_obj(obj) {
             CC_SAFE_RETAIN(obj);
         }
@@ -20,16 +40,28 @@ namespace geode {
         Ref(Ref<T>&& other) : m_obj(other.m_obj) {
             other.m_obj = nullptr;
         }
+        /**
+         * Construct an empty Ref (the managed object will be null)
+         */
         Ref() = default;
         ~Ref() {
             CC_SAFE_RELEASE(m_obj);
         }
 
+        /**
+         * Swap the managed object with another object. The managed object 
+         * will be released, and the new object retained
+         * @param other The new object to swap to
+         */
         void swap(T* other) {
             CC_SAFE_RELEASE(m_obj);
             m_obj = other;
             CC_SAFE_RETAIN(other);
         }
+        /**
+         * Return the managed object
+         * @returns The managed object
+         */
         T* data() const {
             return m_obj;
         }
